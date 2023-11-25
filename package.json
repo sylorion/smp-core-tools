@@ -1,0 +1,30 @@
+{
+  "name": "smp-core-tools",
+  "version": "1.0.0",
+  "description": "Usefull functions and objects for most micro-services for the services market place back-end",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha './tests/**/*.spec.js'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sylorion/smp-core-tools.git"
+  },
+  "keywords": [
+    "core",
+    "tools",
+    "utils",
+    "smp",
+    "functions",
+    "helper",
+    "usefull",
+    "back-end",
+    "backend"
+  ],
+  "author": "Sylorion SAS",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/sylorion/smp-core-tools/issues"
+  },
+  "homepage": "https://github.com/sylorion/smp-core-tools#readme"
+}
