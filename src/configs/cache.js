@@ -10,12 +10,10 @@ let getAsync
 let setAsync
 let promiseClient
 if (appConfig.envExc !== 'dev'){
-  console.error("NOT IMPLETED YET FOR PRODUCTION");
+
   getAsync = null;
   setAsync = null;
 } else {
-  console.log("REDIS CLIENT ACTIVATION");
-
   client = redis.createClient({
     host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
     port: cacheConfig.port, // le port du serveur Redis ex. 6379
@@ -28,8 +26,6 @@ if (appConfig.envExc !== 'dev'){
   }
   );
 
-  console.log(client);
-
   function connectionEstablished() {
     logger.info('Connected to Redis at ' + cacheConfig.host + ':' + cacheConfig.port);
   }
@@ -40,7 +36,7 @@ if (appConfig.envExc !== 'dev'){
 
   client.on('error', errorThrowing);
   client.on('connect', connectionEstablished) ;
-  promiseClient = client.connect() ;
+  promiseClient = () => client.connect() ;
   getAsync      = promisify(client.get).bind(client);
   setAsync      = promisify(client.set).bind(client);
 }
