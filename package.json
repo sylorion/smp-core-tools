@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Usefull functions and objects for most micro-services for the services market place back-end",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "mocha './tests/**/*.spec.js'"
   },
@@ -26,5 +27,47 @@
   "bugs": {
     "url": "https://github.com/sylorion/smp-core-tools/issues"
   },
-  "homepage": "https://github.com/sylorion/smp-core-tools#readme"
+  "homepage": "https://github.com/sylorion/smp-core-tools#readme",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.7",
+    "@grpc/proto-loader": "^0.7.10",
+    "@malijs/logger": "^0.6.0",
+    "@malijs/onerror": "^0.3.1",
+    "aigle": "^1.14.1",
+    "argon2": "^0.31.1",
+    "async-redis": "^2.0.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "compression": "^1.7.4",
+    "core-js": "^3.33.1",
+    "cors": "^2.8.5",
+    "dataloader": "^2.2.2",
+    "glob": "^10.3.10",
+    "graphql-kafka-subscriptions": "^0.4.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-yoga": "^5.0.0",
+    "grpc-health-check": "^2.0.0",
+    "helmet": "^7.0.0",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "kafka-node": "^5.0.0",
+    "kafkajs": "^2.2.4",
+    "lodash": "^4.17.21",
+    "mali": "^0.47.1",
+    "mongoose": "^7.6.3",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "pg-native": "^3.0.1",
+    "pino": "^8.16.0",
+    "redis": "^4.6.10",
+    "sequelize": "^6.33.0",
+    "sequelize-cursor-pagination": "^3.4.0",
+    "smp-core-schema": "git+https://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@github.com/sylorion/smp-core-schema.git",
+    "smp-core-tools": "git+https://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@github.com/sylorion/smp-core-tools.git",
+    "smp-gql-schema": "git+https://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@github.com/sylorion/smp-gql-schema.git",
+    "subscriptions-transport-ws": "^0.11.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  }
 }
