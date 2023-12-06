@@ -58,15 +58,15 @@ let timestampDB
 let usernameDB    
 try {
   freezeTableDB = fs.readFileSync(secretPath + "db_freezed_table_name", 'utf8').trim();
-  hostDB = fs.readFileSync(secretPath + "ussp_db_host", 'utf8').trim();
-  nameDB = fs.readFileSync(secretPath + "ussp_db_name", 'utf8').trim();
+  hostDB = fs.readFileSync(process.env.DATABASE_HOST_FILE, 'utf8').trim();
+  nameDB = fs.readFileSync(process.env.DATABASE_DB_FILE, 'utf8').trim();
   paranoidDB = fs.readFileSync(secretPath + "db_paranoid", 'utf8').trim();
-  portDB = fs.readFileSync(secretPath + "ussp_db_port", 'utf8').trim();
-  pswdDB = fs.readFileSync(secretPath + "ussp_db_pswd", 'utf8').trim();
+  portDB = fs.readFileSync(process.env.POSTGRES_PORT_FILE, 'utf8').trim();
+  pswdDB = fs.readFileSync(process.env.DATABASE_PASSWORD_FILE, 'utf8').trim();
   schemaDB = fs.readFileSync(secretPath + "db_schema", 'utf8').trim();
   syncDB = fs.readFileSync(secretPath + "db_sync", 'utf8').trim();
   timestampDB = fs.readFileSync(secretPath + "db_timestamp", 'utf8').trim();
-  usernameDB = fs.readFileSync(secretPath + "ussp_db_username", 'utf8').trim();  
+  usernameDB = fs.readFileSync(process.env.DATABASE_USER_FILE, 'utf8').trim();  
 } catch (error) {
   console.error("Unable to read secret files from the env module\nHOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
 }
