@@ -112,7 +112,7 @@ const requestServerSpelling = serviceFullName + " " + providedServiceType + " " 
 
 const appConfig = {
   envExc: env,
-  apiPort: process.env.SMP_SERVICE_API_PORT ?? 4000,
+  apiPort: process.env.SMP_MU_SERVICE_API_PORT ?? 4000,
   verbose: debug,
   version: providedServiceVersion,
   componentType: componentType,
