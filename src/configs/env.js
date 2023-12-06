@@ -11,6 +11,8 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
   env = process.env.NODE_ENV
 }
 
+const isDevelopmentEnv  = end === 'dev'
+const isProductionEnv   = end === 'prod' 
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 function computeVerbosityLevel(debug) {
@@ -129,4 +131,4 @@ const appConfig = {
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
 }
 
-export { appConfig, gRPCConfig, dbConfig, cacheConfig };
+export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv };

@@ -26,5 +26,7 @@ export { appConfig, gRPCConfig, dbConfig, cacheConfig } from './src/configs/env.
 export { getRequestLogger, logger } from './src/configs/logger.js';
 export { generateUserToken, generateAppToken, 
     hashKeyWithArgon, verifyKeyWithArgon, 
-    getUserFromToken, geyAppFromToken } from './src/utils/authentication.js';
+    getUserFromToken, geyAppFromToken,  } from './src/utils/authentication.js';
 
+export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
+export { slug, uuid } from './src/utils/entityBuilder.js'
