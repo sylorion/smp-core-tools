@@ -69,6 +69,7 @@ try {
   usernameDB = fs.readFileSync(process.env.DATABASE_USER_FILE, 'utf8').trim();  
 } catch (error) {
   console.error("Unable to read secret files from the env module\nHOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
+  console.error(error)
 }
 
 const dbConfig = {
