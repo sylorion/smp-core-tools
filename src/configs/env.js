@@ -106,7 +106,7 @@ const providedServiceType = 'API';
 const componentName = "Authentication"
 const componentGroupTrigram   = "smp"
 const componentType = "µ-service" // could be a worker, job, batch, deamon, service, and so on
-const componentShortName = "ussp"
+const componentShortName = process.env.SMP_MU_SERVICE_SHORTNAME ?? "ussp"
 const serviceFullTag = componentGroupTrigram + tagFormationSep + componentType + tagFormationSep + componentShortName
 const requestServerSpelling = serviceFullName + " " + providedServiceType + " " + providedServiceVersion;
 
