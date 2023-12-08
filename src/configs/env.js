@@ -1,6 +1,6 @@
 // src/configs/infraConfig.js
 import fs from 'fs';
-const secretPath = '/run/secrets/';
+const secretPath = (new String(process.env.SMP_ROOT_SECRET_FILE ?? '/run/secrets/')).toString();
 
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
