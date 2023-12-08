@@ -60,15 +60,15 @@ let timestampDB
 let usernameDB    
 try {
   // freezeTableDB = fs.readFileSync(secretPath + "db_freezed_table_name", 'utf8').trim();
+  usernameDB = fs.readFileSync((new String(process.env.DATABASE_USER_FILE)).toString(), 'utf8').trim();  
   hostDB = fs.readFileSync((new String(process.env.DATABASE_HOST_FILE)).toString() , 'utf8').trim();
-  nameDB = fs.readFileSync((new String(process.env.DATABASE_DB_FILE)).toString(), 'utf8').trim();
-  paranoidDB = fs.readFileSync(secretPath + "db_paranoid", 'utf8').trim();
-  portDB = fs.readFileSync((new String(process.env.POSTGRES_PORT_FILE)).toString(), 'utf8').trim();
+  portDB = fs.readFileSync((new String(process.env.DATABASE_PORT_FILE)).toString(), 'utf8').trim();
   pswdDB = fs.readFileSync((new String(process.env.DATABASE_PASSWORD_FILE)).toString(), 'utf8').trim();
+  nameDB = fs.readFileSync((new String(process.env.DATABASE_DB_FILE)).toString(), 'utf8').trim();
+  timestampDB = fs.readFileSync(secretPath + "db_timestamp", 'utf8').trim();
+  paranoidDB = fs.readFileSync(secretPath + "db_paranoid", 'utf8').trim();
   schemaDB = fs.readFileSync(secretPath + "db_schema", 'utf8').trim();
   syncDB = fs.readFileSync(secretPath + "db_sync", 'utf8').trim();
-  timestampDB = fs.readFileSync(secretPath + "db_timestamp", 'utf8').trim();
-  usernameDB = fs.readFileSync((new String(process.env.DATABASE_USER_FILE)).toString(), 'utf8').trim();  
 } catch (error) {
   console.error("Unable to read secret files from the env module\nHOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
   console.error(error)
@@ -81,7 +81,7 @@ const dbConfig = {
   user: process.env.DB_USERNAME || (usernameDB ?? 'services_bb_uspace_db_u'),
   password: process.env.DB_PASSWORD || (pswdDB ?? 'bb_uspace_db_u_pswd'),
   name: process.env.DB_DATABASE || (nameDB ?? 'services_uspace_db'),
-    schema: process.env.DB_SCHEMA || (schemaDB ?? 'public'),
+  schema: process.env.DB_SCHEMA || (schemaDB ?? 'public'),
   sync: process.env.DB_SYNC === (syncDB ?? 'true'),
   paranoid: paranoidDB ?? true,
   timestamp: timestampDB ?? true,
@@ -93,7 +93,7 @@ const dbConfig = {
 // Cache System Config Object
 //
 const cacheConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
+  host: process.env.REDIS_HOST  || 'localhost',
   port: parseInt(`${process.env.REDIS_PORT || '6379'}`, 10),
   password: process.env.REDIS_PASSWORD || undefined
 }
