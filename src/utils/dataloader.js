@@ -77,18 +77,17 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
-    context.logger.info( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
+    context.logger.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
     const options = {
       offset,
       limit,
       order: orderClause,
       where: whereClause,
-      logging: (msg) => context.logger.info(msg)
+      logging: (msg) => context.logger.debug(msg)
     }
 
     const entities = await cb(options)
-    if (entities.length > 0) {
-      context.logger.info(entities)
+    if (entities.length > 0) { 
       span.setStatus({ code: SpanStatusCode.OK })
       span.end();
       return { data: entities, errors: [] };
@@ -111,35 +110,9 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
 ///!\ HARMFULL FUNCTION EXPERT USE ONLY
 async function unavigableEntityList(context, cb, filters = []) {
   const span = trace.getTracer('default').startSpan('unavigableEntityList');
-  try {
-    let flts = []
-    if (Array.isArray(filters)) {
-      flts = filters
-    }
-    const whereClause = buildWhereClause(flts); 
-    const options = { 
-      where: whereClause,
-      logging: (msg) => context.logger.info(msg)
-    }
-
-    const entities = await cb(options)
-    if (entities.length > 0) {
-      context.logger.info(entities)
-      span.setStatus({ code: SpanStatusCode.OK })
-      span.end();
-      return { data: entities, errors: [] };
-    } else {
-      const msgErr = 'unavigableEntityList:: No listing found.';
-      span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-      span.end();
-      return handleError(context, msgErr);
-    }
-  } catch (error) {
-    const msgErr = "unavigableEntityList:: " + error;
-    span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-    span.end();
-    return handleError(context, msgErr);
-  }
+  span.setStatus({ code: SpanStatusCode.OK })
+  span.end();
+  return navigateEntityList(context, cb, {}, {}, filters)
 }
 
 export { 
