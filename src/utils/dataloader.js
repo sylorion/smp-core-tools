@@ -70,7 +70,11 @@ function handleError(context, error = "Unexpeted error", field = "", code = -1) 
 async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
   const span = trace.getTracer('default').startSpan('navigateEntityList');
   try {
-    const whereClause = buildWhereClause(filters); 
+    let flts = []
+    if (Array.isArray(filters)) {
+      flts = filters
+    }
+    const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
     context.logger.info( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
