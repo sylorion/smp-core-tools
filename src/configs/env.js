@@ -11,8 +11,8 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
   env = process.env.NODE_ENV
 }
 
-const isDevelopmentEnv  = env === 'dev'
-const isProductionEnv   = env === 'prod' 
+const isDevelopmentEnv  = (env === 'dev')
+const isProductionEnv   = (env === 'prod')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 function computeVerbosityLevel(debug) {
