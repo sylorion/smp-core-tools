@@ -108,7 +108,11 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
 async function unavigableEntityList(context, cb, filters = []) {
   const span = trace.getTracer('default').startSpan('unavigableEntityList');
   try {
-    const whereClause = buildWhereClause(filters); 
+    let flts = []
+    if (Array.isArray(filters)) {
+      flts = filters
+    }
+    const whereClause = buildWhereClause(flts); 
     const options = { 
       where: whereClause,
       logging: (msg) => context.logger.info(msg)
