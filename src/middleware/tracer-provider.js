@@ -11,39 +11,51 @@ import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { OTLPTraceExporter as OTLPTracerExportGRPC } from '@opentelemetry/exporter-trace-otlp-grpc';
 
 import { OTLPTraceExporter as OTLPTracerExportHTTP } from '@opentelemetry/exporter-trace-otlp-http';
+import { appConfig } from "../configs/env.js";
 // Configuration du fournisseur de traçage
 const provider = new NodeTracerProvider({
     resource: new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: "smp-ussp-service",
     }),
 });
+
 let otlpExporter = {}
 if (process.env.OTL_TRACE_DEFAULT_PROTOCOL === 'grpc') {
-
     otlpExporter = new OTLPTracerExportGRPC({
-        serviceName: "smp-ussp",
+        serviceName: appConfig.componentName,
         url: process.env.OTL_EXPORTER_COLLECTOR_HOST // URL du collecteur 
     });
 
 } else {
      
     otlpExporter = new OTLPTracerExportHTTP({
-        hostname: "smp-ussp",
+        hostname: appConfig.componentName,
         url: process.env.OTL_EXPORTER_COLLECTOR_HOST // URL du collecteur 
     });
 
 }
 // Configuration de l'exportateur OTLP
-
 provider.addSpanProcessor(new BatchSpanProcessor(otlpExporter));
 
 provider.register();
 
-registerInstrumentations({
-    instrumentations: [
-        new HttpInstrumentation(),
-        new ExpressInstrumentation(),
-        // new MongoDBInstrumentation(),
-    ],
-    tracerProvider: provider,
-});
+function instrumentationsRegistration(options = {}) {
+    if (options && options.instrumentations && Array.isArray(options.instrumentations)) {
+        options.instrumentations.push(new HttpInstrumentation())
+        options.instrumentations.push(new ExpressInstrumentation())
+        registerInstrumentations(...options, ...{
+            tracerProvider: provider,
+        });        
+    } else {
+        registerInstrumentations(...options, ...{
+            instrumentations: [
+                new HttpInstrumentation(),
+                new ExpressInstrumentation(),
+                // new MongoDBInstrumentation(),
+            ],
+            tracerProvider: provider,
+        });  
+    }
+}
+
+export { instrumentationsRegistration  }

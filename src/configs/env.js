@@ -102,14 +102,14 @@ console.log(cacheConfig)
 //
 // App Config Object
 //
-const tagFormationSep = "::"
-const serviceFullName = 'Services Gateway';
+const tagFormationSep = ":"
+const serviceFullName = process.env.SMP_MU_SERVICE_NAME ?? "Unkown";
 const providedServiceVersion = 'V1';
 const providedServiceType = 'API';
-const componentName = "Authentication"
+const componentName = process.env.SMP_MU_SERVICE_NAME ?? "Unkown"
 const componentGroupTrigram   = "smp"
 const componentType = "µ-service" // could be a worker, job, batch, deamon, service, and so on
-const componentShortName = process.env.SMP_MU_SERVICE_SHORTNAME ?? "ussp"
+const componentShortName = process.env.SMP_MU_SERVICE_SHORTNAME ?? "unkm"
 const serviceFullTag = componentGroupTrigram + tagFormationSep + componentType + tagFormationSep + componentShortName
 const requestServerSpelling = serviceFullName + " " + providedServiceType + " " + providedServiceVersion;
 
