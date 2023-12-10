@@ -45,17 +45,18 @@ function instrumentationsRegistration(options = {}) {
         options.instrumentations.push(new ExpressInstrumentation())
         registerInstrumentations(...options, ...{
             tracerProvider: provider,
-        });        
+        });
     } else {
-        registerInstrumentations(...options, ...{
-            instrumentations: [
-                new HttpInstrumentation(),
-                new ExpressInstrumentation(),
-                // new MongoDBInstrumentation(),
-            ],
-            tracerProvider: provider,
-        });  
+        registerInstrumentations({
+            ...options, ...{
+                instrumentations: [
+                    new HttpInstrumentation(),
+                    new ExpressInstrumentation(),
+                    // new MongoDBInstrumentation(),
+                ],
+                tracerProvider: provider,
+            }
+        });
     }
 }
-
 export { instrumentationsRegistration  }
