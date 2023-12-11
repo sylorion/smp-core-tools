@@ -69,6 +69,7 @@
     "pg-hstore": "^2.3.4",
     "pg-native": "^3.0.1",
     "pino": "^8.16.0",
+    "opentelemetry-instrumentation-express": "^0.40.0",
     "redis": "^4.6.10",
     "sequelize": "^6.33.0",
     "sequelize-cursor-pagination": "^3.4.0",
