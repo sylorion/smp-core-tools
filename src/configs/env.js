@@ -70,8 +70,9 @@ try {
   schemaDB = fs.readFileSync(secretPath + "db_schema", 'utf8').trim();
   syncDB = fs.readFileSync(secretPath + "db_sync", 'utf8').trim();
 } catch (error) {
-  console.error("Unable to read secret files from the env module\nHOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
+  console.error("Unable to read secret files from the env module")
   console.error(error)
+  console.error("HOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
 }
 
 const dbConfig = {
