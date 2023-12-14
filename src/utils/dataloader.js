@@ -62,9 +62,9 @@ function buildPaginationClause(pagination) {
 // Fonction utilitaire pour gérer les erreurs lors de chargement de données
 function handleError(context, error = "Unexpeted error", field = "", code = -1) {
   context.logger.error(error + ' (code : '+ code +')');
-  return { data: [], errors: [{ message: error, field: field, code: code }] };
+  // Before returning the exception class
+  return []
 }
-
 
 // Fonction générique pour naviguer dans la liste des entités
 async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
@@ -90,18 +90,20 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
     if (entities.length > 0) { 
       span.setStatus({ code: SpanStatusCode.OK })
       span.end();
-      return { data: entities, errors: [] };
+      return entities;
     } else {
       const msgErr = 'navigateEntityList:: No listing found.' ; 
+      const retVal = handleError(context, msgErr);
       span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
       span.end();
-      return handleError(context, msgErr);
+      return retVal
     }
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
+    const retVal = handleError(context, msgErr);
     span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
     span.end();
-    return handleError(context, msgErr);
+    return retVal
   }
 }
 
@@ -110,9 +112,10 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
 ///!\ HARMFULL FUNCTION EXPERT USE ONLY
 async function unavigableEntityList(context, cb, filters = []) {
   const span = trace.getTracer('default').startSpan('unavigableEntityList');
+  const data = navigateEntityList(context, cb, {}, {}, filters)
   span.setStatus({ code: SpanStatusCode.OK })
   span.end();
-  return navigateEntityList(context, cb, {}, {}, filters)
+  return data
 }
 
 export { 
