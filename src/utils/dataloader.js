@@ -6,7 +6,7 @@ import { Sequelize, DataTypes, Op }  from 'sequelize';
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
 import{ trace, SpanStatusCode } from '@opentelemetry/api';
 
-function addingLoggingContext(workerOptions, context) {
+function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
   return {...workerOptions, ...additionnalOptions}
 }
@@ -78,13 +78,12 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
     context.logger.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
-    const options = {
+    const options = appendLoggingContext({
       offset,
       limit,
       order: orderClause,
       where: whereClause,
-      logging: (msg) => context.logger.debug(msg)
-    }
+    }, context)
 
     const entities = await cb(options)
     if (entities.length > 0) { 
@@ -110,6 +109,7 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
 
 // Fonction générique pour naviguer dans la liste des entités sans limite
 ///!\ HARMFULL FUNCTION EXPERT USE ONLY
+/// HOW to make this API Private to internal ?
 async function unavigableEntityList(context, cb, filters = []) {
   const span = trace.getTracer('default').startSpan('unavigableEntityList');
   const data = navigateEntityList(context, cb, {}, {}, filters)
@@ -123,5 +123,5 @@ export {
   buildOrderClause,
   buildPaginationClause,
   handleError, unavigableEntityList,
-  navigateEntityList, addingLoggingContext
+  navigateEntityList, appendLoggingContext
 }

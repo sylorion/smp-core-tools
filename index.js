@@ -18,7 +18,7 @@ export {
     buildOrderClause,
     buildPaginationClause,
     handleError, unavigableEntityList,
-    navigateEntityList, addingLoggingContext
+    navigateEntityList, appendLoggingContext
 } from './src/utils/dataloader.js'
 
 export { kafka } from './src/configs/event.js';
