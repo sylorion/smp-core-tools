@@ -6,7 +6,7 @@ import { Sequelize, DataTypes, Op }  from 'sequelize';
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
 import{ trace, SpanStatusCode } from '@opentelemetry/api';
 
-function addingLoggingContext(workerOptions, context) {
+function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
   return {...workerOptions, ...additionnalOptions}
 }
@@ -59,12 +59,6 @@ function buildPaginationClause(pagination) {
   const ret = {limit: limit, offset: offset};
   return ret;
 }
-// Fonction utilitaire pour gérer les erreurs lors de chargement de données
-function handleError(context, error = "Unexpeted error", field = "", code = -1) {
-  context.logger.error(error + ' (code : '+ code +')');
-  return { data: [], errors: [{ message: error, field: field, code: code }] };
-}
-
 
 // Fonction générique pour naviguer dans la liste des entités
 async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
@@ -78,47 +72,46 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
     context.logger.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
-    const options = {
+    const options = appendLoggingContext({
       offset,
       limit,
       order: orderClause,
       where: whereClause,
-      logging: (msg) => context.logger.debug(msg)
-    }
-
+    }, context)
+    let msgErr
     const entities = await cb(options)
-    if (entities.length > 0) { 
-      span.setStatus({ code: SpanStatusCode.OK })
-      span.end();
-      return { data: entities, errors: [] };
-    } else {
-      const msgErr = 'navigateEntityList:: No listing found.' ; 
-      span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-      span.end();
-      return handleError(context, msgErr);
+    if (entities.length == 0) { 
+      msgErr = 'navigateEntityList:: No listing found.';
+      context.logger.error(msgErr); 
     }
+    span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
+    span.end();
+    return entities
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
+    context.logger.error(msgErr);
     span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
     span.end();
-    return handleError(context, msgErr);
+    throw new DBaseAccesError('Database Acces Error navigateEntityList:: ', 'DB_ACCES_ERR_002')
   }
 }
 
 
 // Fonction générique pour naviguer dans la liste des entités sans limite
 ///!\ HARMFULL FUNCTION EXPERT USE ONLY
+/// HOW to make this API Private to internal ?
 async function unavigableEntityList(context, cb, filters = []) {
   const span = trace.getTracer('default').startSpan('unavigableEntityList');
+  const data = navigateEntityList(context, cb, {}, {}, filters)
   span.setStatus({ code: SpanStatusCode.OK })
   span.end();
-  return navigateEntityList(context, cb, {}, {}, filters)
+  return data
 }
 
 export { 
   buildWhereClause,
   buildOrderClause,
   buildPaginationClause,
-  handleError, unavigableEntityList,
-  navigateEntityList, addingLoggingContext
+  unavigableEntityList,
+  navigateEntityList, appendLoggingContext
 }
