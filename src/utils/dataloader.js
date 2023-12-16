@@ -59,12 +59,6 @@ function buildPaginationClause(pagination) {
   const ret = {limit: limit, offset: offset};
   return ret;
 }
-// Fonction utilitaire pour gérer les erreurs lors de chargement de données
-function handleError(context, error = "Unexpeted error", field = "", code = -1) {
-  context.logger.error(error + ' (code : '+ code +')');
-  // Before returning the exception class
-  return []
-}
 
 // Fonction générique pour naviguer dans la liste des entités
 async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
@@ -84,25 +78,21 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
       order: orderClause,
       where: whereClause,
     }, context)
-
+    let msgErr
     const entities = await cb(options)
-    if (entities.length > 0) { 
-      span.setStatus({ code: SpanStatusCode.OK })
-      span.end();
-      return entities;
-    } else {
-      const msgErr = 'navigateEntityList:: No listing found.' ; 
-      const retVal = handleError(context, msgErr);
-      span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-      span.end();
-      return retVal
+    if (entities.length == 0) { 
+      msgErr = 'navigateEntityList:: No listing found.';
+      context.logger.error(msgErr); 
     }
+    span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
+    span.end();
+    return entities
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
-    const retVal = handleError(context, msgErr);
+    context.logger.error(msgErr);
     span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
     span.end();
-    return retVal
+    throw new DBaseAccesError('Database Acces Error navigateEntityList:: ', 'DB_ACCES_ERR_002')
   }
 }
 
@@ -122,6 +112,6 @@ export {
   buildWhereClause,
   buildOrderClause,
   buildPaginationClause,
-  handleError, unavigableEntityList,
+  unavigableEntityList,
   navigateEntityList, appendLoggingContext
 }

@@ -16,8 +16,8 @@ export {
 export {
     buildWhereClause,
     buildOrderClause,
-    buildPaginationClause,
-    handleError, unavigableEntityList,
+    buildPaginationClause, 
+    unavigableEntityList,
     navigateEntityList, appendLoggingContext
 } from './src/utils/dataloader.js'
 
