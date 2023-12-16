@@ -52,6 +52,13 @@ class WorkflowValidationError extends SMPError {
   }
 }
 
+// Classe spécifique d'exception pour une erreur de validation des procédure
+class UserInputDataValidationError extends DataValidationError {
+  constructor(message = 'User Input Validation Error ', code = 'UIDVALIDATION_ERR_001') {
+    super(message, code);
+  }
+}
+
 export {SMPError, DBaseAccesError, AuthenticationError, 
-  ExternalAPIAccesError, InternalAPIAccesError, 
+  ExternalAPIAccesError, InternalAPIAccesError, UserInputDataValidationError, 
   DataValidationError, WorkflowValidationError};

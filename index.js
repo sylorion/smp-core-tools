@@ -33,4 +33,4 @@ export { slug, uuid } from './src/utils/entityBuilder.js'
 export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
-    DataValidationError, WorkflowValidationError } from './src/utils/SMPError.js'
+    DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
