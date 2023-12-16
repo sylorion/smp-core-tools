@@ -51,3 +51,7 @@ class WorkflowValidationError extends SMPError {
     super(message, code);
   }
 }
+
+export {SMPError, DBaseAccesError, AuthenticationError, 
+  ExternalAPIAccesError, InternalAPIAccesError, 
+  DataValidationError, WorkflowValidationError};
