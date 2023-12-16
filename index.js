@@ -30,3 +30,7 @@ export { generateUserToken, generateAppToken,
 export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
 export { slug, uuid } from './src/utils/entityBuilder.js'
+export {
+    SMPError, DBaseAccesError, AuthenticationError,
+    ExternalAPIAccesError, InternalAPIAccesError,
+    DataValidationError, WorkflowValidationError } from './src/utils/SMPError.js'
