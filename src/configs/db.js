@@ -43,7 +43,7 @@ const operatorsAliases = {
   _values: Op.values
 }
 
-const db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
+let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
   {
   dialect: dbConfig.dialect,
   host: 'localhost', // We know that the port is indicated for the local host
@@ -60,29 +60,52 @@ const db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
 })
 
 db.authenticate().then(() => {
-  logger.info('Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
+  logger.info('0. Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
 }).catch((error) => {
-  logger.error('Unable to connect to the database localhost port ' + db.options.port + ': ', error);
-  logger.info('Does the database is reachable from the configured hostname for port 5432 ?');
-  // Try to change the port
-  db.options.port = 5432
-  // Try to change the host to containered hostname
-  db.options.host = dbConfig.host
+  logger.error('0. Unable to connect to the database localhost port ' + db.options.port + ': ', error);
+  db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
+    {
+      dialect: dbConfig.dialect,
+      host: dbConfig.host, // We know that the port is indicated for the local host
+      port: 5432,
+      logging: appConfig.env !== 'dev' ? logger.info.bind(logger) : false,
+      schema: dbConfig.schema,
+      benchmark: true,
+      retry: {
+        max: 3,
+        typeValidation: true
+      },
+      native: true,
+      operatorsAliases
+    })
+  logger.info('0. Does the database is reachable from the configured hostname (' + db.options.host + ') for port : ' + db.options.port + '?');
   db.authenticate().then(() => {
-    logger.info('Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
+    logger.info('1. Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
   }).catch((error) => {
-    logger.error('Unable to connect to the database ' + db.options.host + ' port ' + db.options.port + ': ', error);
-    logger.info('Does the database is reachable from the defined original hostname and port ?');
-    db.options.host = dbConfig.host
-    db.options.port = dbConfig.port
+    logger.error('1. Unable to connect to the database ' + db.options.host + ' port ' + db.options.port + ': ', error);
+    db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
+      {
+        dialect: dbConfig.dialect,
+        host: dbConfig.host, // We know that the port is indicated for the local host
+        port: dbConfig.port,
+        logging: appConfig.env !== 'dev' ? logger.info.bind(logger) : false,
+        schema: dbConfig.schema,
+        benchmark: true,
+        retry: {
+          max: 3,
+          typeValidation: true
+        },
+        native: true,
+        operatorsAliases
+      })
+    logger.info('1. Does the database is reachable from the defined original hostname (' + db.options.host + ')  and port : ' + db.options.port + '?');
     db.authenticate().then(() => {
-      logger.info('Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
+      logger.info('2. Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
     }).catch((error) => {
-      logger.error('Unable to connect to the database ' + db.options.host + ' port ' + db.options.port + ': ', error);
-      logger.error('Please configure your links and reboot');
+      logger.error('2. Unable to connect to the database ' + db.options.host + ' port ' + db.options.port + ': ', error);
+      logger.error('2. Please configure your links and reboot');
     });
   });
-  
 });
 
 export { db };
