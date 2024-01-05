@@ -54,7 +54,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
     try {
         const entity = await mEntity.update({ ...newEntity, ...dbOptions });
         if (entity) {
-            pubsub.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
+            pubsub.publish(entityContext.entityUpdateTopic, entityContext.entityUpdateTopicFn(entity));
             appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${entity}`);
         } else {
             // Should not happen du to throwing error on update faillure
