@@ -3,7 +3,7 @@
 // const { slugify } = require('slugify');
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
-import appendLoggingContext from '../utils/dataloader.js'
+import {appendLoggingContext} from '../utils/dataloader.js'
 import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
 import { PubSub } from 'graphql-subscriptions';
