@@ -6,7 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-
+.DS_Store
+./**/.DS_Store
+mu-user-space/package-lock.json
+./mu-catalog/package-lock.json
+**/**/package-lock.json
+./package-lock.json
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -129,7 +134,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 # Data 
-./data
+/data
 ./data/*
+/data/**/
 data/pgadmin/sessions/3266f8e2-b35c-4d4d-af76-95c4f12960d4
 data/pgadmin/pgadmin4.db

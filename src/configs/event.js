@@ -1,6 +1,6 @@
 // src/configs/event.js
 import { appConfig } from './env.js';
-import { slug } from '../utils/entityBuilder.js';
+import { slug } from '../utils/entityMutation.js';
 import { Kafka } from 'kafkajs';
 
 // kafka configuration

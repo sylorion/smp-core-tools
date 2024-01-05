@@ -4,9 +4,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
 import appendLoggingContext from '../utils/dataloader.js'
-import {
-    SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
-    
+import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
+
 import { PubSub } from 'graphql-subscriptions';
 const pubsub = new PubSub();
 function slug(from) {
