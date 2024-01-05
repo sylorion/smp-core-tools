@@ -51,6 +51,7 @@ async function entityCreator(entityContext, inputs, appContext) {
 
     try {
         newEntity = (entityContext.creatorCallBackFn)(mEntity, inputs);
+        newEntity.uniqRef = uuid()
         const entity = await (entityContext.entityModel).create(newEntity, dbOptions);
         if (entity) {
             pubsub.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
