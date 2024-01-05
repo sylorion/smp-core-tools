@@ -22,6 +22,55 @@ function slug(from) {
 function uuid() {
     return uuidv4();
 }
+
+
+/**
+ * Helper to create entity with a given entity managing description and a app context
+ * @param {EntityManagingDescription} entityContext - The given parameter from the query client
+ * @param {Any} inputs - The actual inputs to consider for the describted entity
+ * @param {GraphQLContextType} appContext - the graphQL context of the current query
+ * @return {AnyEntity|Error} - The created entity with conforms to the model 
+ */
+async function entityCreator(entityContext, inputs, appContext) {
+    if (!inputs) {
+        throw new UserInputDataValidationError(`Need inputs data for ${entityContext.entityName}`, entityContext.erroCodeMissingInputs);
+    }
+    let newEntity = undefined
+    let mEntity = undefined
+    const dbOptions = appendLoggingContext({}, appContext)
+
+    // Could be managed by the caller before calling this function
+    if (entityContext.checkEntityExistanceFn) {
+        mEntity = entityContext.checkEntityExistanceFn(inputs)
+        if (mEntity) {
+            if (entityContext.checkEntityExistTreatmentFn) {
+                entityContext.checkEntityExistTreatmentFn(inputs)
+            }
+        }
+    }
+
+    try {
+        newEntity = (entityContext.creatorCallBackFn)(mEntity, inputs);
+        const entity = await (entityContext.entityModel).create(newEntity, dbOptions);
+        if (entity) {
+            pubsub.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
+            appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
+        } else {
+            // Should not happen du to throwing error on update faillure
+            throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.erroCodeEntityCreationFaillure);
+        }
+        // TODO Manage invalidate cache and others before returning 
+        if (entityContext.entityCacheManagerFn) {
+            return entityContext.entityCacheManagerFn(entity, appContext)
+        }
+        return entity
+    } catch (error) {
+        appContext.logger.error(error);
+        throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.erroCodeEntityCreationFaillure);
+    }
+}
+
+
 /**
  * Helper to update entity with a given entity managing description and a app context
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
@@ -55,10 +104,10 @@ async function entityUpdater(entityContext, inputs, appContext) {
         const entity = await mEntity.update({ ...newEntity, ...dbOptions });
         if (entity) {
             pubsub.publish(entityContext.entityUpdateTopic, entityContext.entityUpdateTopicFn(entity));
-            appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${entity}`);
+            appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${newEntity}`);
         } else {
             // Should not happen du to throwing error on update faillure
-            throw new SMPError(`Enable to updated ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
+            throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
         }
         // TODO Manage invalidate cache and others before returning 
         if (entityContext.entityCacheManagerFn) {
@@ -67,8 +116,8 @@ async function entityUpdater(entityContext, inputs, appContext) {
         return entity
     } catch (error) {
         appContext.logger.error(error);
-        throw new SMPError(`Enable to updated ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
+        throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
     }
 }
 
-export { slug, uuid, entityUpdater } ;
+export { slug, uuid, entityCreator, entityUpdater } ;

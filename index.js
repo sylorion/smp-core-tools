@@ -29,7 +29,7 @@ export { generateUserToken, generateAppToken,
     getUserFromToken, geyAppFromToken,  } from './src/utils/authentication.js';
 export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
-export { slug, uuid, entityUpdater } from './src/utils/entityMutation.js'
+export { slug, uuid, entityCreator, entityUpdater } from './src/utils/entityMutation.js'
 export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
