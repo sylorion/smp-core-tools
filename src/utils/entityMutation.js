@@ -3,7 +3,7 @@
 // const { slugify } = require('slugify');
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
-import {appendLoggingContext} from '../utils/dataloader.js'
+import {appendLoggingContext} from './entityLoader.js'
 import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
 import { PubSub } from 'graphql-subscriptions';
@@ -22,7 +22,6 @@ function slug(from) {
 function uuid() {
     return uuidv4();
 }
-
 
 /**
  * Helper to create entity with a given entity managing description and a app context
@@ -76,7 +75,6 @@ async function entityCreator(entityContext, inputs, appContext) {
         throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.erroCodeEntityCreationFaillure);
     }
 }
-
 
 /**
  * Helper to update entity with a given entity managing description and a app context

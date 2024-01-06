@@ -18,8 +18,9 @@ export {
     buildOrderClause,
     buildPaginationClause, 
     unavigableEntityList,
-    navigateEntityList, appendLoggingContext
-} from './src/utils/dataloader.js'
+    navigateEntityList, appendLoggingContext,
+    entityListingByIDs
+} from './src/utils/entityLoader.js'
 
 export { kafka } from './src/configs/event.js';
 export { appConfig, gRPCConfig, dbConfig, cacheConfig } from './src/configs/env.js';
