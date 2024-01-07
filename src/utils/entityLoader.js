@@ -5,6 +5,8 @@ import { Sequelize, DataTypes, Op }  from 'sequelize';
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
 import{ trace, SpanStatusCode } from '@opentelemetry/api';
+import { PubSub } from 'graphql-subscriptions';
+const pubsub = new PubSub();
 
 function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
@@ -108,7 +110,6 @@ async function unavigableEntityList(context, cb, filters = []) {
   return data
 }
 
-
 /**
  * Helper to create entity with a given entity managing description and a app context
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
@@ -119,14 +120,11 @@ async function unavigableEntityList(context, cb, filters = []) {
  */
 async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = {}, filter = [] }, appContext, infos) {
   if (!ids) {
-    throw new UserInputDataValidationError(`Need identifiers data for ${entityContext.entityName} ids set retrieval`, entityContext.erroCodeMissingInputs);
+    throw new UserInputDataValidationError(`Need identifiers data for ${entityContext.entityName} ids set retrieval`, entityContext.errorCodeMissingInputs);
   }
-  let newEntity = undefined
-  let mEntity = undefined
-  const dbOptions = appendLoggingContext({}, appContext) 
   // If so let do it generaly
   const idsFilter = {
-    field: "profileID",
+    field: entityContext.entityIDFieldName,
     value: ids.map(id => parseInt(id)),
     operator: "="
   }
@@ -134,11 +132,66 @@ async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = 
   return resultingArray
 }
 
+/**
+ * Helper to create entity with a given entity managing description and a app context
+ * @param {EntityManagingDescription} entityContext - The given parameter from the query client
+ * @param {Any} params - The actual arguments to consider for the describted entity
+ * @param {GraphQLContextType} appContext - the graphQL context of the current query
+ * @param {GraphQLRequestContext} infos - additionnal informations of the current query
+ * @return {[AnyEntity]|Error} - The listed entities in conformance to the model 
+ */
+async function entityListing(entityContext, { pagination = {}, sort = {}, filter = [] }, appContext, infos) {
+  const findProfiles = async (options) => { (entityContext.entityModel).findAll(options) }
+  // Security for filter some time user provide {} instead of [] or [{}]
+  const filters = Array.isArray(filter) ? filter : []
+  try {
+    const response = await navigateEntityList(context, findProfiles , pagination, sort, filters)
+    pubsub.publish(entityContext.entityListingTopic, entityContext.entityListingTopicFn(response));
+    return response
+  } catch(error) {
+    const msgErr = `Error fetching ${entityContext.entityName}:   ${error}`;
+    context.logger.error(msgErr);
+    throw error
+  }
+}
+
+/**
+ * Helper to create entity with a given entity managing description and a app context
+ * @param {EntityManagingDescription} entityContext - The given parameter from the query client
+ * @param {String} entityID - The actual entity to retrieve
+ * @param {GraphQLContextType} appContext - the graphQL context of the current query
+ * @return {[AnyEntity]|Error} - The retrieved entity 
+ */
+async function entityByID(entityContext, entityID, appContext) {
+  if (appContext.db && appContext.logger) {
+    try {
+      appContext.logger.info(`Retrieve ${entityContext.entityName} details  + ${entityID}`)
+      const foundEntity = await Profile.findByPk(entityID, appendLoggingContext({}, context));
+      if (foundEntity) {
+        return foundEntity
+      } else {
+        const msgErr = `Error fetching ${entityContext.entityName}`;
+        context.logger.error(msgErr);
+        throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+      }
+    } catch (error) {
+      const msgErr = `Error fetching ${entityContext.entityName} : ${error} `;
+      context.logger.error(msgErr);
+      throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+    }
+  } else {
+    const msgErr = `context.db && context.logger is not true`;
+    // Not sur we have the correct error
+    console.error(msgErr);
+    throw SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+  }
+}
+
 export { 
   buildWhereClause,
   buildOrderClause,
   buildPaginationClause,
-  unavigableEntityList,
+  unavigableEntityList, entityByID,
   navigateEntityList, appendLoggingContext,
-  entityListingByIDs
+  entityListing, entityListingByIDs
 }
