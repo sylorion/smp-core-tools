@@ -19,7 +19,7 @@ export {
     buildPaginationClause, 
     unavigableEntityList,
     navigateEntityList, appendLoggingContext,
-    entityListingByIDs
+    entityListingByIDs, entityByID, entityListing
 } from './src/utils/entityLoader.js'
 
 export { kafka } from './src/configs/event.js';
