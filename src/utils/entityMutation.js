@@ -32,7 +32,7 @@ function uuid() {
  */
 async function entityCreator(entityContext, inputs, appContext) {
     if (!inputs) {
-        throw new UserInputDataValidationError(`Need inputs data for ${entityContext.entityName}`, entityContext.erroCodeMissingInputs);
+        throw new UserInputDataValidationError(`Need inputs data for ${entityContext.entityName}`, entityContext.errorCodeMissingInputs);
     }
     let newEntity = undefined
     let mEntity = undefined
@@ -63,7 +63,7 @@ async function entityCreator(entityContext, inputs, appContext) {
             appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
         } else {
             // Should not happen du to throwing error on update faillure
-            throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.erroCodeEntityCreationFaillure);
+            throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.errorCodeEntityCreationFaillure);
         }
         // TODO Manage invalidate cache and others before returning 
         if (entityContext.entityCacheManagerFn) {
@@ -72,7 +72,7 @@ async function entityCreator(entityContext, inputs, appContext) {
         return entity
     } catch (error) {
         appContext.logger.error(error);
-        throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.erroCodeEntityCreationFaillure);
+        throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.errorCodeEntityCreationFaillure);
     }
 }
 
@@ -85,7 +85,7 @@ async function entityCreator(entityContext, inputs, appContext) {
  */
 async function entityUpdater(entityContext, inputs, appContext) {
     if (!inputs) {
-        throw new UserInputDataValidationError(`Need new inputs data for ${entityContext.entityName}`, entityContext.erroCodeMissingInputs);
+        throw new UserInputDataValidationError(`Need new inputs data for ${entityContext.entityName}`, entityContext.errorCodeMissingInputs);
     }
     let newEntity = undefined
     let mEntity = undefined
@@ -95,15 +95,15 @@ async function entityUpdater(entityContext, inputs, appContext) {
         if (mEntity) {
             newEntity = (entityContext.updaterCallBackFn)(mEntity, inputs);
             if (newEntity.msgErr) {
-                throw new UserInputDataValidationError(`Processing inputs error for ${entityContext.entityName} update : ${newEntity.msgErr}`, entityContext.erroCodeInvalidInputs);
+                throw new UserInputDataValidationError(`Processing inputs error for ${entityContext.entityName} update : ${newEntity.msgErr}`, entityContext.errorCodeInvalidInputs);
             }
         } else {
             // Cannot happen due to error throwing if not found
-            throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.erroCodeEntityNotFound);
+            throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.errorCodeEntityNotFound);
         }
     } catch (error) {
         appContext.logger.error(error);
-        throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.erroCodeEntityNotFound);
+        throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.errorCodeEntityNotFound);
     }
     try {
         const entity = await mEntity.update({ ...newEntity, ...dbOptions });
@@ -112,7 +112,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
             appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${newEntity}`);
         } else {
             // Should not happen du to throwing error on update faillure
-            throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
+            throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.errorCodeEntityUpdateFaillure);
         }
         // TODO Manage invalidate cache and others before returning 
         if (entityContext.entityCacheManagerFn) {
@@ -121,7 +121,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
         return entity
     } catch (error) {
         appContext.logger.error(error);
-        throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.erroCodeEntityUpdateFaillure);
+        throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.errorCodeEntityUpdateFaillure);
     }
 }
 
