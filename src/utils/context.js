@@ -22,22 +22,20 @@ const requestUUIDPlugin = (defaultContext) => {
 };
 
 function getUserTokenFromHeaders(req) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.split('Bearer ')[1];
-  // if (!token) {
-  //   throw new Error('getUserTokenFromHeaders::Vous devez être connecté pour effectuer cette action.');
-  // }
-  console.log("BEARER KEY: ", token)
+  let token = '';
+  if (req && req.headers) {
+    const authHeader = req.headers.authorization || '';
+    token = authHeader.split('Bearer ')[1];    
+  }
  return token;
 }
 
 function getAppAPIKeyFromHeaders(req) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.split('AppApiKey ')[1];
-  // if (!token) {
-  //   throw new Error('getAppAPIKeyFromHeaders::Vous devez être connecté pour effectuer cette action.');
-  // }
-  console.log("API KEY: ", token)
+  let token = '';
+  if (req && req.headers) {
+    const authHeader = req.headers.authorization || '';
+    token = authHeader.split('AppApiKey ')[1];
+  }
   return token;
 }
 
@@ -50,7 +48,7 @@ function authsContext(req) {
 function updateContext(defaultContext) {
   const newContext = requestUUIDPlugin(defaultContext);
   const log = logger.child({ requestId: newContext.requestUUIID });
-  return {...defaultContext, ...{ db: db, kafka: kafka, logger: log, cache: cache, appConfig: appConfig }, ...authsContext(defaultContext.request) }
+  return {...defaultContext, ...{logger: log}, ...authsContext(defaultContext.request) }
 }
 
 export {
