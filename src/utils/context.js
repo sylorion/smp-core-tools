@@ -48,7 +48,7 @@ function authsContext(req) {
 function updateContext(defaultContext) {
   const newContext = requestUUIDPlugin(defaultContext);
   const log = logger.child({ requestId: newContext.requestUUIID });
-  return {...defaultContext, ...{logger: log}, ...authsContext(defaultContext.request) }
+  return {...defaultContext, ...{ db: db, kafka: kafka, logger: log, cache: cache, appConfig: appConfig }, ...authsContext(defaultContext.request) }
 }
 
 export {
