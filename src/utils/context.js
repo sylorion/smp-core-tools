@@ -1,9 +1,6 @@
 // src/utils/context.js 
 import { v4 as uuidv4 } from 'uuid';
 import { appConfig } from '../configs/env.js';
-import { kafka } from '../configs/event.js';
-import { db } from '../configs/db.js';
-import { cache } from '../configs/cache.js';
 import { logger } from '../configs/logger.js';
 
 // This is part of the context as it update both response accordingly to the request
@@ -48,7 +45,7 @@ function authsContext(req) {
 function updateContext(defaultContext) {
   const newContext = requestUUIDPlugin(defaultContext);
   const log = logger.child({ requestId: newContext.requestUUIID });
-  return {...defaultContext, ...{ db: db, kafka: kafka, logger: log, cache: cache, appConfig: appConfig }, ...authsContext(defaultContext.request) }
+  return {...defaultContext, ...{logger: log}, ...authsContext(defaultContext.request) }
 }
 
 export {
