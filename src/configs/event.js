@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 
-export default class RabbitMQService {
+ class RabbitMQService {
   constructor(connectionURL, logger = null, duration = true) {
     this.connectionURL = connectionURL;
     this.connection = null;
@@ -85,5 +85,5 @@ export default class RabbitMQService {
   }
 }
 
-  
+module.exports = RabbitMQService;
 
