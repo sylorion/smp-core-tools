@@ -23,7 +23,6 @@ export {
     entityListingByIDs, entityByID, entityListing
 } from './src/utils/entityLoader.js'
 
-export { kafka } from './src/configs/event.js';
 export { appConfig, gRPCConfig, dbConfig, cacheConfig } from './src/configs/env.js';
 export { getRequestLogger, logger } from './src/configs/logger.js';
 export { generateUserToken, generateAppToken, 
