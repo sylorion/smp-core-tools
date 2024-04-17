@@ -85,5 +85,5 @@ import amqp from 'amqplib';
   }
 }
 
-export  {RabbitMQService};
+export  { RabbitMQService };
 
