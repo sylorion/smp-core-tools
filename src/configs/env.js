@@ -132,4 +132,9 @@ const appConfig = {
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
 }
 
-export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv };
+const rabbitMQConfig = {
+  url: process.env.RABBITMQ_URL,
+  exchange: process.env.RABBITMQ_EXCHANGE,
+  exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE,
+};
+export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv,rabbitMQConfig };
