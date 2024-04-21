@@ -75,7 +75,7 @@ import amqp from 'amqplib';
     const messageBuffer = Buffer.from(JSON.stringify(messageWithContext));
     
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: options.duration ?? this.exchangeDuration });
-    this.channel.publish(topic, routingKey, messageBuffer, options);
+    this.channel.publish(exchangeTopic, routingKey, messageBuffer, options);
   }
 
   async readyToPublishTopic(exchangeTopic, routingKey, message, context = {}, options = {}) {
