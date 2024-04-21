@@ -68,14 +68,14 @@ const consumerConfigOrganization = {
     },
   },
   accounting: {
-    role: {
+    devis: {
       created: "saveDevisToDatabase",
       updated: "updateDevisInDatabase",
       deleted: "deleteDevisFromDatabase",
     },
   },
   review_comment: {
-    role: {
+    Comment: {
       created: "saveCommentToDatabase",
       updated: "updateCommentInDatabase",
       deleted: "deleteCommentFromDatabase",
