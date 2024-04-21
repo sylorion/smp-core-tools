@@ -35,3 +35,5 @@ export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
+
+export{consumerConfigOrganization} from '.src/consumerConfig/configOrganization.js'
