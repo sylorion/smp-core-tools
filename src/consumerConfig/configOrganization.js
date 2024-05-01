@@ -60,7 +60,7 @@ const consumerConfigOrganization = {
       deleted: "deleteTagFromDatabase",
     },
   },
-  user_space: {
+  userSpace: {
     role: {
       created: "saveRoleToDatabase",
       updated: "updateRoleInDatabase",
