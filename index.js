@@ -37,3 +37,6 @@ export {
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
 
 export{ consumerConfigOrganization } from './src/consumerConfig/configOrganization.js'
+export {consumerConfigUserSpace} from './src/consumerConfig/configUserSpace.js'
+export {consumerConfigNotification} from './src/consumerConfig/configNotification.js'
+export {consumerConfig}
