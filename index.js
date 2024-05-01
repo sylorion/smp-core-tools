@@ -39,4 +39,9 @@ export {
 export{ consumerConfigOrganization } from './src/consumerConfig/configOrganization.js'
 export {consumerConfigUserSpace} from './src/consumerConfig/configUserSpace.js'
 export {consumerConfigNotification} from './src/consumerConfig/configNotification.js'
-export {consumerConfig}
+export {consumerConfigCatalog} from './src/consumerConfig/configCatalog.js'
+export {consumerConfigLocation} from './src/consumerConfig/configLocation.js'
+export {consumerConfigAudits} from './src/consumerConfig/configAudits.js'
+export{ consumerConfigReviewComment } from './src/consumerConfig/configReviewComment.js'
+export{consumerConfigAuthentication} from './src/consumerConfig/configAuthentication.js'
+
