@@ -31,7 +31,7 @@
  */
 
 const consumerConfigLocation = {
-    user_space: {
+    userSpace: {
       profile: {
         created: "saveProfileToDatabase",
         updated: "updateProfileInDatabase",
