@@ -36,6 +36,7 @@ export {
     ExternalAPIAccesError, InternalAPIAccesError,
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
 
+    //export des configurations des consumers pour chaque microservice
 export{ consumerConfigOrganization } from './src/consumerConfig/configOrganization.js'
 export {consumerConfigUserSpace} from './src/consumerConfig/configUserSpace.js'
 export {consumerConfigNotification} from './src/consumerConfig/configNotification.js'
@@ -44,4 +45,5 @@ export {consumerConfigLocation} from './src/consumerConfig/configLocation.js'
 export {consumerConfigAudits} from './src/consumerConfig/configAudits.js'
 export{ consumerConfigReviewComment } from './src/consumerConfig/configReviewComment.js'
 export{consumerConfigAuthentication} from './src/consumerConfig/configAuthentication.js'
+export {consumerConfigAccounting} from './src/consumerConfig/configAccounting.js'
 
