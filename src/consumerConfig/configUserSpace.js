@@ -5,7 +5,7 @@
  *
  * The configuration specifies routing of events based on the source microservices, which are
  * 'catalog', 'document', 'organization', and 'accounting'. Each microservice manages specific entities,
- * like 'devis' for 'catalog', 'media' for 'document', 'organization' for 'organization', and 'invoice' for 'accounting'.
+ * like 'estimate' for 'catalog', 'media' for 'document', 'organization' for 'organization', and 'invoice' for 'accounting'.
  * Actions for each entity are mapped to specific callback functions that handle the corresponding business logic.
  *
  * @type {Object.<string, Object.<string, Object.<string, string>>>}
@@ -24,17 +24,17 @@
  *   }
  * }
  *
- * @property {Object} catalog - Manages events for the 'devis' entity within the 'catalog' microservice.
+ * @property {Object} catalog - Manages events for the 'estimate' entity within the 'catalog' microservice.
  * @property {Object} document - Manages events for the 'media' entity within the 'Document' microservice.
  * @property {Object} organization - Manages events for the 'organization' entity within the 'Organization' microservice.
  * @property {Object} accounting - Manages events for the 'invoice' entity within the 'Accounting' microservice.
  */
 const consumerConfigUserSpace = {
     catalog: {
-      devis: {
-        created: "saveDevisToDatabase",
-        updated: "updateDevisInDatabase",
-        deleted: "deleteDevisFromDatabase",
+      estimate: {
+        created: "saveEstimateToDatabase",
+        updated: "updateEstimateInDatabase",
+        deleted: "deleteEstimateFromDatabase",
       },
     },
     document: {
