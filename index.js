@@ -46,4 +46,5 @@ export {consumerConfigAudits} from './src/consumerConfig/configAudits.js'
 export{ consumerConfigReviewComment } from './src/consumerConfig/configReviewComment.js'
 export{consumerConfigAuthentication} from './src/consumerConfig/configAuthentication.js'
 export {consumerConfigAccounting} from './src/consumerConfig/configAccounting.js'
+export {consumerConfigDocument} from './src/consumerConfig/configDocument.js'
 
