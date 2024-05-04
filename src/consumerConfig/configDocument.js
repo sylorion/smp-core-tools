@@ -29,6 +29,13 @@ const consumerConfigDocument = {
         create: "createDocumentFromURL",
       },
     },
+    userSpace: {
+      profile: {
+        created: "saveProfileToDatabase",
+        updated: "updateProfileInDatabase",
+        deleted: "deleteProfileFromDatabase",
+      }
+    },
   };
   
   export { consumerConfigDocument };
