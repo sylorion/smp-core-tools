@@ -85,7 +85,7 @@ if (databaseUsed) {
           });          
         }
 
-        if (db_host_file) {
+        if (db_host_file !== undefined) {
         fs.readFileSync(db_host_file, 'utf8', (err, data) => {
           if (!err && data) {
             hostDB = data.trim()
@@ -94,7 +94,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_port_file) {
+        if (db_port_file !== undefined) {
         fs.readFileSync(db_port_file, 'utf8', (err, data) => {
           if (!err && data) {
             portDB = data.trim()
@@ -103,7 +103,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_pswd_file) {
+        if (db_pswd_file !== undefined) {
         fs.readFileSync(db_pswd_file, 'utf8', (err, data) => {
           if (!err && data) {
             pswdDB = data.trim()
@@ -112,7 +112,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_database_file) {
+        if (db_database_file !== undefined) {
         fs.readFileSync(db_database_file, 'utf8', (err, data) => {
           if (!err && data) {
             nameDB = data.trim()
@@ -121,7 +121,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_timestamp_file) {
+        if (db_timestamp_file !== undefined) {
         fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
           if (!err && data) {
             timestampDB = data.trim()
@@ -130,7 +130,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_paranoid_file) {
+        if (db_paranoid_file !== undefined) {
         fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
           if (!err && data) {
             paranoidDB = data.trim()
@@ -139,7 +139,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_schema_file) {
+        if (db_schema_file !== undefined) {
         fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
           if (!err && data) {
             schemaDB = data.trim()
@@ -148,7 +148,7 @@ if (databaseUsed) {
           }
         });
       }
-        if (db_sync_file) {
+        if (db_sync_file !== undefined) {
         fs.readFileSync(db_sync_file, 'utf8', (err, data) => {
           if (!err && data) {
             syncDB = data.trim()
