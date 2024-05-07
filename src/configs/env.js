@@ -156,7 +156,7 @@ if (databaseUsed) {
       }
     });
   } catch (error) {
-    console.error("Unable to read secret files from the env module")
+    console.error("Unable to read secret files from the env module : ", secretPath, " doesn't exist.")
     console.error(error)
     console.error("HOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
   }
