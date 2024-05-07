@@ -6,8 +6,6 @@ import slugify from 'slugify';
 import {appendLoggingContext} from './entityLoader.js'
 import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
-import { PubSub } from 'graphql-subscriptions';
-const pubsub = new PubSub();
 function slug(from) {
     return slugify(from, {
         replacement: '-',  // replace spaces with replacement character, defaults to `-`
@@ -59,7 +57,9 @@ async function entityCreator(entityContext, inputs, appContext) {
         }
         const entity = await (entityContext.entityModel).create(newEntity, dbOptions);
         if (entity) {
-            pubsub.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
+            if (entityContext.event) {
+                entityContext.event.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
+            }
             appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
         } else {
             // Should not happen du to throwing error on update faillure
@@ -108,7 +108,9 @@ async function entityUpdater(entityContext, inputs, appContext) {
     try {
         const entity = await mEntity.update({ ...newEntity, ...dbOptions });
         if (entity) {
-            pubsub.publish(entityContext.entityUpdateTopic, entityContext.entityUpdateTopicFn(entity));
+            if (entityContext.event) {
+                entityContext.event.publish(entityContext.entityUpdateTopic, entityContext.entityUpdateTopicFn(entity));
+            }
             appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${newEntity}`);
         } else {
             // Should not happen du to throwing error on update faillure
