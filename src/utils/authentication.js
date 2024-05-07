@@ -1,6 +1,5 @@
 // src/utils/authentication.js
-import { Sequelize, DataTypes, Op, Model } from 'sequelize';
-import { PubSub }       from 'graphql-subscriptions';
+import { Sequelize, DataTypes, Op, Model } from 'sequelize'; 
 import { v4 as uuidv4 } from 'uuid';
 import pkgjwt  from 'jsonwebtoken';
 import { db }   from '../configs/db.js';
@@ -9,8 +8,7 @@ import pkgargon2 from 'argon2';
 import { Graph } from 'redis';
 import { trace } from '@opentelemetry/api';
 const  jwt  = pkgjwt;
-const  argon2  = pkgargon2;
-const  pubsub = new PubSub();
+const  argon2  = pkgargon2; 
 const argonConfig = {
   type: argon2.argon2id,
   memoryCost: 2 ** 16,   // 64 MB

@@ -5,8 +5,6 @@ import { Sequelize, DataTypes, Op }  from 'sequelize';
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
 import{ trace, SpanStatusCode } from '@opentelemetry/api';
-import { PubSub } from 'graphql-subscriptions';
-const pubsub = new PubSub();
 
 function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
@@ -146,7 +144,9 @@ async function entityListing(entityContext, { pagination = {}, sort = {}, filter
   const filters = Array.isArray(filter) ? filter : []
   try {
     const response = await navigateEntityList(context, findProfiles , pagination, sort, filters)
-    pubsub.publish(entityContext.entityListingTopic, entityContext.entityListingTopicFn(response));
+    if(entityContext.event){
+      entityContext.event.publish(entityContext.entityListingTopic, entityContext.entityListingTopicFn(response));
+    }
     return response
   } catch(error) {
     const msgErr = `Error fetching ${entityContext.entityName}:   ${error}`;
