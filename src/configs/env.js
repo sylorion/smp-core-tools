@@ -75,14 +75,17 @@ if (databaseUsed) {
     fs.stat(secretPath, function (err, stat) {
       if (err == null) {
         console.log('Path to secret exists');
-        fs.readFileSync(db_user_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            usernameDB = data.trim()
-          } else {
-            console.log("Path to file ", db_user_file, " doesn't exists");
-          }
-        });
+        if (db_user_file) {
+          fs.readFileSync(db_user_file, 'utf8', (err, data) => {
+            if (!err && data) {
+              usernameDB = data.trim()
+            } else {
+              console.log("Path to file ", db_user_file, " doesn't exists");
+            }
+          });          
+        }
 
+        if (db_host_file) {
         fs.readFileSync(db_host_file, 'utf8', (err, data) => {
           if (!err && data) {
             hostDB = data.trim()
@@ -90,7 +93,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_host_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_port_file) {
         fs.readFileSync(db_port_file, 'utf8', (err, data) => {
           if (!err && data) {
             portDB = data.trim()
@@ -98,7 +102,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_port_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_pswd_file) {
         fs.readFileSync(db_pswd_file, 'utf8', (err, data) => {
           if (!err && data) {
             pswdDB = data.trim()
@@ -106,7 +111,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_pswd_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_database_file) {
         fs.readFileSync(db_database_file, 'utf8', (err, data) => {
           if (!err && data) {
             nameDB = data.trim()
@@ -114,7 +120,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_database_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_timestamp_file) {
         fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
           if (!err && data) {
             timestampDB = data.trim()
@@ -122,7 +129,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_timestamp_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_paranoid_file) {
         fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
           if (!err && data) {
             paranoidDB = data.trim()
@@ -130,7 +138,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_paranoid_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_schema_file) {
         fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
           if (!err && data) {
             schemaDB = data.trim()
@@ -138,7 +147,8 @@ if (databaseUsed) {
             console.log("Path to file ", db_schema_file, " doesn't exists");
           }
         });
-
+      }
+        if (db_sync_file) {
         fs.readFileSync(db_sync_file, 'utf8', (err, data) => {
           if (!err && data) {
             syncDB = data.trim()
@@ -146,7 +156,7 @@ if (databaseUsed) {
             console.log("Path to file ", db_sync_file, " doesn't exists");
           }
         });
-
+      }
       } else if (err.code === 'ENOENT') {
         // folder does not exist 
         console.log('Secrets folders doesn\'t exist: ', err.code);
