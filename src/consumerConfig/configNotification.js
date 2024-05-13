@@ -27,78 +27,83 @@
  * @property {Object} services - Manages events related to 'documentation', 'service', 'service_media', and 'service_asset' entities.
  */
 const consumerConfigNotification = {
-    userSpace: {
-      user: {
-        created: "saveUserToDatabase",
-        updated: "updateUserInDatabase",
-        deleted: "deleteUserFromDatabase",
-      },
-      user_role: {
-        created: "saveUserRoleToDatabase",
-        updated: "updateUserRoleInDatabase",
-        deleted: "deleteUserRoleFromDatabase",
-      },
-      payment_method: {
-        created: "savePaymentMethodToDatabase",
-        updated: "updatePaymentMethodInDatabase",
-        deleted: "deletePaymentMethodFromDatabase",
-      },
-      payment_config: {
-        created: "savePaymentConfigToDatabase",
-        updated: "updatePaymentConfigInDatabase",
-        deleted: "deletePaymentConfigFromDatabase",
-      }
+  userSpace: {
+    user: {
+      created: "pushNewUserNotification, mailNewUserNotification",
+      updated: "pushUpdateUserNotification",
+      deleted: "mailDeleteUserNotification",
     },
-    accounting: {
-      estimate: {
-        created: "saveEstimateToDatabase",
-        updated: "updateEstimateInDatabase",
-        deleted: "deleteEstimateFromDatabase",
-      },
-      invoice: {
-        created: "saveInvoiceToDatabase",
-        updated: "updateInvoiceInDatabase",
-        deleted: "deleteInvoiceFromDatabase",
-      },
-      transaction: {
-        created: "saveTransactionToDatabase",
-        updated: "updateTransactionInDatabase",
-        deleted: "deleteTransactionFromDatabase",
-      }
+    user_role: {
+      created: "pushNewUserRoleNotification, mailNewUserRoleNotification",
+      updated: "pushUpdateUserRoleNotification, mailUpdateUserRoleNotification",
+      deleted: "pushDeleteUserRoleNotification, mailDeleteUserRoleNotification",
     },
-    catalog: {
-      documentation: {
-        created: "saveDocumentationToDatabase",
-        updated: "updateDocumentationInDatabase",
-        deleted: "deleteDocumentationFromDatabase",
-      },
-      service: {
-        created: "saveServiceToDatabase",
-        updated: "updateServiceInDatabase",
-        deleted: "deleteServiceFromDatabase",
-      },
-      service_media: {
-        created: "saveServiceMediaToDatabase",
-        updated: "updateServiceMediaInDatabase",
-        deleted: "deleteServiceMediaFromDatabase",
-      },
-      service_asset: {
-        created: "saveServiceAssetToDatabase",
-        updated: "updateServiceAssetInDatabase",
-        deleted: "deleteServiceAssetFromDatabase",
-      }
+    payment_method: {
+      created:
+        "pushNewPaymentMethodNotification, mailNewPaymentMethodNotification",
+      updated:
+        "pushUpdatePaymentMethodNotification",
+      deleted:
+        "pushDeletePaymentMethodNotification, mailDeletePaymentMethodNotification",
     },
-    reviewComment: {
-        comment: {
-          created: "saveCommentToDatabase",
-          updated: "updateCommentInDatabase",
-          deleted: "deleteCommentFromDatabase",
-        },
-        
-      },
+    payment_config: {
+      created:
+        "pushNewPaymentConfigNotification, mailNewPaymentConfigNotification",
+      updated:
+        "pushUpdatePaymentConfigNotification",
+      deleted:
+        "pushDeletePaymentConfigNotification",
+    },
+  },
+  accounting: {
+    estimate: {
+      created: "pushNewEstimateNotification, mailNewEstimateNotification",
+      updated: "pushUpdateEstimateNotification, mailUpdateEstimateNotification",
+      deleted: "pushDeleteEstimateNotification, mailDeleteEstimateNotification",
+    },
+    invoice: {
+      created: "pushNewInvoiceNotification, mailNewInvoiceNotification",
+      updated: "pushUpdateInvoiceNotification, mailUpdateInvoiceNotification",
+      deleted: "pushDeleteInvoiceNotification",
+    },
+    transaction: {
+      created: "pushNewTransactionNotification, mailNewTransactionNotification",
+    },
+  },
+  catalog: {
+    documentation: {
+      created:
+        "pushNewDocumentationNotification, mailNewDocumentationNotification",
+      updated:
+        "pushUpdateDocumentationNotification, mailUpdateDocumentationNotification",
+      deleted:
+        "pushDeleteDocumentationNotification, mailDeleteDocumentationNotification",
+    },
+    service: {
+      created: "pushNewServiceNotification, mailNewServiceNotification",
+      updated: "pushUpdateServiceNotification, mailUpdateServiceNotification",
+      deleted: "pushDeleteServiceNotification, mailDeleteServiceNotification",
+    },
+    service_media: {
+      created:
+        "pushNewServiceMediaNotification, mailNewServiceMediaNotification",
+      
+    },
+    service_asset: {
+      created:
+        "pushNewServiceAssetNotification, mailNewServiceAssetNotification",
+      updated:
+        "pushUpdateServiceAssetNotification, mailUpdateServiceAssetNotification",
+      deleted:
+        "pushDeleteServiceAssetNotification, mailDeleteServiceAssetNotification",
+    },
+  },
+  reviewComment: {
+    comment: {
+      created: "pushNewCommentNotification",
+      updated: "pushUpdateCommentNotification",
+    },
+  },
+};
 
-
-  };
-  
-  export { consumerConfigNotification };
-  
+export { consumerConfigNotification };
