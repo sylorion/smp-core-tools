@@ -66,15 +66,25 @@ const consumerConfigOrganization = {
       updated: "updateRoleInDatabase",
       deleted: "deleteRoleFromDatabase",
     },
-  },
-  accounting: {
-    devis: {
-      created: "saveDevisToDatabase",
-      updated: "updateDevisInDatabase",
-      deleted: "deleteDevisFromDatabase",
+    user:{
+      created: "saveUserToDatabase",
+      updated: "updateUserInDatabase",
+      deleted: "deleteUserFromDatabase",
+    },
+    profile: {
+      created: "saveProfileToDatabase",
+      updated: "updateProfileInDatabase",
+      deleted: "deleteProfileFromDatabase",
     },
   },
-  review_comment: {
+  accounting: {
+    estimate: {
+      created: "saveEstimateToDatabase",
+      updated: "updateEstimateInDatabase",
+      deleted: "deleteEstimateFromDatabase",
+    },
+  },
+  reviewComment: {
     Comment: {
       created: "saveCommentToDatabase",
       updated: "updateCommentInDatabase",
