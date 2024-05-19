@@ -2,7 +2,7 @@
 import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { NodeTracerProvider } from '@opentelemetry/node';
-import { SimpleSpanProcessor, BatchSpanProcessor } from '@opentelemetry/tracing';
+import { SimpleSpanProcessor, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 //instrumentations
 import { ExpressInstrumentation }   from "opentelemetry-instrumentation-express";
 // const { MongoDBInstrumentation } from "@opentelemetry/instrumentation-mongodb";
