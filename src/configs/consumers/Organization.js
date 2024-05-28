@@ -11,10 +11,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigOrganization } from './config';
+ * import { Organization } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [exchange, entities] of Object.entries(consumerConfigOrganization)) {
+ * for (const [exchange, entities] of Object.entries(Organization)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action
@@ -29,12 +29,11 @@
  * @property {string} location.place.updated - Callback function name for updating a place. Invoked to update a place in the database.
  * @property {string} location.place.deleted - Callback function name for deleting a place. Invoked to delete a place from the database.
  */
-const consumerConfigOrganization = {
+action =[created, updated, deleted]
+const Organization = {
   location: {
     place: {
-      created: "savePlaceToDatabase",
-      updated: "updatePlaceInDatabase",
-      deleted: "deletePlaceFromDatabase",
+      action: [createEntityDatabase, updateEntityInDatabase, deleteEntityFromDatabase]
     },
   },
   catalog: {
@@ -93,4 +92,4 @@ const consumerConfigOrganization = {
   },
 };
 
-export { consumerConfigOrganization };
+export { Organization };

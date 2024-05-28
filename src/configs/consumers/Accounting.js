@@ -11,10 +11,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigAccounting } from './config';
+ * import { Accounting } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [microservice, entities] of Object.entries(consumerConfigAccounting)) {
+ * for (const [microservice, entities] of Object.entries(Accounting)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action
@@ -26,7 +26,9 @@
  * @property {Object} catalog - Manages events related to 'PaymentMethod', 'PaymentConfig', 'Service', 'ServiceCategory', 'ServiceAsset' entities within the 'Catalog' microservice.
  * @property {Object} userSpace - Manages events related to the 'Profile' entity within the 'UserSpace' microservice.
  */
-const consumerConfigAccounting = {
+
+
+const Accounting = {
     catalog: {
       payment_method: {
         created: "savePaymentMethodToDatabase",
@@ -59,5 +61,7 @@ const consumerConfigAccounting = {
     },
   };
   
-  export { consumerConfigAccounting };
+  MU.ZeoneEchange.routingKey.queues
+  
+  export { Accounting as Accounting };
   

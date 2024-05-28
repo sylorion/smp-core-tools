@@ -12,10 +12,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigUserSpace } from './config';
+ * import { UserSpace } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [microservice, entities] of Object.entries(consumerConfigUserSpace)) {
+ * for (const [microservice, entities] of Object.entries(UserSpace)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action using the microservice as exchange, and entity as routing key
@@ -29,7 +29,7 @@
  * @property {Object} organization - Manages events for the 'organization' entity within the 'Organization' microservice.
  * @property {Object} accounting - Manages events for the 'invoice' entity within the 'Accounting' microservice.
  */
-const consumerConfigUserSpace = {
+const UserSpace = {
     catalog: {
       estimate: {
         created: "saveEstimateToDatabase",
@@ -60,5 +60,5 @@ const consumerConfigUserSpace = {
     },
   };
   
-  export { consumerConfigUserSpace };
+  export { UserSpace };
   
