@@ -11,10 +11,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigLocation } from './config';
+ * import { Location } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [exchange, entities] of Object.entries(consumerConfigLocation)) {
+ * for (const [exchange, entities] of Object.entries(Location)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action
@@ -30,7 +30,7 @@
  * @property {string} location.userSpace.profile.deleted - Callback function name for deleting a profile. Invoked to delete a profile from the database.
  */
 
-const consumerConfigLocation = {
+const Location = {
     userSpace: {
       profile: {
         created: "saveProfileToDatabase",
@@ -40,5 +40,5 @@ const consumerConfigLocation = {
     },
   };
   
-  export { consumerConfigLocation };
+  export { Location };
   

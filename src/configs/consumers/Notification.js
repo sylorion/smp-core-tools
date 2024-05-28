@@ -10,10 +10,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigNotification } from './config';
+ * import { Notification } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [microservice, entities] of Object.entries(consumerConfigNotification)) {
+ * for (const [microservice, entities] of Object.entries(Notification)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action
@@ -26,10 +26,12 @@
  * @property {Object} accounting - Manages events related to 'estimate', 'invoice', and 'transaction' entities.
  * @property {Object} services - Manages events related to 'documentation', 'service', 'service_media', and 'service_asset' entities.
  */
-const consumerConfigNotification = {
+
+ 
+const Notification = {
   userSpace: {
     user: {
-      created: "pushNewUserNotification, mailNewUserNotification",
+      created: ["pushNewUserNotification", "mailNewUserNotification"],
       updated: "pushUpdateUserNotification",
       deleted: "mailDeleteUserNotification",
     },
@@ -106,4 +108,4 @@ const consumerConfigNotification = {
   },
 };
 
-export { consumerConfigNotification };
+export { Notification };
