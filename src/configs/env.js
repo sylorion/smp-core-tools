@@ -1,5 +1,5 @@
 // src/configs/infraConfig.js
-import fs from 'fs';
+import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '/run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
@@ -16,6 +16,23 @@ const isDevelopmentEnv  = (env === 'dev')
 const isProductionEnv   = (env === 'prod')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
+
+/**
+ * 
+ * @param {string} debug
+ * @returns {number}
+ * @description Compute the verbosity level of the application
+ * @example 
+ * computeVerbosityLevel('debug') // returns 1
+ * computeVerbosityLevel('verbose') // returns 2
+ * computeVerbosityLevel('info') // returns 3
+ * computeVerbosityLevel('io') // returns 4
+ * computeVerbosityLevel('warnning') // returns 5
+ * computeVerbosityLevel('error') // returns 6
+ * computeVerbosityLevel('unknown') // returns 7
+ * computeVerbosityLevel() // returns 7
+ */
+
 function computeVerbosityLevel(debug) {
   // Verbose level 0 means debug mode is on so give everything we got (silly mode)
   let verboseLevel = 0;
@@ -43,7 +60,8 @@ function computeVerbosityLevel(debug) {
       break;
   }
 }
-
+//
+// gRPC Config Object
 const gRPCConfig = {
   host: process.env.GRPC_HOST || '0.0.0.0',
   port: parseInt(`${process.env.GRPC_PORT || 50051}`, 10)
@@ -59,8 +77,9 @@ let schemaDB
 let syncDB        
 let timestampDB   
 let usernameDB   
+// 
+// We have to check if the file exists before reading it
 if (databaseUsed) {
-  try {
     // freezeTableDB = fs.readFileSync(secretPath + "db_freezed_table_name", 'utf8').trim();
     let db_user_file = (new String(process.env.DATABASE_USER_FILE)).toString();
     let db_host_file = (new String(process.env.DATABASE_HOST_FILE)).toString();
@@ -71,107 +90,115 @@ if (databaseUsed) {
     let db_paranoid_file = secretPath + "db_paranoid";
     let db_schema_file = secretPath + "db_schema";
     let db_sync_file = secretPath + "db_sync";
-
-    fs.stat(secretPath, function (err, stat) {
-      if (err == null) {
+    console.log('Stat on secretPath: ', secretPath);
+    const stats = fs.statSync(secretPath, (err, stats) => {
+      if (err) {
+        console.error(err);
+      }
+      // we have access to the file stats in `stats`
+    });
+    console.log('Stats: ', stats);
+    // Check if the path is a directory.
+    if(stats.isDirectory()) {
         console.log('Path to secret exists');
         if (db_user_file) {
-          fs.readFileSync(db_user_file, 'utf8', (err, data) => {
+          console.log('db_user_file exists');
+          usernameDB = fs.readFileSync(db_user_file, 'utf8', (err, data) => {
             if (!err && data) {
-              usernameDB = data.trim()
+              console.log('usernameDB: ', data.trim()); 
             } else {
               console.log("Path to file ", db_user_file, " doesn't exists");
             }
-          });          
+          }).trim();          
+        }else {
+          console.log('db_user_file doesn\'t exists');
         }
-
+        // We have to check if the file exists before reading it
         if (db_host_file !== undefined) {
-        fs.readFileSync(db_host_file, 'utf8', (err, data) => {
+          hostDB = fs.readFileSync(db_host_file, 'utf8', (err, data) => {
           if (!err && data) {
-            hostDB = data.trim()
+            console.log('hostDB: ', data.trim());
           } else {
             console.log("Path to file ", db_host_file, " doesn't exists");
           }
-        });
+        }).trim();
+      } else {
+        console.log('db_host_file doesn\'t exists');
       }
+      // We have to check if the file exists before reading it
         if (db_port_file !== undefined) {
-        fs.readFileSync(db_port_file, 'utf8', (err, data) => {
+          portDB = fs.readFileSync(db_port_file, 'utf8', (err, data) => {
           if (!err && data) {
-            portDB = data.trim()
+            console.log('portDB: ', data.trim());
           } else {
             console.log("Path to file ", db_port_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
         if (db_pswd_file !== undefined) {
-        fs.readFileSync(db_pswd_file, 'utf8', (err, data) => {
+          
+          pswdDB = fs.readFileSync(db_pswd_file, 'utf8', (err, data) => {
+          
           if (!err && data) {
-            pswdDB = data.trim()
+            console.log('pswdDB: ', data.trim());
           } else {
             console.log("Path to file ", db_pswd_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
         if (db_database_file !== undefined) {
-        fs.readFileSync(db_database_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            nameDB = data.trim()
+          nameDB = fs.readFileSync(db_database_file, 'utf8', (err, data) => {
+          if (!err && data) { 
+            console.log('nameDB: ', data.trim());
           } else {
             console.log("Path to file ", db_database_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
-        if (db_timestamp_file !== undefined) {
-        fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            timestampDB = data.trim()
+        if (db_timestamp_file !== undefined) { 
+          timestampDB = fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
+          if (!err && data) { 
+            console.log('timestampDB: ', data.trim());
           } else {
             console.log("Path to file ", db_timestamp_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
         if (db_paranoid_file !== undefined) {
-        fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            paranoidDB = data.trim()
+          paranoidDB = fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
+          if (!err && data) { 
+            console.log('paranoidDB: ', data.trim());
           } else {
             console.log("Path to file ", db_paranoid_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
         if (db_schema_file !== undefined) {
-        fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            schemaDB = data.trim()
+          schemaDB = fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
+          if (!err && data) { 
+            console.log('schemaDB: ', data.trim());
           } else {
             console.log("Path to file ", db_schema_file, " doesn't exists");
           }
-        });
+        }).trim();
       }
         if (db_sync_file !== undefined) {
-        fs.readFileSync(db_sync_file, 'utf8', (err, data) => {
-          if (!err && data) {
-            syncDB = data.trim()
+          syncDB = fs.readFile(db_sync_file, 'utf8', (err, data) => {
+          if (!err && data) { 
+            console.log('syncDB: ', data.trim());
           } else {
             console.log("Path to file ", db_sync_file, " doesn't exists");
           }
         });
       }
-      } else if (err.code === 'ENOENT') {
-        // folder does not exist 
-        console.log('Secrets folders doesn\'t exist: ', err.code);
-        throw new Error(`Error initializing database: ${err}`);
-      } else {
-        console.log('Something bad happend: ', err.code);
-      }
-    });
-  } catch (error) {
+    } else {
     console.error("Unable to read secret files from the env module : ", secretPath, " doesn't exist.")
     console.error(error)
     console.error("HOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
   }
-  
 } 
+
+
 
 const dbConfig = {
   dialect: 'postgres',
@@ -187,7 +214,6 @@ const dbConfig = {
   freezeTableName: freezeTableDB ?? true,
   underscored: false
 }
-
 //
 // Cache System Config Object
 //
@@ -197,7 +223,6 @@ const cacheConfig = {
   password: process.env.REDIS_PASSWORD || undefined
 }
 
-console.log(cacheConfig)
 //
 // App Config Object
 //
@@ -235,4 +260,9 @@ const rabbitMQConfig = {
   exchange: process.env.RABBITMQ_EXCHANGE,
   exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE,
 };
+
+const envObject = { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv,rabbitMQConfig, processEnv: process.env } ;
+
+console.log('Environment Configuration: ', envObject)
+
 export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv,rabbitMQConfig };
