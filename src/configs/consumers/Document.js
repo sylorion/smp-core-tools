@@ -10,10 +10,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigDocument } from './config';
+ * import { Document } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [entity, actions] of Object.entries(consumerConfigDocument.upload)) {
+ * for (const [entity, actions] of Object.entries(Document.upload)) {
  *   for (const [action, callbackName] of Object.entries(actions)) {
  *     // Setup consumer for each action
  *     setupConsumer('Upload', 'url', action, callbackName);
@@ -23,7 +23,7 @@
  * @property {Object} upload - Represents the 'Upload' microservice, where events related to the 'URL' entity are handled.
  * @property {string} upload.url.processed - Callback function name for processing a URL. Invoked to handle post-upload processing.
  */
-const consumerConfigDocument = {
+const Document = {
     upload: {
       url: {
         create: "createDocumentFromURL",
@@ -38,5 +38,5 @@ const consumerConfigDocument = {
     },
   };
   
-  export { consumerConfigDocument };
+  export { Document };
   

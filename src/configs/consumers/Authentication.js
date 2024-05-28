@@ -10,10 +10,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigAuthentication } from './config';
+ * import { Authentication } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [entity, actions] of Object.entries(consumerConfigAuthentication.userSpace)) {
+ * for (const [entity, actions] of Object.entries(Authentication.userSpace)) {
  *   for (const [action, callbackName] of Object.entries(actions)) {
  *     // Setup consumer for each action
  *     setupConsumer('UserSpace', 'user', action, callbackName);
@@ -25,7 +25,7 @@
  * @property {string} userSpace.user.updated - Callback function name for updating a user. Invoked to handle user updates.
  * @property {string} userSpace.user.deleted - Callback function name for deleting a user. Invoked to handle user deletions.
  */
-const consumerConfigAuthentication = {
+const Authentication = {
     userSpace: {
       user: {
         created: "saveUserToDatabase",
@@ -35,5 +35,5 @@ const consumerConfigAuthentication = {
     },
   };
   
-  export { consumerConfigAuthentication };
+  export { Authentication };
   

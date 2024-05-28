@@ -83,7 +83,9 @@ import amqp from 'amqplib';
     this.publishTopic(exchangeTopic, routingKey, message, context, options);
     this.close
   }
+
+  
 }
 
-export  { RabbitMQService };
+export  { RabbitMQService,  };
 

@@ -10,10 +10,10 @@
  *
  * @example
  * // Usage within the startConsumers function to setup consumers based on this configuration
- * import { consumerConfigAudits } from './config';
+ * import { Audits } from './config';
  *
  * // Iterating over configuration to setup consumers
- * for (const [microservice, entities] of Object.entries(consumerConfigAudits)) {
+ * for (const [microservice, entities] of Object.entries(Audits)) {
  *   for (const [entity, actions] of Object.entries(entities)) {
  *     for (const [action, callbackName] of Object.entries(actions)) {
  *       // Setup consumer for each action
@@ -24,7 +24,7 @@
  *
  * @property {Object} audits - Manages events related to all entities across all subscribed microservices.
  */
-const consumerConfigAudits = {
+const Audits = {
   location: {
     place: {
       created: "savePlaceToDatabase",
@@ -262,4 +262,4 @@ const consumerConfigAudits = {
   },
 };
 
-export { consumerConfigAudits };
+export { Audits };
