@@ -1,5 +1,6 @@
 import amqp from 'amqplib';
 import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from '../rabbitMq/handlerCRUDOperation.js';
+import { handleEvent } from '../rabbitMq/handlerEvent.js';
 
  class RabbitMQService { // Service RabbitMQ pour la consommation et la publication de messages
 
@@ -53,7 +54,7 @@ import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabas
   /**
    * Souscrit à un échange de topic RabbitMQ pour la consommation des messages.
    * @param {string} exchangeTopic - Le nom de l'échange de topic.
-   * @param {string} routingKey - La clé de routage pour filtrer les messages.
+   * @param {string} routingKey - La clé de routage pour filtrer les messages. ex : 'user.created'
    * @param {string} queueName - Le nom de la file de messages à laquelle souscrire.
    * @param {string} entityName - Le nom de l'entité correspondant aux messages.
    * @param {string} operation - Le type d'opération CRUD à exécuter (create, update, delete).
@@ -63,6 +64,7 @@ import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabas
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.exchangeDuration });
     await this.channel.assertQueue(queueName, { durable: this.queueDuration });
     await this.channel.bindQueue(queueName, exchangeTopic, routingKey);
+
     this.channel.consume(queueName, (receivedMsg) => {
       if (receivedMsg) { 
         const messageData = JSON.parse(receivedMsg.content.toString());
@@ -78,6 +80,12 @@ import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabas
           this.handleCRUDOperation(entityName, operation, messageData); if (this.ack) {
             this.channel.ack(receivedMsg);
           }
+          /* Utiliser handleEvent pour traiter les messages reçus
+          * cela permet de declanccher la fonction handleEvent pour chaque message reçu
+          * si la rounting key est configuré pour cela
+          */
+           handleEvent(routingKey, messageData);
+
           console.log(`Received message for ${entityName} with operation ${operation}:`, messageData);
         } catch (error) {
           console.error(`Error handling CRUD operation for ${entityName}: ${error}`);
