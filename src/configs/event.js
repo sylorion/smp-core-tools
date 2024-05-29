@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from '../rabbitMq/handlerCRUDOperation.js';
-import { handleEvent } from '../rabbitMq/handlerEvent.js';
+import { handleEvent } from '../handler/notificationHandler.js';
 
  class RabbitMQService { // Service RabbitMQ pour la consommation et la publication de messages
 
