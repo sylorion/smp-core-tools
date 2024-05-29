@@ -25,6 +25,31 @@ import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabas
     await this.connection.close();
   }
 
+
+
+  /**
+   * Compares the current microservice's subscriptions against a global configuration (SMPevents) to ensure they are valid.
+   * @param {Object} SMPevents - The global configuration detailing valid event subscriptions for each microservice.
+   * @param {Object} muConsumers - The microservices and their subscribed events to validate.
+   */
+  async verifySubscriptions(SMPevents, muConsumers) {
+    Object.keys(muConsumers).forEach(service => {
+      Object.keys(muConsumers[service]).forEach(entity => {
+        const operations = muConsumers[service][entity];
+        if (!SMPevents[service] || !SMPevents[service][entity]) {
+          console.warn(`Warning: No event configurations found for ${service}.${entity} in SMPevents.`);
+        } else {
+          const validOperations = SMPevents[service][entity];
+          const invalidOps = operations.filter(op => !validOperations.includes(op));
+          if (invalidOps.length > 0) {
+            console.warn(`Warning: Invalid operations ${invalidOps.join(', ')} for ${service}.${entity} not supported by SMPevents.`);
+          }
+        }
+      });
+    });
+    console.log("Verification of subscriptions completed.");
+  }
+
   /**
    * Souscrit à un échange de topic RabbitMQ pour la consommation des messages.
    * @param {string} exchangeTopic - Le nom de l'échange de topic.
