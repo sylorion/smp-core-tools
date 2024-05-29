@@ -37,15 +37,4 @@ export {
     ExternalAPIAccesError, InternalAPIAccesError,
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
 
-    //export des configurations des consumers pour chaque microservice
-export{ Organization } from './src//configOrganization.js'
-export {UserSpace} from './src//configUserSpace.js'
-export {Notification} from './src//configNotification.js'
-export {Catalog} from './src//configCatalog.js'
-export {Location} from './src//configLocation.js'
-export {Audits} from './src//configAudits.js'
-export{ ReviewComment } from './src//configReviewComment.js'
-export{Authentication} from './src//configAuthentication.js'
-export {Accounting} from './src//configAccounting.js'
-export {Document} from './src//configDocument.js'
 
