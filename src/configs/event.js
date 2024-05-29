@@ -1,5 +1,5 @@
 import amqp from 'amqplib';
-import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from '../handlerRabbit/handlerCRUDOperation.js';
+import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from '../rabbitMq/handlerCRUDOperation.js';
 
  class RabbitMQService { // Service RabbitMQ pour la consommation et la publication de messages
 
@@ -143,39 +143,44 @@ import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabas
     }
     console.log("All consumers have been set up for all microservices.");
   }
-  /**
- * Gère une opération CRUD sur une entité Sequelize.
- * @param {string} entityName - Le nom de l'entité Sequelize.
- * @param {string} operation - Le type d'opération CRUD à exécuter (create, update, delete).
- * @param {Object} data - Les données à utiliser pour l'opération CRUD.
- * @returns {Promise<void>} Une promesse résolue une fois l'opération CRUD effectuée.
+ /**
+ * Handle CRUD operations for a given entity based on operation type.
+ * @param {string} entityName - The name of the entity for CRUD operation.
+ * @param {string} operation - Type of CRUD operation ('created', 'updated', 'deleted').
+ * @param {Object} messageData - Data associated with the CRUD operation.
+ * @returns {Promise<Object>} A promise resolved with the result of the CRUD operation.
+ * @throws {Error} If the model is not found or if the operation is not supported.
  */
-  async handleCRUDOperation(entityName, operation, data) {
-    const model = this.models[entityName];
-  
-    // console.log(data);
-    if (!model) {
-      throw new Error(`Model not found for entity: ${entityName}`);
-    }
-  
-    // Construct the ID field name based on the entity name
-    const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
-  
-    switch (operation) { // Exécuter l'opération CRUD appropriée en fonction du type d'opération
-      case 'created':
-        return createEntityInDatabase(model, data);
-      case 'updated':
-        // Ensure the ID for update operation is fetched dynamically from the data object
-        return updateEntityInDatabase(model, data, data[idField]);
-      case 'deleted':
-        // Ensure the ID for delete operation is fetched dynamically from the data object
-        return deleteEntityFromDatabase(model, data[idField]);
-      default:
-        console.error(`Opération non supportée '${operation}' pour l'entité '${entityName}'.`);
-        throw new Error(`Opération non supportée : ${operation}`);
-    }
+async handleCRUDOperation(entityName, operation, messageData) {
+  const model = this.models[entityName];
 
+  // Parse the incoming JSON data
+  let data = JSON.parse(messageData.data);
+
+  // Dynamically construct the ID field name based on the entity name
+  const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
+
+  // Correctly log the value of the dynamically named ID field
+  console.log( idField, data[idField]);
+
+  if (!model) {
+    throw new Error(`Model not found for entity: ${entityName}`);
   }
+
+  switch (operation) { // Execute the appropriate CRUD operation based on the operation type
+    case 'created':
+      return createEntityInDatabase(model, data, data[idField]);
+    case 'updated':
+      // Ensure the ID for update operation is fetched dynamically from the data object
+      return updateEntityInDatabase(model, data, data[idField]);
+    case 'deleted':
+      // Ensure the ID for delete operation is fetched dynamically from the data object
+      return deleteEntityFromDatabase(model, data[idField]);
+    default:
+      console.error(`Operation '${operation}' not supported for entity '${entityName}'.`);
+      throw new Error(`Unsupported operation: ${operation}`);
+  }
+}
 
 
 }
