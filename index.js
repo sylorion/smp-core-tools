@@ -9,6 +9,7 @@
 export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js'
+export {SMPevents} from './src/rabbitMq/index.js'
 export {
     updateContext,
     getUserTokenFromHeaders,
