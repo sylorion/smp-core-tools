@@ -1,4 +1,4 @@
-import MailingService from '../configs/mailer.js';
+import {MailingService} from '../configs/mailer.js';
 import fetch from 'node-fetch';
 
 class BrevoMailingService extends MailingService {
