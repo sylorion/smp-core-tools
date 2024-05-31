@@ -76,7 +76,8 @@ import { handleEvent } from '../handler/notificationHandler.js';
    * 
    * de plus ces fonctions de crud sont configurés  depuis le microservice qui les consomme, en effet celui ci choisis l'entité
    *  et les opérations qu'il veut consommer de celle ci dans son muConsumers.
-  */
+  */      handleEvent(routingKey, messageData);
+
           this.handleCRUDOperation(entityName, operation, messageData); if (this.ack) {
             this.channel.ack(receivedMsg);
           }
@@ -84,7 +85,7 @@ import { handleEvent } from '../handler/notificationHandler.js';
           * cela permet de declanccher la fonction handleEvent pour chaque message reçu
           * si la rounting key est configuré pour cela
           */
-           handleEvent(routingKey, messageData);
+          //  handleEvent(routingKey, messageData);
 
           console.log(`Received message for ${entityName} with operation ${operation}:`, messageData);
         } catch (error) {
