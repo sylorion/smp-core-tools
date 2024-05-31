@@ -82,7 +82,7 @@ const SMPevents = {
     UserToken: ['created', 'updated', 'deleted']
   },
   document: {
-    media: ['created', 'updated', 'deleted'],
+    Media: ['created', 'updated', 'deleted'],
     
   },
   upload: {

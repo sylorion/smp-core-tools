@@ -28,6 +28,10 @@ class MailingService {
 
 class MailingServiceFactory {
   static createMailingService(apiKey, brevoMailingConfig, internalNotificationConfig) {
+    console.log("OKE");
+
+    console.log("OKE", process.env.MAIL_SERVICE);
+
     switch (process.env.MAIL_SERVICE) {
       case "Brevo":
         return new BrevoMailingService(apiKey, brevoMailingConfig);
@@ -41,8 +45,12 @@ class MailingServiceFactory {
             pass: process.env.SMTP_PASS,
           },
         };
+        console.log("OKE", process.env.MAIL_SERVICE);
+
         return new SMTPMailingService(smtpConfig);
+        
     }
+
   }
 }
 
