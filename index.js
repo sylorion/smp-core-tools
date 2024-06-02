@@ -10,7 +10,8 @@ export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js'
 export {SMPevents} from './src/rabbitMq/index.js'
-export{MailingServiceFactory, MailingService} from './src/configs/mailer.js'
+export{ MailingService} from './src/configs/mailer.js'
+export {MailingServiceFactory} from './src/SMPmailing/mailingFactory.js'
 export {
     updateContext,
     getUserTokenFromHeaders,
