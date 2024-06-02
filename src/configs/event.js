@@ -27,7 +27,7 @@ class RabbitMQService {
     this.logger = logger;
     this.channel = null;
     this.exchangeDurable = durable;
-    this.queueDurable = durable; // Queues are durable by default 
+    this.queueDurable = durable;
     this.ack = true; // Acknowledge messages by default to prevent message loss in case of error
   }
 
@@ -89,37 +89,45 @@ class RabbitMQService {
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.exchangeDurable });
     await this.channel.assertQueue(queueName, { durable: this.queueDurable });
     await this.channel.bindQueue(queueName, exchangeTopic, routingKey);
-  
+
+    const notificationCrudEntities = ['User', 'UserOrganization', 'UserPreference'];
+    const µservice = process.env.SMP_MU_SERVICE_NAME;
+
     this.channel.consume(queueName, (receivedMsg) => {
       if (receivedMsg) {
         const messageData = JSON.parse(receivedMsg.content.toString());
         try {
           console.log(`Processing message with routingKey: ${routingKey} and messageData:`, messageData);
-  
+
           const parsedData = JSON.parse(messageData.data);  // Parse the 'data' field
           const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
           const model = this.models[entityName];
-  
-          // Handle CRUD operations based on 'operation'
-          if (operation === 'created') {
-            createEntityInDatabase(model, parsedData, parsedData[idField]); 
-          } else if (operation === 'updated') {
-            updateEntityInDatabase(model, parsedData, parsedData[idField]);
-          } else if (operation === 'deleted') {
-            deleteEntityFromDatabase(model, parsedData[idField]);
+
+          // Handle CRUD operations based on 'operation' only for specific entities in the "notification" microservice
+          if ((µservice !== 'notification') || notificationCrudEntities.includes(entityName)) {
+            if (operation === 'created') {
+              createEntityInDatabase(model, parsedData, parsedData[idField]);
+            } else if (operation === 'updated') {
+              updateEntityInDatabase(model, parsedData, parsedData[idField]);
+            } else if (operation === 'deleted') {
+              deleteEntityFromDatabase(model, parsedData[idField]);
+            }
           }
-  
-          // Call handleCallback to process notifications
-          handleCallback(entityName, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
+
+          // Call handleCallback to process notifications only if the service is "notification"
+          if (µservice === 'notification') {
+            handleCallback(entityName, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
+          }
+
           console.log(`Processed message for ${entityName} with operation ${operation}:`, messageData);
-  
+
           // Acknowledge the message
           this.channel.ack(receivedMsg);
         } catch (error) {
           console.error(`Error processing message for ${entityName}: ${error}`);
           // Nack the message and do not requeue
           this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
-  
+
           // Log the error or send a notification
           if (this.logger) {
             this.logger.error(`Error processing message for ${entityName}: ${error}`);
@@ -128,9 +136,8 @@ class RabbitMQService {
           }
         }
       }
-    }, { noAck: false }); // Acknowledge messages to prevent message loss
+    }, { noAck: false });
   }
-  
 
   /**
    * Subscribes to a RabbitMQ direct exchange.
@@ -147,24 +154,24 @@ class RabbitMQService {
     this.channel.consume(queueName, (receivedMsg) => {
       if (receivedMsg) {
         try {
-           callback(receivedMsg.content);
-        // Acknowledge the message
-        this.channel.ack(receivedMsg);
-      } catch (error) {
-        console.error('Unable to read the message:', error);
-        // Nack the message and do not requeue
-        this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
+          callback(receivedMsg.content);
+          // Acknowledge the message
+          this.channel.ack(receivedMsg);
+        } catch (error) {
+          console.error('Unable to read the message:', error);
+          // Nack the message and do not requeue
+          this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
 
-        // Log the error or send a notification
-        if (this.logger) {
-          this.logger.error('Msg lost:', receivedMsg);
-        } else {
-          console.error('Msg lost:', receivedMsg);
+          // Log the error or send a notification
+          if (this.logger) {
+            this.logger.error('Msg lost:', receivedMsg);
+          } else {
+            console.error('Msg lost:', receivedMsg);
+          }
         }
       }
-    }
-  }, { noAck: false });
-}
+    }, { noAck: false });
+  }
 
   /**
    * Publishes a message to a RabbitMQ topic.
@@ -216,19 +223,9 @@ class RabbitMQService {
 
           console.log(`Preparing to subscribe to queue ${queueName} ...`);
 
-          this.subscribeTopic(exchangeName, routingKey, queueName, entityName, operation, handleCallback);
-          /*  here the subscribeTopic function is called with the following parameters:
-              - exchangeName: the name of the exchange to bind to
-              - routingKey: the routing key to use for binding
-              - queueName: the name of the queue to bind to
-              - entityName: the name of the entity to process
-              - operation: the operation to process (created, updated, deleted)
-              - handleCallback: the callback function to handle the message
-              - data: the data to process
-
-              this serves to subscribe to the specified exchange, bind the queue to it, and consume messages from the queue    
-          */
-
+          // Pass handleCallback for notification service
+          const callback = (µservice === 'notification') ? handleCallback : null;
+          this.subscribeTopic(exchangeName, routingKey, queueName, entityName, operation, callback);
         }
       }
     }
