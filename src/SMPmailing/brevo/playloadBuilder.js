@@ -15,12 +15,16 @@ function generatePayloadForUser(user, subject, templateId, params) {
     to: [
       {
         email: user.email,
-        name: user.name,
+        name: user.name || user.username || 'User', // Utilise le nom, le nom d'utilisateur ou 'User' par défaut
       },
     ],
     subject: subject,
     templateId: templateId,
-    params: params,
+    params: {
+      ...params,
+      userName: user.name || user.username || 'User', // Ajoute le nom d'utilisateur aux paramètres
+    },
   };
 }
+
 export { generatePayloadForUser };
