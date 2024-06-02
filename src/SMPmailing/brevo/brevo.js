@@ -1,10 +1,10 @@
 import fetch from 'node-fetch';
-import { MailingService } from 'smp-core-tools';
+import { MailingService } from '../../configs/mailer.js';
+
 /**
  * Classe pour envoyer des emails en utilisant l'API Brevo.
  */
-class BrevoMailingService extends MailingService{
-  
+class BrevoMailingService extends MailingService {
   /**
    * Initialise une nouvelle instance de BrevoMailingService.
    * @param {string} apiKey - La clé API pour l'authentification des requêtes à l'API Brevo.
@@ -12,12 +12,8 @@ class BrevoMailingService extends MailingService{
    */
   constructor(apiKey, brevoMailingConfig) {
     super(); // Appel du constructeur de la classe parente
-    console.log('Calling BrevoMailingService constructor'); // Vérifiez que le constructeur est appelé
-
     this.apiKey = apiKey;
     this.brevoMailingConfig = brevoMailingConfig;
-    console.log("OKBREVOLO", brevoMailingConfig)
-    console.log('BrevoMailingService initialized with API key:', this.apiKey); // Ajoutez ce log pour vérifier la clé API
   }
 
   /**
@@ -27,24 +23,25 @@ class BrevoMailingService extends MailingService{
    * @throws {Error} - Lève une erreur si l'envoi de l'email échoue.
    */
   async sendMail(payload) {
-    console.log("OKBREVO11");
-
 
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'api-key': this.apiKey // Utilisation de l'en-tête 'api-key' au lieu de 'Authorization'
         },
         body: JSON.stringify(payload)
       });
 
+      const responseBody = await response.text();
+      console.log('Response Body:', responseBody);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`HTTP error! Status: ${response.status}, Response: ${responseBody}`);
       }
 
-      const responseData = await response.json();
+      const responseData = JSON.parse(responseBody);
       console.log("Email sent successfully!", responseData);
     } catch (error) {
       console.error("Failed to send email via Brevo API:", error);
