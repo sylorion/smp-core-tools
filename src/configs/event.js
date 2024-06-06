@@ -75,16 +75,6 @@ class RabbitMQService {
     console.log("Verification of subscriptions completed.");
   }
 
-  /**
-   * Subscribes to a RabbitMQ topic.
-   * @param {string} exchangeTopic - Name of the topic exchange.
-   * @param {string} routingKey - Routing key for the exchange.
-   * @param {string} queueName - Name of the queue.
-   * @param {string} entityName - Name of the entity.
-   * @param {string} operation - CRUD operation (created, updated, deleted).
-   * @param {Function} handleCallback - Callback function to handle the message.
-   * @param {Object} data - Data to process.
-   */
   async subscribeTopic(exchangeTopic, routingKey, queueName, entityName, operation, handleCallback, data) {
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.exchangeDurable });
     await this.channel.assertQueue(queueName, { durable: this.queueDurable });
@@ -92,52 +82,56 @@ class RabbitMQService {
 
     const notificationCrudEntities = ['User', 'UserOrganization', 'UserPreference'];
     const µservice = process.env.SMP_MU_SERVICE_NAME;
+    this.channel.consume(queueName, async (receivedMsg) => {  // Added async to enable awaiting inside
+        if (receivedMsg) {
+            const messageData = JSON.parse(receivedMsg.content.toString());
+            try {
+                console.log(`Processing message with routingKey: ${routingKey} and messageData:`, messageData);
 
-    this.channel.consume(queueName, (receivedMsg) => {
-      if (receivedMsg) {
-        const messageData = JSON.parse(receivedMsg.content.toString());
-        try {
-          console.log(`Processing message with routingKey: ${routingKey} and messageData:`, messageData);
+                const parsedData = JSON.parse(messageData.data);  // Parse the 'data' field
+                const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
+                const model = this.models[entityName];
 
-          const parsedData = JSON.parse(messageData.data);  // Parse the 'data' field
-          const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
-          const model = this.models[entityName];
+                // Ensuring CRUD operations are awaited
+                if ((µservice !== 'notification') || notificationCrudEntities.includes(entityName)) {
+                    switch (operation) {
+                        case 'created':
+                            await createEntityInDatabase(model, parsedData, parsedData[idField]);
+                            break;
+                        case 'updated':
+                            await updateEntityInDatabase(model, parsedData, parsedData[idField]);
+                            break;
+                        case 'deleted':
+                            await deleteEntityFromDatabase(model, parsedData[idField]);
+                            break;
+                    }
+                }
 
-          // Handle CRUD operations based on 'operation' only for specific entities in the "notification" microservice
-          if ((µservice !== 'notification') || notificationCrudEntities.includes(entityName)) {
-            if (operation === 'created') {
-              createEntityInDatabase(model, parsedData, parsedData[idField]);
-            } else if (operation === 'updated') {
-              updateEntityInDatabase(model, parsedData, parsedData[idField]);
-            } else if (operation === 'deleted') {
-              deleteEntityFromDatabase(model, parsedData[idField]);
+                // Conditionally call handleCallback if the service is "notification"
+                if (µservice === 'notification') {
+                    await handleCallback(routingKey, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
+                }
+
+                console.log(`Processed message for ${entityName} with operation ${operation}:`, messageData);
+
+                // Acknowledge the message
+                this.channel.ack(receivedMsg);
+            } catch (error) {
+                console.error(`Error processing message for ${entityName}: ${error}`);
+                // Nack the message and do not requeue
+                this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
+
+                // Log the error or send a notification
+                if (this.logger) {
+                    this.logger.error(`Error processing message for ${entityName}: ${error}`);
+                } else {
+                    console.error(`Error processing message for ${entityName}: ${error}`);
+                }
             }
-          }
-
-          // Call handleCallback to process notifications only if the service is "notification"
-          if (µservice === 'notification') {
-            handleCallback(entityName, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
-          }
-
-          console.log(`Processed message for ${entityName} with operation ${operation}:`, messageData);
-
-          // Acknowledge the message
-          this.channel.ack(receivedMsg);
-        } catch (error) {
-          console.error(`Error processing message for ${entityName}: ${error}`);
-          // Nack the message and do not requeue
-          this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
-
-          // Log the error or send a notification
-          if (this.logger) {
-            this.logger.error(`Error processing message for ${entityName}: ${error}`);
-          } else {
-            console.error(`Error processing message for ${entityName}: ${error}`);
-          }
         }
-      }
     }, { noAck: false });
-  }
+}
+
 
   /**
    * Subscribes to a RabbitMQ direct exchange.
