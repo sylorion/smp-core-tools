@@ -17,7 +17,6 @@ class RabbitMQService {
    * @param {boolean} [durable=true] - Whether exchanges and queues are durable.
    */
   constructor(connectionURL, models, mailingService, brevoMailingConfig, internalNotificationConfig, logger = null, durable = true) {
-    console.log(models);
     this.mailingService = mailingService;
     this.connectionURL = connectionURL;
     this.models = models;
@@ -52,19 +51,49 @@ class RabbitMQService {
     await this.connection.close();
   }
 
-  /**
-   * Verifies the subscriptions against the SMP events.
-   * @param {Object} SMPevents - SMP events configuration.
-   * @param {Object} muConsumers - Microservices consumers configuration.
-   */
+/**
+ * Verifies the subscriptions against the SMP events configuration.
+ *
+ * This method compares the subscription operations of microservices with the SMP events configuration
+ * to ensure that the operations are valid and supported. It warns if invalid operations are detected
+ * or if event configurations are missing.
+ *
+ * @param {Object} SMPevents - The SMP events configuration. This object describes the supported events for each service and entity.
+ * @param {Object} muConsumers - The microservices consumers configuration. This object describes the operations each service and entity is subscribed to.
+ *
+ * This method performs the following steps:
+ * 1. Iterates through all services defined in the microservices consumers configuration (`muConsumers`).
+ * 2. For each service, iterates through all entities and their operation configurations.
+ * 3. Checks if the operations defined for each entity are valid against the SMP events configuration (`SMPevents`).
+ * 4. Warns if invalid operations are found or if no valid event configuration is available for a given entity.
+ *
+ * Usage:
+ * This method is used to validate that microservices are properly configured to subscribe to the appropriate events
+ * and to avoid configuration errors.
+ *
+ * Example:
+ * await rabbitMQService.verifySubscriptions(SMPevents, muConsumers);
+ */
   async verifySubscriptions(SMPevents, muConsumers) {
     Object.keys(muConsumers).forEach(service => {
       Object.keys(muConsumers[service]).forEach(entity => {
-        const operations = muConsumers[service][entity];
-        if (!SMPevents[service] || !SMPevents[service][entity]) {
-          console.warn(`[Warning]: No event configurations found for ${service}.${entity} in SMPevents.`);
+        const entityConfig = muConsumers[service][entity];
+        const operations = entityConfig.operations || [];
+
+        if (!Array.isArray(operations)) {
+          console.warn(`[Warning]: Operations for ${entity} in service ${service} should be an array.`);
+          return;
+        }
+
+        if (!SMPevents[service] || !SMPevents[service][entity] || !Array.isArray(SMPevents[service][entity].operations)) {
+          console.warn(`[Warning]: No valid event configurations found for ${service}.${entity} in SMPevents.`);
         } else {
-          const validOperations = SMPevents[service][entity];
+          const validOperations = SMPevents[service][entity].operations;
+          if (!Array.isArray(validOperations)) {
+            console.warn(`[Warning]: Valid operations for ${service}.${entity} should be an array.`);
+            return;
+          }
+
           const invalidOps = operations.filter(op => !validOperations.includes(op));
           if (invalidOps.length > 0) {
             console.warn(`[Warning]: Invalid operations ${invalidOps.join(', ')} for ${service}.${entity} not supported by SMPevents.`);
@@ -75,98 +104,118 @@ class RabbitMQService {
     console.log("Verification of subscriptions completed.");
   }
 
-  async subscribeTopic(exchangeTopic, routingKey, queueName, entityName, operation, handleCallback, data) {
+  /**
+ * Subscribes to a RabbitMQ topic and processes incoming messages.
+ *
+ * This method sets up a consumer for a specified RabbitMQ topic, queue, and routing key.
+ * It processes messages by invoking either a general callback function or an entity-specific
+ * CRUD operation handler. It also supports handling special events through dedicated callback functions.
+ * 
+ * **Special Case: Notification Service**
+ * If the current microservice is the notification service, this method handles messages 
+ * differently by invoking a general notification handler, `handleCallback`, which manages
+ * sending emails and recording notifications based on the message data.
+ *
+ * @param {string} exchangeTopic - The name of the topic exchange to subscribe to.
+ * @param {string} routingKey - The routing key used to filter messages in the exchange.
+ * @param {string} queueName - The name of the queue to bind to the exchange and routing key.
+ * @param {string} entityName - The name of the entity being processed (used for CRUD operations).
+ * @param {string} operation - The CRUD operation being performed (created, updated, deleted).
+ * @param {Function} handleCallback - The general callback function to handle messages.
+ * @param {Object} data - Additional data to process (currently not used but can be extended for future use).
+ * @param {Function} callback - A specific callback function for handling special events.
+ *
+ * This method performs the following steps:
+ * 1. Asserts the existence of the specified exchange and queue, and binds them together using the routing key.
+ * 2. Sets up a consumer for the queue to listen for incoming messages.
+ * 3. Parses the received message and determines the appropriate action based on the provided parameters.
+ * 4. If a specific callback function is provided, it invokes this function to handle the message.
+ * 5. If no specific callback is provided, it performs entity-specific CRUD operations if applicable.
+ * 6. If the current microservice is the notification service, it invokes a general notification handler.
+ * 7. Acknowledges the message if processed successfully, or rejects it in case of an error.
+ *
+ * The function is designed to handle both standard CRUD operations for entities and custom event handling
+ * for special cases, providing a flexible and extensible way to process messages in a RabbitMQ-based system.
+ *
+ * Usage:
+ * This method is typically used within a microservice to set up consumers for various events
+ * and operations, ensuring that the appropriate logic is executed when messages are received.
+ *
+ * Example:
+ * rabbitMQService.subscribeTopic(
+ *   'userSpace.events',
+ *   'User.created',
+ *   'user-created-queue',
+ *   'User',
+ *   'created',
+ *   handleCallback,
+ *   null,
+ *   customUserCreatedCallback
+ * );
+ */
+  async subscribeTopic(exchangeTopic, routingKey, queueName, entityName, operation, handleCallback, data, callback) {
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.exchangeDurable });
     await this.channel.assertQueue(queueName, { durable: this.queueDurable });
     await this.channel.bindQueue(queueName, exchangeTopic, routingKey);
-
+  
     const notificationCrudEntities = ['User', 'UserOrganization', 'UserPreference'];
     const µservice = process.env.SMP_MU_SERVICE_NAME;
-    this.channel.consume(queueName, async (receivedMsg) => {  // Added async to enable awaiting inside
-        if (receivedMsg) {
-            const messageData = JSON.parse(receivedMsg.content.toString());
-            try {
-                console.log(`Processing message with routingKey: ${routingKey} and messageData:`, messageData);
-
-                const parsedData = JSON.parse(messageData.data);  // Parse the 'data' field
-                const idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
-                const model = this.models[entityName];
-
-                // Ensuring CRUD operations are awaited
-                if ((µservice !== 'notification') || notificationCrudEntities.includes(entityName)) {
-                    switch (operation) {
-                        case 'created':
-                            await createEntityInDatabase(model, parsedData, parsedData[idField]);
-                            break;
-                        case 'updated':
-                            await updateEntityInDatabase(model, parsedData, parsedData[idField]);
-                            break;
-                        case 'deleted':
-                            await deleteEntityFromDatabase(model, parsedData[idField]);
-                            break;
-                    }
-                }
-
-                // Conditionally call handleCallback if the service is "notification"
-                if (µservice === 'notification') {
-                    await handleCallback(routingKey, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
-                }
-
-                console.log(`Processed message for ${entityName} with operation ${operation}:`, messageData);
-
-                // Acknowledge the message
-                this.channel.ack(receivedMsg);
-            } catch (error) {
-                console.error(`Error processing message for ${entityName}: ${error}`);
-                // Nack the message and do not requeue
-                this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
-
-                // Log the error or send a notification
-                if (this.logger) {
-                    this.logger.error(`Error processing message for ${entityName}: ${error}`);
-                } else {
-                    console.error(`Error processing message for ${entityName}: ${error}`);
-                }
-            }
-        }
-    }, { noAck: false });
-}
-
-
-  /**
-   * Subscribes to a RabbitMQ direct exchange.
-   * @param {string} exchange - Name of the direct exchange.
-   * @param {string} routingKey - Routing key for the exchange.
-   * @param {string} queueName - Name of the queue.
-   * @param {Function} callback - Callback function to handle the message.
-   */
-  async subscribeDirect(exchange, routingKey, queueName, callback) {
-    await this.channel.assertExchange(exchange, 'direct', { durable: this.exchangeDurable });
-    await this.channel.assertQueue(queueName, { durable: this.queueDurable });
-    await this.channel.bindQueue(queueName, exchange, routingKey);
-
-    this.channel.consume(queueName, (receivedMsg) => {
+  
+    this.channel.consume(queueName, async (receivedMsg) => {
       if (receivedMsg) {
+        const messageData = JSON.parse(receivedMsg.content.toString());
         try {
-          callback(receivedMsg.content);
-          // Acknowledge the message
+          console.log(`Processing message with routingKey: ${routingKey} and messageData:`, messageData);
+  
+          const parsedData = JSON.parse(messageData.data); // Parse the 'data' field
+          let idField, model;
+  
+          if (entityName && this.models[entityName]) {
+            idField = entityName.charAt(0).toLowerCase() + entityName.slice(1) + 'ID';
+            model = this.models[entityName];
+          }
+  
+          if (callback) {
+            await callback(parsedData, messageData, this.mailingService, this.brevoMailingConfig);
+          } else if (entityName && model) {
+            if ((µservice !== 'notification') || notificationCrudEntities.includes(entityName)) {
+              switch (operation) {
+                case 'created':
+                  await createEntityInDatabase(model, parsedData, parsedData[idField]);
+                  break;
+                case 'updated':
+                  await updateEntityInDatabase(model, parsedData, parsedData[idField]);
+                  break;
+                case 'deleted':
+                  await deleteEntityFromDatabase(model, parsedData[idField]);
+                  break;
+                default:
+                  throw new Error('Invalid operation');
+              }
+            }
+  
+            if (µservice === 'notification') {
+              await handleCallback(routingKey, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
+            }
+          }
+  
+          console.log(`Processed message for ${entityName} with operation ${operation}:`, messageData);
+  
           this.channel.ack(receivedMsg);
         } catch (error) {
-          console.error('Unable to read the message:', error);
-          // Nack the message and do not requeue
-          this.channel.nack(receivedMsg, false, false); // nack with requeue set to false
-
-          // Log the error or send a notification
+          console.error(`Error processing message for ${entityName}: ${error}`);
+          this.channel.nack(receivedMsg, false, false);
+  
           if (this.logger) {
-            this.logger.error('Msg lost:', receivedMsg);
+            this.logger.error(`Error processing message for ${entityName}: ${error}`);
           } else {
-            console.error('Msg lost:', receivedMsg);
+            console.error(`Error processing message for ${entityName}: ${error}`);
           }
         }
       }
     }, { noAck: false });
   }
-
+  
   /**
    * Publishes a message to a RabbitMQ topic.
    * @param {string} exchangeTopic - Name of the topic exchange.
@@ -200,31 +249,67 @@ class RabbitMQService {
     await this.close();
   }
 
+
+
   /**
-   * Starts consumers for the specified microservices.
-   * @param {Object} microservices - Configuration of microservices and their operations.
-   */
+ * Starts consumers for the specified microservices.
+ *
+ * This method sets up consumers for the specified microservices based on their configuration.
+ * It subscribes to the appropriate RabbitMQ queues and binds them to the specified exchanges
+ * and routing keys. It handles both standard CRUD operations and special events with custom callbacks.
+ *
+ * @param {Object} microservices - The configuration of microservices and their operations (muConsumers in the microservice).
+ *
+ * This method performs the following steps:
+ * 1. Connects to the RabbitMQ server.
+ * 2. Iterates through all microservices defined in the `microservices` configuration.
+ * 3. For each microservice, iterates through all entities and their operation configurations.
+ * 4. Subscribes to the appropriate queues for standard CRUD operations.
+ * 5. Subscribes to special event queues with custom callbacks if defined.
+ * 6. Logs the status of each subscription.
+ *
+ * Usage:
+ * This method is used to set up consumers for microservices to listen for specific events
+ * and perform actions based on those events.
+ *
+ * Example:
+ * await rabbitMQService.startConsumers(microservices);
+ */
   async startConsumers(microservices) {
     const µservice = process.env.SMP_MU_SERVICE_NAME;
-
+  
     await this.connect();
     for (const [microserviceName, config] of Object.entries(microservices)) {
-      for (const [entityName, operations] of Object.entries(config)) {
+      for (const [entityName, entityConfig] of Object.entries(config)) {
+        const { operations, specialEvents } = entityConfig;
+        const exchangeName = `${microserviceName}.events`; // Définir exchangeName ici
+  
         for (const operation of operations) {
           const queueName = `${entityName}-${operation}-${µservice}-queue`;
           const routingKey = `${entityName}.${operation}`;
-          const exchangeName = `${microserviceName}.events`;
-
+  
           console.log(`Preparing to subscribe to queue ${queueName} ...`);
-
-          // Pass handleCallback for notification service
-          const callback = (µservice === 'notification') ? handleCallback : null;
-          this.subscribeTopic(exchangeName, routingKey, queueName, entityName, operation, callback);
+  
+          this.subscribeTopic(exchangeName, routingKey, queueName, entityName, operation, handleCallback, null, null);
+        }
+  
+        if (specialEvents) {
+          for (const [eventKey, eventConfig] of Object.entries(specialEvents)) {
+            const { event, callback } = eventConfig;
+            const queueName = `${entityName}-${eventKey}-${µservice}-queue`;
+            const routingKey = event;
+  
+            console.log(`Preparing to subscribe to queue ${queueName} for special event ${event}...`);
+  
+            this.subscribeTopic(exchangeName, routingKey, queueName, entityName, eventKey, handleCallback, null, callback);
+          }
         }
       }
     }
     console.log("All consumers have been set up for all microservices.");
   }
+  
+  
 }
 
 export { RabbitMQService };
