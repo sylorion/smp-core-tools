@@ -1,6 +1,6 @@
 // src/configs/infraConfig.js
 import fs from 'node:fs';
-const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '/run/secrets/')).toString();
+const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
 var env;
