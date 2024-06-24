@@ -9,9 +9,9 @@
 export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js'
-export {SMPevents} from './src/rabbitMq/index.js'
-export{ MailingService} from './src/configs/mailer.js'
-export {MailingServiceFactory} from './src/SMPmailing/mailingFactory.js'
+export { SMPevents } from './src/rabbitMq/index.js'
+export{ MailingService } from './src/configs/mailer.js'
+export { MailingServiceFactory } from './src/SMPmailing/mailingFactory.js'
 export {
     updateContext,
     getUserTokenFromHeaders,
@@ -31,7 +31,7 @@ export { getRequestLogger, logger } from './src/configs/logger.js';
 export { generateUserToken, generateAppToken, 
     hashKeyWithArgon, verifyKeyWithArgon, 
     getUserFromToken, geyAppFromToken,  } from './src/utils/authentication.js';
-export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
+// export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
 export { slug, uuid, entityCreator, entityUpdater } from './src/utils/entityMutation.js'
 export {
