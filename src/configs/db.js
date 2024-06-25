@@ -59,7 +59,7 @@ let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
   operatorsAliases,
   dialectOptions: (process.env.DB_SSL || false) ? {
     ssl: {
-      require:  ture,
+      require:  true,
       rejectUnauthorized: false, // For self-signed certificates, you might want to set this to false
     }
   }: {}
