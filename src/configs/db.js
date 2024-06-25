@@ -46,7 +46,7 @@ const operatorsAliases = {
 let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
   {
   dialect: dbConfig.dialect,
-  host: 'localhost', // We know that the port is indicated for the local host
+  host: dbConfig.host || 'localhost', // We know that the port is indicated for the local host
   port: dbConfig.port,
   logging: appConfig.env !== 'dev' ? logger.info.bind(logger) : false,
   schema: dbConfig.schema,
@@ -56,7 +56,12 @@ let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
     typeValidation: true
   },
   native: true,
-  operatorsAliases
+  operatorsAliases,
+  dialectOptions: (process.env.DB_SSL || false) ? {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false // You might want to make this configurable as well
+    }
 })
 
 db.connect = () => {
