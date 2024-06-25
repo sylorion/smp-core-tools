@@ -1,5 +1,5 @@
-import { generatePayloadForUser } from 'smp-core-tools/src/SMPmailing/brevo/playloadBuilder.js';
-import {uuid} from 'smp-core-tools'
+import { generatePayloadForUser } from '..//SMPmailing/brevo/playloadBuilder.js';
+import {uuid} from '../utils/entityMutation.js'
 /**
  * Gestionnaire d'événements pour envoyer des notifications ou traiter d'autres actions.
  * @param {string} eventName - Nom de l'événement déclencheur.

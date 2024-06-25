@@ -6,7 +6,7 @@ import { db }   from '../configs/db.js';
 import { cache } from '../configs/cache.js'; 
 import pkgargon2 from 'argon2';
 import { Graph } from 'redis';
-import { trace } from '@opentelemetry/api';
+// import { trace } from '@opentelemetry/api';
 const  jwt  = pkgjwt;
 const  argon2  = pkgargon2; 
 const argonConfig = {
