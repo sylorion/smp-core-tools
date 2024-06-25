@@ -59,9 +59,10 @@ let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
   operatorsAliases,
   dialectOptions: (process.env.DB_SSL || false) ? {
     ssl: {
-      require: true,
-      rejectUnauthorized: false // You might want to make this configurable as well
+      require:  ture,
+      rejectUnauthorized: false, // For self-signed certificates, you might want to set this to false
     }
+  }: {}
 })
 
 db.connect = () => {
