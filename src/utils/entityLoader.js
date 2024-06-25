@@ -2,9 +2,10 @@
 // Used for where clause parsing
 import DataLoader                    from 'dataloader';
 import { Sequelize, DataTypes, Op }  from 'sequelize';
+import { DBaseAccesError, UserInputDataValidationError } from './SMPError.js';
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
-import{ trace, SpanStatusCode } from '@opentelemetry/api';
+// import{ trace, SpanStatusCode } from '@opentelemetry/api';
 
 function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
@@ -62,7 +63,7 @@ function buildPaginationClause(pagination) {
 
 // Fonction générique pour naviguer dans la liste des entités
 async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
-  const span = trace.getTracer('default').startSpan('navigateEntityList');
+  // const span = trace.getTracer('default').startSpan('navigateEntityList');
   try {
     let flts = []
     if (Array.isArray(filters)) {
@@ -84,14 +85,14 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
       msgErr = 'navigateEntityList:: No listing found.';
       context.logger.error(msgErr); 
     }
-    span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
-    span.end();
+    // span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
+    // span.end();
     return entities
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
     context.logger.error(msgErr);
-    span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-    span.end();
+    // span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
+    // span.end();
     throw new DBaseAccesError('Database Acces Error navigateEntityList:: ', 'DB_ACCES_ERR_002')
   }
 }
@@ -101,10 +102,10 @@ async function navigateEntityList(context, cb, pagination = {}, sort = {}, filte
 ///!\ HARMFULL FUNCTION EXPERT USE ONLY
 /// HOW to make this API Private to internal ?
 async function unavigableEntityList(context, cb, filters = []) {
-  const span = trace.getTracer('default').startSpan('unavigableEntityList');
+  // const span = trace.getTracer('default').startSpan('unavigableEntityList');
   const data = navigateEntityList(context, cb, {}, {}, filters)
-  span.setStatus({ code: SpanStatusCode.OK })
-  span.end();
+  // span.setStatus({ code: SpanStatusCode.OK })
+  // span.end();
   return data
 }
 
