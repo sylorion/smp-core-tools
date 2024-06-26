@@ -135,6 +135,8 @@ if (databaseUsed) {
           console.log("Path to file ", db_port_file, " doesn't exists");
         }
       }).trim();
+    } else {
+      console.log('db_port_file doesn\'t exists : ' + db_port_file);
     }
     if (db_pswd_file !== undefined && fs.existsSync(db_pswd_file)) {
 
@@ -146,6 +148,8 @@ if (databaseUsed) {
           console.log("Path to file ", db_pswd_file, " doesn't exists");
         }
       }).trim();
+    } else {
+      console.log('db_pswd_file doesn\'t exists : ' + db_pswd_file);
     }
     if (db_database_file !== undefined && fs.existsSync(db_database_file)) {
       nameDB = fs.readFileSync(db_database_file, 'utf8', (err, data) => {
@@ -155,6 +159,8 @@ if (databaseUsed) {
           console.log("Path to file ", db_database_file, " doesn't exists");
         }
       }).trim();
+    } else {
+      console.log('db_database_file doesn\'t exists : ' + db_database_file);
     }
     if (db_timestamp_file !== undefined && fs.existsSync(db_timestamp_file)) {
       timestampDB = fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
@@ -164,6 +170,8 @@ if (databaseUsed) {
           console.log("Path to file ", db_timestamp_file, " doesn't exists");
         }
       }).trim();
+    } else {
+      console.log('db_timestamp_file doesn\'t exists : ' + db_timestamp_file);
     }
     if (db_paranoid_file !== undefined && fs.existsSync(db_paranoid_file)) {
       paranoidDB = fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
@@ -173,6 +181,8 @@ if (databaseUsed) {
           console.log("Path to file ", db_paranoid_file, " doesn't exists");
         }
       }).trim();
+    } else {
+      console.log('db_paranoid_file doesn\'t exists : ' + db_paranoid_file);
     }
     if (db_schema_file !== undefined && fs.existsSync(db_schema_file)) {
       schemaDB = fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
