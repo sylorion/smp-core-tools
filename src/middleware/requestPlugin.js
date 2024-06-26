@@ -4,12 +4,12 @@ import { appConfig }  from '../configs/env.js';
 import { db }         from '../configs/db.js';
 import { cache }      from '../configs/cache.js';
 import { logger }     from '../configs/logger.js';
-import { trace }      from '@opentelemetry/api';
+// import { trace }      from '@opentelemetry/api';
 
 // This is part of the context as it update both response accordingly to the request
 const requestUUIDPlugin = (options) => ({
   async requestDidStart(defaultContext) {
-    const span = trace.getTracer('default').startSpan('requestUUIDPlugin');
+    // const span = trace.getTracer('default').startSpan('requestUUIDPlugin');
     // SMP::Q:: to identifier quickly request queries from job queries and others
     const requestUniversalUniqID = "SMP::Q::" + uuid();
     if (!defaultContext.request.options.headers[options.requestIDKeyName]) {

@@ -27,67 +27,148 @@
 
 const SMPevents = {
   location: {
-    Place: ['created', 'updated', 'deleted'],
+    Place: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   userSpace: {
-    Profile: ['created', 'updated', 'deleted'],
-    UserRole: ['created', 'updated', 'deleted'],
-    PaymentMethod: ['created', 'updated', 'deleted'],
-    PaymentConfig: ['created', 'updated', 'deleted'],
-    Role: ['created', 'updated', 'deleted'],
-    User: ['created', 'updated', 'deleted'],
-    UserPreference: ['created', 'updated', 'deleted']
+    Profile: {
+      operations: ['created', 'updated', 'deleted'] 
+    },
+    UserRole: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    PaymentMethod: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    PaymentConfig: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Role: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    User: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    UserPreference: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   organization: {
-    Organization: ['created', 'updated', 'deleted'],
-    UserOrganization: ['created', 'updated', 'deleted'],
-    TermsAndConditions: ['created', 'updated', 'deleted'],
-    FaqOrganization: ['created', 'updated', 'deleted'],
-    OrganizationMedia: ['created', 'updated', 'deleted'],
-    Industry: ['created', 'updated', 'deleted'],
-    TagOrganization: ['created', 'updated', 'deleted'],
-    TopicOrganization: ['created', 'updated', 'deleted']
+    Organization: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    UserOrganization: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    TermsAndConditions: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    FaqOrganization: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    OrganizationMedia: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Industry: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    TagOrganization: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    TopicOrganization: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   catalog: {
-    Service: ['created', 'updated', 'deleted'],
-    Criteria: ['created', 'updated', 'deleted'],
-    Asset: ['created', 'updated', 'deleted'],
-    ServiceAsset: ['created', 'updated', 'deleted'],
-    ServiceMedia: ['created', 'updated', 'deleted'],
-    FaqAnswer: ['created', 'updated', 'deleted'],
-    FaqQuestion: ['created', 'updated', 'deleted'],
-    FaqService: ['created', 'updated', 'deleted'],
-    ServiceAttribute: ['created', 'updated', 'deleted'],
-    Topic: ['created', 'updated', 'deleted'],
-    Tag: ['created', 'updated', 'deleted']
+    Service: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Criteria: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Asset: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    ServiceAsset: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    ServiceMedia: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    FaqAnswer: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    FaqQuestion: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    FaqService: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    ServiceAttribute: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Topic: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Tag: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   accounting: {
-    Invoice: ['created', 'updated', 'deleted'],
-    Estimate: ['created', 'updated', 'deleted'],
-    Transaction: ['created', 'updated', 'deleted'],
-    EstimateAsset: ['created', 'updated', 'deleted']
+    Invoice: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Estimate: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Transaction: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    EstimateAsset: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   notification: {
-    Notification: ['created', 'updated', 'deleted'],
-    NotificationTemplate: ['created', 'updated', 'deleted']
+    Notification: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    NotificationTemplate: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   reviewComment: {
-    Comment: ['created', 'updated', 'deleted'],
-    Review: ['created', 'updated', 'deleted']
-
+    Comment: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    Review: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   authentication: {
-    Application: ['created', 'updated', 'deleted'],
-    ApplicationToken: ['created', 'updated', 'deleted'],
-    UserToken: ['created', 'updated', 'deleted']
+    Application: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    ApplicationToken: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    UserToken: {
+      operations: ['created', 'updated', 'deleted']
+    },
+    ResetPasswordToken: {
+      operations: ['created']
+    }
   },
   document: {
-    media: ['created', 'updated', 'deleted'],
-    
+    Media: {
+      operations: ['created', 'updated', 'deleted']
+    }
   },
   upload: {
-    Application: ['created'],
-    
+    Application: {
+      operations: ['created']
+    }
   }
 };
+
 export { SMPevents };
