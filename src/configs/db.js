@@ -1,4 +1,4 @@
-import { Sequelize,  Op } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 // import { each } from 'aigle'
 import { appConfig, dbConfig } from './env.js'
 import { logger } from './logger.js'
@@ -45,25 +45,25 @@ const operatorsAliases = {
 
 let db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
   {
-  dialect: dbConfig.dialect,
-  host: 'localhost', // We know that the port is indicated for the local host
-  port: dbConfig.port,
-  logging: appConfig.env !== 'dev' ? logger.info.bind(logger) : false,
-  schema: dbConfig.schema,
-  benchmark: true,
-  retry: {
-    max: 3,
-    typeValidation: true
-  },
-  native: true,
-  operatorsAliases
-})
+    dialect: dbConfig.dialect,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    logging: logger.info.bind(logger),
+    schema: dbConfig.schema,
+    benchmark: true,
+    retry: {
+      max: 3,
+      typeValidation: true
+    },
+    native: false,
+    operatorsAliases
+  })
 
 db.connect = () => {
   db.authenticate().then(() => {
     logger.info('0. Connection has been established successfully to db:' + db.options.host + ' port: ' + db.options.port);
   }).catch((error) => {
-    logger.error('0. Unable to connect to the database localhost port ' + db.options.port + ': ', error);
+    logger.error('0. Unable to connect to the database  ' + db.options.host + ' port ' + db.options.port + ': ', error);
     db = new Sequelize(dbConfig.name, dbConfig.user, dbConfig.password,
       {
         dialect: dbConfig.dialect,
