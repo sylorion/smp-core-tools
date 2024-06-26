@@ -38,4 +38,4 @@ export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
-    export {StripeUtils} from './src/SMPpaiement/stripe.js'
+    export {StripeUtils} from './src/SMPpayment/stripe.js'
