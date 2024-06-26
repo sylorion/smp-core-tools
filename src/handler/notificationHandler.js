@@ -1,4 +1,4 @@
-import { generatePayloadForUser } from '..//SMPmailing/brevo/playloadBuilder.js';
+import { generatePayloadForUser } from '../SMPMailing/brevo/playloadBuilder.js';
 import {uuid} from '../utils/entityMutation.js'
 /**
  * Gestionnaire d'événements pour envoyer des notifications ou traiter d'autres actions.

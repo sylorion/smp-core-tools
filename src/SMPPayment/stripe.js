@@ -54,4 +54,4 @@ class StripeUtils {
   
 }
 
-export {StripeUtils};
+export { StripeUtils };

@@ -11,7 +11,7 @@ export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js'
 export { SMPevents } from './src/rabbitMq/index.js'
 export{ MailingService } from './src/configs/mailer.js'
-export { MailingServiceFactory } from './src/SMPmailing/mailingFactory.js'
+export { MailingServiceFactory } from './src/SMPMailing/mailingFactory.js'
 export {
     updateContext,
     getUserTokenFromHeaders,
@@ -38,4 +38,4 @@ export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
     DataValidationError, WorkflowValidationError, UserInputDataValidationError } from './src/utils/SMPError.js'
-    export {StripeUtils} from './src/SMPpaiement/stripe.js'
+export {StripeUtils} from './src/SMPPayment/stripe.js'
