@@ -51,6 +51,62 @@ class StripeUtils {
       throw error;
     }
   }
+  static async getOrCreateStripeProduct(service) {
+    try {
+      const advancedAttributes = service.advancedAttributes ? JSON.parse(service.advancedAttributes) : {};
+      let productID = advancedAttributes.stripeProductID;
+
+      if (productID) {
+        // Update the product details if needed
+        await stripe.products.update(productID, {
+          name: service.title,
+          description: service.description,
+        });
+      } else {
+        const product = await stripe.products.create({
+          name: service.title,
+          description: service.description,
+        });
+        productID = product.id;
+        advancedAttributes.stripeProductID = productID;
+        service.advancedAttributes = JSON.stringify(advancedAttributes);
+        await service.save();
+      }
+
+      return productID;
+    } catch (error) {
+      console.error('Error creating or updating Stripe product:', error);
+      throw error;
+    }
+  }
+
+  static async createOrUpdateStripePrice(Service, serviceID) {
+    try {
+      const service = await Service.findByPk(serviceID);
+      if (!service) {
+        throw new Error('Service not found');
+      }
+
+      const productID = await this.getOrCreateStripeProduct(service);
+
+      const priceData = await stripe.prices.create({
+        unit_amount: service.price * 100, // Stripe expects the price in cents
+        currency: 'usd', // Change the currency as needed
+        product: productID,
+      });
+
+      const advancedAttributes = service.advancedAttributes ? JSON.parse(service.advancedAttributes) : {};
+      advancedAttributes.stripePriceID = priceData.id;
+      service.advancedAttributes = JSON.stringify(advancedAttributes);
+
+      await service.save();
+
+      return { stripeProductID: productID, stripePriceID: priceData.id };
+    } catch (error) {
+      console.error('Error creating or updating Stripe price:', error);
+      throw error;
+    }
+  }
 
 }
 
