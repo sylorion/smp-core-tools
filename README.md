@@ -117,45 +117,45 @@ smp-core-tools
 ```
 
 ### Explication des principaux dossiers et fichiers
-brevo/ : Contient des intégrations pour le service de mailing Brevo.
+**brevo/** : Contient des intégrations pour le service de mailing Brevo.
 
-brevo.js : Fichier de configuration pour Brevo.
-configs/ : Contient les fichiers de configuration pour différents services.
+**brevo.js** : Fichier de configuration pour Brevo.
+**configs/** : Contient les fichiers de configuration pour différents services.
 
-cache.js : Configuration du cache.
-db.js : Configuration de la base de données.
-env.js : Gestion des variables d'environnement.
-event.js : Gestion des événements.
-logger.js : Configuration du logger.
-mailer.js : Configuration du service de mailing.
-handler/ : Contient les gestionnaires pour différents services.
+**cache.js** : Configuration du cache.
+**db.js** : Configuration de la base de données.
+**env.js** : Gestion des variables d'environnement.
+**event.js** : Gestion des événements.
+**logger.js** : Configuration du logger.
+**mailer.js** : Configuration du service de mailing.
+**handler/** : Contient les gestionnaires pour différents services.
 
-notificationHandler.js : Fonctions par défaut de traitement de notifications.
-middleware/ : Contient les fonctions basics exécutées au niveau du middlewares de l'application.
+**notificationHandler.js** : Fonctions par défaut de traitement de notifications.
+**middleware/** : Contient les fonctions basics exécutées au niveau du middlewares de l'application.
 
-index.js : Point d'entrée pour les fonctions middlewares.
-requestMiddleware.js : Middleware pour les requêtes.
-tracer-provider.js : Fournisseur de traces pour l'application.
-rabbitMq/ : Contient des intégrations pour RabbitMQ.
+**index.js** : Point d'entrée pour les fonctions middlewares.
+**requestMiddleware.js** : Middleware pour les requêtes.
+**tracer-provider.js** : Fournisseur de traces pour l'application.
+**rabbitMq/** : Contient des intégrations pour RabbitMQ.
 
-handlerCRUDOperation.js : Gestionnaire des opérations CRUD via RabbitMQ.
-index.js : Point d'entrée pour RabbitMQ.
-SMPMailing/ : Contient les services de mailing.
+**handlerCRUDOperation.js** : Gestionnaire des opérations CRUD via RabbitMQ.
+**index.js** : Point d'entrée pour RabbitMQ.
+**SMPMailing/** : Contient les services de mailing.
 
-MailingFactory.js : Fabrique pour les services de mailing.
-SMPPayment/ : Contient les services de paiement.
+**MailingFactory.js** : Fabrique pour les services de mailing.
+**SMPPayment/** : Contient les services de paiement.
 
-stripe.js : Intégration avec Stripe.
-utils/ : Contient les utilitaires utilisés par l'application.
+**stripe.js** : Intégration avec Stripe.
+**utils/** : Contient les utilitaires utilisés par l'application.
 
-authentication.js : Utilitaires pour l'authentification.
-authorization.js : Utilitaires pour l'autorisation.
-context.js : Gestion du contexte de l'application.
-entityLoader.js : Chargement des entités.
-entityMutation.js : Mutation des entités.
-opentelemetry.js : Intégration avec OpenTelemetry.
-rateLimiting.js : Gestion du rate limiting.
-SMPError.js : Gestion des erreurs spécifiques à l'application.
+**authentication.js** : Utilitaires pour l'authentification.
+**authorization.js** : Utilitaires pour l'autorisation.
+**context.js** : Gestion du contexte de l'application.
+**entityLoader.js** : Chargement des entités.
+**entityMutation.js** : Mutation des entités.
+**opentelemetry.js** : Intégration avec OpenTelemetry.
+**rateLimiting.js** : Gestion du rate limiting.
+**SMPError.js** : Gestion des erreurs spécifiques à l'application.
 
 ## Tests
 
