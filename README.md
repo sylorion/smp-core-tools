@@ -55,8 +55,8 @@ Cette bibliothèque est conçue pour être utilisée comme dépendance dans d'au
 Ensuite, vous pouvez importer et utiliser les différentes fonctions et configurations fournies par smp-core-tools dans votre code :
 
 ```javascript 
-const { cache, db, logger } = require('smp-core-tools/src/configs');
-const { authentication, authorization } = require('smp-core-tools/src/utils');
+const { cache, db, logger } = require('smp-core-tools');
+const { authentication, authorization } = require('smp-core-tools');
 ```
 Ou encore en utilisant la version recente du langage.
 ```javascript 
