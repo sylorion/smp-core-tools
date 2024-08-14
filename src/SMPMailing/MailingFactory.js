@@ -9,6 +9,7 @@ class MailingServiceFactory {
     console.log("Creating Mailing Service with:", apiKey, brevoMailingConfig, internalNotificationConfig);
 
     switch (process.env.MAIL_SERVICE) {
+      
       case "Brevo":
         return new BrevoMailingService(apiKey, brevoMailingConfig);
       default:

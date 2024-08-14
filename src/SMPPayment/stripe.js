@@ -51,13 +51,13 @@ class StripeUtils {
       throw error;
     }
   }
+
   static async getOrCreateStripeProduct(service) {
     try {
       const advancedAttributes = service.advancedAttributes ? JSON.parse(service.advancedAttributes) : {};
       let productID = advancedAttributes.stripeProductID;
 
       if (productID) {
-        // Update the product details if needed
         await stripe.products.update(productID, {
           name: service.title,
           description: service.description,
@@ -90,8 +90,8 @@ class StripeUtils {
       const productID = await this.getOrCreateStripeProduct(service);
 
       const priceData = await stripe.prices.create({
-        unit_amount: service.price * 100, // Stripe expects the price in cents
-        currency: 'usd', // Change the currency as needed
+        unit_amount: service.price * 100,
+        currency: 'usd',
         product: productID,
       });
 
@@ -108,52 +108,95 @@ class StripeUtils {
     }
   }
 
-  static async createStripePrice(amount, currency, productName) {
-    const price = await stripe.prices.create({
-      unit_amount: amount,
-      currency: currency,
-      product_data: {
-        name: productName,
-      },
-    }); 
-    return price.id;
+  static async createPaymentIntent(customerID, amount, currency, description) {
+    try {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount * 100,
+        currency: currency,
+        customer: customerID,
+        description: description,
+        payment_method_types: ['card'],
+      });
+      return paymentIntent;
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      throw error;
+    }
   }
 
-  static async createPaymentMethod(cardNumber, expMonth, expYear, cvc) {
-    const paymentMethod = await stripe.paymentMethods.create({
-      type: 'card',
-      card: {
-        number: cardNumber,
-        exp_month: expMonth,
-        exp_year: expYear,
-        cvc: cvc,
-      },
-    });
-    return paymentMethod.id; 
-  }
+  /**
+ * Crée un PaymentIntent pour une estimation donnée.
+ *
+ * @param {Object} Estimate - Le modèle d'estimation pour accéder aux données.
+ * @param {string} estimateID - L'ID de l'estimation pour laquelle créer le PaymentIntent.
+ * @param {string} [customerID=null] - (Optionnel) L'ID du client dans Stripe.
+ * @returns {Promise<Object>} - Un objet contenant le client_secret et l'id du PaymentIntent.
+ * @throws {Error} - Lance une erreur si l'estimation n'est pas trouvée ou si la création du PaymentIntent échoue.
+ */
+static async createPaymentIntentForEstimate(Estimate, estimateID, customerID = null) {
+  try {
+    console.log("Fetching estimate with ID:", estimateID);
+    const estimate = await Estimate.findByPk(estimateID);
 
-  static async createPaymentIntent(token, amount, currency, description) {
+    if (!estimate) {
+      throw new Error('Estimate not found');
+    }
+
+    const amount = estimate.referencePrice * 100 * 1.05; // 5% de frais
+    console.log("AMOUNT:", amount);
+    console.log("Creating payment intent with amount:", amount, "and customer ID:", customerID);
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
-      currency: currency,
-      payment_method: token,
-      description: description,
-      confirm: true,
+      currency: 'usd',
+      // customer: customerID, // Décommenter cette ligne quand le customerID sera mis en place totalemnent
+      description: `Payment for estimate ${estimateID}`,
+      payment_method_types: ['card'],
+      payment_method_options: {
+        card: {
+          request_three_d_secure: 'any', // Demande d'authentification 3D Secure
+        },
+      }
     });
-    return paymentIntent;
-  }
 
-  static async processPayment(token, amount, currency, description) {
-    // Create and confirm payment intent
-    const paymentIntent = await this.createPaymentIntent(token, amount, currency, description);
-    return paymentIntent;
+    return { client_secret: paymentIntent.client_secret, paymentIntentID: paymentIntent.id };
+  } catch (error) {
+    console.error('Error creating payment intent for estimate:', error);
+    throw error;
   }
+}
+
+
+/**
+   * Check the status of an existing PaymentIntent
+   * 
+   * @param {string} paymentIntentID - The ID of the PaymentIntent to check
+   * @returns {Object} - The PaymentIntent object including the status
+   * @throws {Error} - If the PaymentIntent cannot be retrieved or if there is an issue with the request
+   */
+static async checkPaymentStatus(paymentIntentID) {
+  try {
+    // Retrieve the existing PaymentIntent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentID);
+
+    // Return the PaymentIntent object, allowing the caller to check its status
+    return paymentIntent;
+  } catch (error) {
+    throw new Error(`Failed to retrieve PaymentIntent: ${error.message}`);
+  }
+}
+
 
   static async refundPayment(paymentIntentID) {
-    const refund = await stripe.refunds.create({
-      payment_intent: paymentIntentID,
-    });
-    return refund;
+    try {
+      const refund = await stripe.refunds.create({
+        payment_intent: paymentIntentID,
+      });
+      return refund;
+    } catch (error) {
+      console.error('Error refunding payment:', error);
+      throw error;
+    }
   }
 }
 
