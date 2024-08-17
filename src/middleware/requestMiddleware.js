@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 // const { trace } = require('@opentelemetry/api');
 import { appConfig } from '../../src/configs/env.js'; 
 function useAppAuth(req, res, next) {
-  if (!req.headers[appConfig.defaultXAppAPIKeyName]) {
+  if (!req.getHeader(appConfig.defaultXAppAPIKeyName)) {
     res.status = 401;
     res.headers[appConfig.defaultXAppRequestIDKeyName] = request.headers[appConfig.defaultXAppRequestIDKeyName];
     next();
@@ -13,7 +13,7 @@ function useAppAuth(req, res, next) {
 function requestUUIDMiddleware(req, res, next) {
   if (!req.headers[appConfig.defaultXAppRequestIDKeyName]) {
     req.headers[appConfig.defaultXAppRequestIDKeyName] = uuidv4();
-    res.headers[appConfig.defaultXAppRequestIDKeyName] = req.headers[appConfig.defaultXAppRequestIDKeyName];
+    res.setHeader(appConfig.defaultXAppRequestIDKeyName, req.headers[appConfig.defaultXAppRequestIDKeyName]);
   }
 }
 
