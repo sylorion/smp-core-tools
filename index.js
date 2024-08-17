@@ -43,5 +43,5 @@ export {
     requestCounter,
 } from './src/middleware/monitor.js';
 export {
-    requestUUIDMiddleware,
+    requestUUIDMiddleware, useAppAuth
 } from './src/middleware/requestMiddleware.js';
