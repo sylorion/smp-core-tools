@@ -11,9 +11,9 @@ function useAppAuth(req, res, next) {
 }
 
 function requestUUIDMiddleware(req, res, next) {
-  if (!request.headers.get(appConfig.defaultXAppRequestIDKeyName)) {
-    request.headers.set(appConfig.defaultXAppRequestIDKeyName, uuidv4());
-    res.headers.set(request.headers.get(appConfig.defaultXAppRequestIDKeyName));
+  if (!req.headers.get(appConfig.defaultXAppRequestIDKeyName)) {
+    req.headers.set(appConfig.defaultXAppRequestIDKeyName, uuidv4());
+    res.headers.set(req.headers.get(appConfig.defaultXAppRequestIDKeyName));
   }
 }
 
