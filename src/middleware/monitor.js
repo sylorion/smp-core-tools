@@ -25,4 +25,4 @@ function requestCounter(req, res, next) {
   next(); // pass to the next middleware
 }
 
-module.exports = { requestCounter };
+export { requestCounter };
