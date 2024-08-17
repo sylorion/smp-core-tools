@@ -1,36 +1,20 @@
 // src/middleware/requestUUIDMiddleware.js
-import { Plugin } from 'graphql-yoga';
 import { v4 as uuidv4 } from 'uuid';
 // const { trace } = require('@opentelemetry/api');
-
-function useAppAuth(): Plugin {
- return {
-  onRequest({ request, fetchAPI, endResponse }) {
-    if (!request.headers.get(APP_DEFAULT_X_APP_API_KEY_NAME)) {
-      endResponse(
-        new fetchAPI.Response(
-          null,
-          {
-            status: 401,
-            // headers: {
-            //   'x-services-request-id': request.headers.get('x-services-request-id')
-            // }
-          }
-        );
-      )
-    }
+import { appConfig } from '../../src/configs/env.js'; 
+function useAppAuth(req, res, next) {
+  if (!req.headers.get(appConfig.defaultXAppAPIKeyName)) {
+    res.status = 401;
+    res.headers.set(appConfig.defaultXAppRequestIDKeyName, request.headers.get(appConfig.defaultXAppRequestIDKeyName));
+    next();
   }
- }
 }
 
-function requestUUIDMiddleware(): Plugin {
-   return {
-    onRequest({ request, fetchAPI, endResponse }) {
-      if (!request.headers.get('x-services-request-id')) {
-        request.headers.set('x-services-request-id', uuidv4());
-      }
-    }
-  };
+function requestUUIDMiddleware(req, res, next) {
+  if (!request.headers.get(appConfig.defaultXAppRequestIDKeyName)) {
+    request.headers.set(appConfig.defaultXAppRequestIDKeyName, uuidv4());
+    res.headers.set(request.headers.get(appConfig.defaultXAppRequestIDKeyName));
+  }
 }
 
 //
@@ -41,4 +25,4 @@ function requestUUIDMiddleware(): Plugin {
 //   next();
 // };
 
-module.exports = { requestUUIDMiddleware, useAppAuth };
+export { requestUUIDMiddleware, useAppAuth };
