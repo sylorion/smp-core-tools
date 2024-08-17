@@ -11,17 +11,20 @@ global.heartbeat = {
   interval: 5000,
   timeOut: 10000,
   timeOutCount: 0,
-  pingCount: 1,
+  heartbeat: 1,
   maxTimeOut: 5,
-  update: function () {
+  updateHeartbeat: function () {
     this.lastPing = Date.now();
-    this.pingCount++;
+    this.heartbeat++;
+  },
+  getHeartbeat: function () {
+    return this.heartbeat;
   }
+
 }
 
 function requestCounter(req, res, next) {
   global.requestCounter.update();
-  console.log("Request Count: ", global.requestCounter.count);
   next(); // pass to the next middleware
 }
 
