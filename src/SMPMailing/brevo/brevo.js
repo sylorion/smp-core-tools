@@ -6,6 +6,8 @@
  * @author Services 
  * @version 1.0
  */
+import { MailingService } from '../../configs/mailer.js'
+
 class BrevoMailingService extends MailingService {
   /**
    * Constructor
