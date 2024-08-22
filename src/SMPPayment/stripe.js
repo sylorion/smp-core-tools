@@ -128,29 +128,29 @@ class StripeUtils {
  * Crée un PaymentIntent pour une estimation donnée.
  *
  * @param {Object} Estimate - Le modèle d'estimation pour accéder aux données.
- * @param {string} estimateID - L'ID de l'estimation pour laquelle créer le PaymentIntent.
+ * @param {string} invoiceID - L'ID de l'estimation pour laquelle créer le PaymentIntent.
  * @param {string} [customerID=null] - (Optionnel) L'ID du client dans Stripe.
  * @returns {Promise<Object>} - Un objet contenant le client_secret et l'id du PaymentIntent.
  * @throws {Error} - Lance une erreur si l'estimation n'est pas trouvée ou si la création du PaymentIntent échoue.
  */
-static async createPaymentIntentForEstimate(Estimate, estimateID, customerID = null) {
+static async createPaymentIntentForInvoice(Invoice, invoiceID, customerID = null) {
   try {
-    console.log("Fetching estimate with ID:", estimateID);
-    const estimate = await Estimate.findByPk(estimateID);
+    console.log("Fetching estimate with ID:", invoiceID);
+    const invoice = await Invoice.findByPk(invoiceID);
 
-    if (!estimate) {
+    if (!invoice) {
       throw new Error('Estimate not found');
     }
 
-    const amount = estimate.referencePrice * 100 * 1.05; // 5% de frais
+    const amount = invoice.totalAmount * 100 //* 1.05; // 5% de frais
     console.log("AMOUNT:", amount);
     console.log("Creating payment intent with amount:", amount, "and customer ID:", customerID);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
-      currency: 'usd',
+      currency: 'eur',
       // customer: customerID, // Décommenter cette ligne quand le customerID sera mis en place totalemnent
-      description: `Payment for estimate ${estimateID}`,
+      description: `Payment for estimate ${invoiceID}`,
       payment_method_types: ['card'],
       payment_method_options: {
         card: {
