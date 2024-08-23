@@ -4,7 +4,7 @@
  * @author Services
  * @copyright Services, registered in France
  */
-import BrevoMailingService from './brevo/brevo.js'
+import { BrevoMailingService } from './brevo/brevo.js'
 class MailingServiceFactory {
   /**
    * Creates a mailing service instance based on environment configuration.
