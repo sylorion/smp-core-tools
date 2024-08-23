@@ -5,7 +5,7 @@ set -e
 SERVICE_NAME=${1:-"gateway"}
 DBMS_NODE_HOSTNAME=${2:-"node182572-dev-dbms.sh1.hidora.net"}
 
-SMP_ROOT_SECRETS_FOLDER=${3:-"~/run/secrets"}
+SMP_ROOT_SECRETS_FOLDER=${3:-~/run/secrets}
 # Create the directory if it does not exist
 mkdir -p $SMP_ROOT_SECRETS_FOLDER
 # Write predefined values to each file
