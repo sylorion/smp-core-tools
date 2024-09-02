@@ -1,5 +1,12 @@
+
+import Stripe from 'stripe';
+
+// Initialisation de Stripe avec la clé secrète
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+
 /**
- * Stripe Utilities class for creating and managing Stripe customers, products, and prices.
+ * Stripe Utilities class for creating and managing Stripe customers, products, prices, payment intents, and refunds.
  * 
  * @author Services
  * @copyright 
@@ -11,24 +18,20 @@
  * accordance with the terms of the agreement between you and Services.
  */
 class StripeUtils {
-  /**
+  static stripeInstance = stripe;  /**
    * Creates a new Stripe customer.
    * 
    * @param {string} email - The customer's email address.
    * @param {string} name - The customer's full name.
    * @param {number} userId - The user ID associated with the customer.
    * 
-   * @returns {string} The ID of the created Stripe customer.
+   * @returns {Promise<string>} The ID of the created Stripe customer.
    * 
    * @throws {Error} If the Stripe customer creation fails.
    */
   static async createCustomer(email, name, userId) {
-    // Input validation
     if (!email || !name || !userId) {
       throw new Error('All input parameters are required');
-    }
-    if (typeof email !== 'string' || typeof name !== 'string' || typeof userId !== 'number') {
-      throw new Error('Invalid input parameter type');
     }
 
     try {
@@ -45,77 +48,17 @@ class StripeUtils {
   }
 
   /**
-   * Creates a new Stripe customer and updates the user preferences.
+   * Creates or updates a Stripe product associated with a service.
    * 
-   * @param {Object} User - The User model.
-   * @param {Object} Profile - The Profile model.
-   * @param {Object} UserPreferences - The UserPreferences model.
-   * @param {number} userID - The user ID.
+   * @param {Object} service - The service object containing the details of the product.
    * 
-   * @returns {Object} An object containing the Stripe customer ID.
-   * 
-   * @throws {Error} If the Stripe customer creation or user preferences update fails.
-   */
-  static async createStripeCustomer(User, Profile, UserPreferences, userID) {
-    // Input validation
-    if (!User || !Profile || !UserPreferences || !userID) {
-      throw new Error('All input parameters are required');
-    }
-    if (typeof User !== 'object' || typeof Profile !== 'object' || typeof UserPreferences !== 'object' || typeof userID !== 'number') {
-      throw new Error('Invalid input parameter type');
-    }
-
-    try {
-      const user = await User.findByPk(userID);
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      const profile = await Profile.findByPk(user.profileID);
-      if (!profile) {
-        throw new Error('Profile not found for the user');
-      }
-
-      const stripeCustomer = await this.createCustomer(
-        user.email,
-        `${profile.firstName} ${profile.lastName}`,
-        user.id
-      );
-
-      const userPreferences = await UserPreferences.findOne({ where: { userID: userID } });
-      if (!userPreferences) {
-        throw new Error("UserPreferences not found for the user");
-      }
-
-      const otherSettings = userPreferences.otherSettings ? JSON.parse(userPreferences.otherSettings) : {};
-      otherSettings.stripeCustomerId = stripeCustomer;
-      userPreferences.otherSettings = JSON.stringify(otherSettings);
-
-      await userPreferences.save();
-
-      return { stripeCustomerId: stripeCustomer };
-    } catch (error) {
-      console.error("Error creating Stripe customer or updating UserPreferences:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Creates or updates a Stripe product.
-   * 
-   * @param {Object} service - The service object.
-   * 
-   * @returns {string} The ID of the created or updated Stripe product.
+   * @returns {Promise<string>} The ID of the created or updated Stripe product.
    * 
    * @throws {Error} If the Stripe product creation or update fails.
    */
   static async getOrCreateStripeProduct(service) {
-    // Input validation
     if (!service) {
       throw new Error('Service object is required');
-    }
-    if (typeof service !== 'object') {
-      throw new Error('Invalid service object type');
     }
 
     try {
@@ -123,7 +66,6 @@ class StripeUtils {
       let productID = advancedAttributes.stripeProductID;
 
       if (productID) {
-        // Update the product details if needed
         await stripe.products.update(productID, {
           name: service.title,
           description: service.description,
@@ -147,22 +89,18 @@ class StripeUtils {
   }
 
   /**
-   * Creates or updates a Stripe price.
+   * Creates or updates a Stripe price for a given service.
    * 
    * @param {Object} Service - The Service model.
-   * @param {number} serviceID - The service ID.
+   * @param {number} serviceID - The ID of the service for which to create or update the price.
    * 
-   * @returns {Object} An object containing the Stripe product ID and price ID.
+   * @returns {Promise<Object>} An object containing the Stripe product ID and price ID.
    * 
    * @throws {Error} If the Stripe price creation or update fails.
    */
   static async createOrUpdateStripePrice(Service, serviceID) {
-    // Input validation
     if (!Service || !serviceID) {
       throw new Error('All input parameters are required');
-    }
-    if (typeof Service !== 'object' || typeof serviceID !== 'number') {
-      throw new Error('Invalid input parameter type');
     }
 
     try {
@@ -193,124 +131,84 @@ class StripeUtils {
   }
 
   /**
-   * Creates a new Stripe payment method.
+   * Creates a new Stripe payment intent for an invoice.
    * 
-   * @param {string} cardNumber - The card number.
-   * @param {number} expMonth - The expiration month.
-   * @param {number} expYear - The expiration year.
-   * @param {string} cvc - The CVC code.
+   * @param {Object} Invoice - The Invoice model.
+   * @param {string} invoiceID - The ID of the invoice for which to create the payment intent.
+   * @param {string} customerID - The ID of the customer associated with the payment.
    * 
-   * @returns {string} The ID of the created Stripe payment method.
+   * @returns {Promise<Object>} An object containing the payment intent details.
    * 
-   * @throws {Error} If the Stripe payment method creation fails.
+   * @throws {Error} If the payment intent creation fails.
    */
-  static async createPaymentMethod(cardNumber, expMonth, expYear, cvc) {
-    // Input validation
-    if (!cardNumber || !expMonth || !expYear || !cvc) {
-      throw new Error('All input parameters are required');
-    }
-    if (typeof cardNumber !== 'string' || typeof expMonth !== 'number' || typeof expYear !== 'number' || typeof cvc !== 'string') {
-      throw new Error('Invalid input parameter type');
+  static async createPaymentIntentForInvoice(Invoice, invoiceID, customerID) {
+    if (!invoiceID || !customerID) {
+      throw new Error('Invoice ID and Customer ID are required');
     }
 
     try {
-      const paymentMethod = await stripe.paymentMethods.create({
-        type: 'card',
-        card: {
-          number: cardNumber,
-          exp_month: expMonth,
-          exp_year: expYear,
-          cvc: cvc,
-        },
-      });
-      return paymentMethod.id;
-    } catch (error) {
-      console.error('Error creating Stripe payment method:', error);
-      throw error;
-    }
-  }
+      const invoice = await Invoice.findByPk(invoiceID);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
 
-  /**
-   * Creates a new Stripe payment intent.
-   * 
-   * @param {string} token - The payment method token.
-   * @param {number} amount - The payment amount.
-   * @param {string} currency - The payment currency.
-   * @param {string} description - The payment description.
-   * 
-   * @returns {Object} The created Stripe payment intent.
-   * 
-   * @throws {Error} If the Stripe payment intent creation fails.
-   */
-  static async createPaymentIntent(token, amount, currency, description) {
-    // Input validation
-    if (!token || !amount || !currency || !description) {
-      throw new Error('All input parameters are required');
-    }
-    if (typeof token !== 'string' || typeof amount !== 'number' || typeof currency !== 'string' || typeof description !== 'string') {
-      throw new Error('Invalid input parameter type');
-    }
-
-    try {
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
-        currency: currency,
-        payment_method: token,
-        description: description,
-        confirm: true,
+        amount: invoice.totalAmount, // Montant en centimes
+        currency: invoice.currency || 'usd',
+        description: `Invoice payment for ${invoiceID} for customer ${customerID} of SERVICES`,
+        payment_method_types: ['card'], // Autorise uniquement les paiements par carte
       });
-      return paymentIntent;
+
+      return {
+        client_secret: paymentIntent.client_secret,
+        paymentIntentID: paymentIntent.id,
+        status: paymentIntent.status,
+      };
     } catch (error) {
-      console.error('Error creating Stripe payment intent:', error);
+      console.error('Error creating payment intent for invoice:', error);
       throw error;
     }
   }
+
+
   /**
-   * Processes a payment using a Stripe payment intent.
+   * Checks the status of a Stripe payment intent.
    * 
-   * @param {string} token - The payment method token.
-   * @param {number} amount - The payment amount.
-   * @param {string} currency - The payment currency.
-   * @param {string} description - The payment description.
+   * @param {string} paymentIntentID - The ID of the payment intent to check.
    * 
-   * @returns {Object} The processed payment intent.
+   * @returns {Promise<Object>} The payment intent object containing the status and details.
    * 
-   * @throws {Error} If the payment processing fails.
+   * @throws {Error} If checking the payment intent status fails.
    */
-  static async processPayment(token, amount, currency, description) {
-    // Input validation
-    if (!token || !amount || !currency || !description) {
-      throw new Error('All input parameters are required');
-    }
-    if (typeof token !== 'tring' || typeof amount !== 'number' || typeof currency !== 'tring' || typeof description !== 'tring') {
-      throw new Error('Invalid input parameter type');
+  static async checkPaymentStatus(paymentIntentID) {
+    if (!paymentIntentID) {
+      throw new Error('Payment intent ID is required');
     }
 
     try {
-      const paymentIntent = await this.createPaymentIntent(token, amount, currency, description);
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentID);
+
+      // Retourne le PaymentIntent pour que le front-end puisse gérer l'état
       return paymentIntent;
     } catch (error) {
-      console.error('Error processing payment:', error);
+      console.error('Error checking payment status:', error);
       throw error;
     }
   }
 
+
   /**
-   * Refunds a payment using a Stripe payment intent.
+   * Refunds a payment associated with a Stripe payment intent.
    * 
    * @param {string} paymentIntentID - The ID of the payment intent to refund.
    * 
-   * @returns {Object} The refund object.
+   * @returns {Promise<Object>} The refund object containing the refund details.
    * 
    * @throws {Error} If the refund fails.
    */
   static async refundPayment(paymentIntentID) {
-    // Input validation
     if (!paymentIntentID) {
       throw new Error('Payment intent ID is required');
-    }
-    if (typeof paymentIntentID !== 'tring') {
-      throw new Error('Invalid payment intent ID type');
     }
 
     try {
