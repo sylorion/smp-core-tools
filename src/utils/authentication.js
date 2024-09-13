@@ -1,11 +1,13 @@
 // src/utils/authentication.js
-import { Sequelize, DataTypes, Op, Model } from 'sequelize'; 
-import { v4 as uuidv4 } from 'uuid';
-import pkgjwt  from 'jsonwebtoken';
-import { db }   from '../configs/db.js';
-import { cache } from '../configs/cache.js'; 
-import pkgargon2 from 'argon2';
-import { Graph } from 'redis';
+import pkgjwt  from 'jsonwebtoken'; 
+import { cache } from '../configs/cache.js';
+import { appConfig } from "../configs/env.js"; 
+import pkgargon2 from 'argon2'; 
+import bcrypt from 'bcryptjs';
+
+export const hashPassword = (password, salt = 12) => bcrypt.hash(password, salt);
+export const comparePassword = (password, hashed) => bcrypt.compare(password, hashed);
+
 // import { trace } from '@opentelemetry/api';
 const  jwt  = pkgjwt;
 const  argon2  = pkgargon2; 
@@ -26,36 +28,65 @@ async function verifyKeyWithArgon(password, hashKey) {
   return verification;
 }
 
-async function generateUserToken(context, user, expirationDuration) {
+// Generate token using JWT 
+function hashTokenWithBCrypt(payload, expirationDuration, salt) {
+  return bcrypt.hahs(payload, salt);
+}
+
+
+// Verify generated token using JWT
+function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
+  return bcrypt.compare(unhashedToken, hashedToken)
+}
+
+// Generate token using JWT 
+function generateJWTToken(payload, expirationDuration, salt) {
+  return jwt.sign(payload, salt, {expiresIn: expirationDuration});
+}
+
+
+// Verify generated token using JWT
+function verifyJWTToken(token, salt) {
+  return jwt.verify(token, salt)
+}
+
+// Generate token using JWT for user
+function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, salt = appConfig.userJWTSecret) {
   // Générer le token JWT
-  const userPayload = user.dataValues;
+  const userPayload = user.dataValues ?? user;
   context.logger.debug(userPayload)
-  const token = jwt.sign(userPayload, process.env.JWT_SECRET, {expiresIn: expirationDuration});
+  const token = generateJWTToken(userPayload, expirationDuration, salt);
   context.logger.info(token)
   return token;
 }
 
-async function generateAppToken(context, app, expirationDuration) {
-  let appKeyHashed
-  try {
-    // Générer le token JWT
-    appKeyHashed = await hashKeyWithArgon(context, app.authKey);
-  } catch (err) {
-    throw new Error('generateAppToken::Error hashing key');
-  }
-  // Should be dehashed back
-  const appPayload = app ;
-  appPayload.authKey = appKeyHashed || app.authKey ;
-  const token = jwt.sign(appPayload, process.env.JWT_SECRET, {expiresIn: expirationDuration});
-  return token;
+// Generate token using JWT for application
+function generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, salt = appConfig.appJWTSecret) {
+  return generateJWTToken(context, app, expirationDuration, salt)
 }
 
-async function geyAppFromToken(context, appToken) {
+// Verify generated token using JWT for user
+function verifyUserToken(context, userToken, salt = appConfig.userJWTSecret) {
+  const veirificationResult = verifyJWTToken(userToken, salt);
+  context.logger.debug(token, "verify result for user: ", veirificationResult);
+  return veirificationResult;
+}
+
+// Verify generated token using JWT for user
+function verifyAppToken(context, appToken, salt = appConfig.appJWTSecret) {
+  const veirificationResult = verifyJWTToken(appToken, salt);
+  context.logger.debug(token, "verify result for app: ", veirificationResult);
+  return veirificationResult;
+}
+
+
+async function getAppFromToken(context, appToken) {
+
   let app = await cache.getAsync(appToken);
   if(!app) {
     throw new Error('geyAppFromToken::Error resolving app token api key');
   }
-  app.authKey = appToken // little trick to leurre hcker
+  app.authKey = appToken // little trick to leurre hacker
   return app;
 }
 
@@ -83,4 +114,4 @@ async function getUserFromToken(context, token) {
   return user
 }
 
-export { generateUserToken, generateAppToken, hashKeyWithArgon, verifyKeyWithArgon, getUserFromToken, geyAppFromToken };
+export { generateUserToken, generateAppToken, hashKeyWithArgon, verifyKeyWithArgon, verifyUserToken, verifyAppToken, verifyHaskTokenWithBCrypt, hashTokenWithBCrypt};
