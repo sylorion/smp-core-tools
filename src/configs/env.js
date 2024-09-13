@@ -21,12 +21,12 @@ const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 
 const smp_user_jwt_secret_salt = process.env.SMP_USER_JWT_SECRET ;
-const smp_user_access_secret_salt = process.env.SMP_USER_JWT_SECRET || smp_user_jwt_secret_salt;
-const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_SECRET || smp_user_access_secret_salt;
+const smp_user_access_secret_salt = process.env.SMP_USER_JWT_ACCESS_SECRET || smp_user_jwt_secret_salt;
+const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_REFRESH_SECRET || smp_user_access_secret_salt;
 
 const smp_app_jwt_secret_salt = process.env.SMP_APP_JWT_SECRET ; 
-const smp_app_access_secret_salt = process.env.SMP_APP_JWT_SECRET || smp_app_jwt_secret_salt ; 
-const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_SECRET || smp_app_access_secret_salt ; 
+const smp_app_access_secret_salt = process.env.SMP_APP_JWT_ACCESS_SECRET || smp_app_jwt_secret_salt ; 
+const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_REFRESH_SECRET || smp_app_access_secret_salt ; 
 
 
 const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCES_TOKEN_DURATION ;
