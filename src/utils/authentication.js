@@ -29,14 +29,14 @@ async function verifyKeyWithArgon(password, hashKey) {
 }
 
 // Generate token using JWT 
-function hashTokenWithBCrypt(payload, salt) {
-  return bcrypt.hahs(payload, salt);
+async function hashTokenWithBCrypt(payload, salt) {
+  return await crypt.hahs(payload, salt);
 }
 
 
 // Verify generated token using JWT
-function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
-  return bcrypt.compare(unhashedToken, hashedToken)
+async function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
+  return await bcrypt.compare(unhashedToken, hashedToken)
 }
 
 // Generate token using JWT 
