@@ -3,6 +3,9 @@ import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
+const acces_token_max_duration = 1440 // 60*24 => 24h
+const refresh_token_max_duration = 43200 // 60 * 24 * 30 => 30d , 1 month
+
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
   || process.env.NODE_ENV === 'development'
@@ -16,6 +19,20 @@ const isDevelopmentEnv = (env === 'dev')
 const isProductionEnv = (env === 'prod')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
+
+const smp_user_jwt_secret_salt = process.env.SMP_USER_JWT_SECRET ;
+const smp_user_access_secret_salt = process.env.SMP_USER_JWT_SECRET || smp_user_jwt_secret_salt;
+const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_SECRET || smp_user_access_secret_salt;
+
+const smp_app_jwt_secret_salt = process.env.SMP_APP_JWT_SECRET ; 
+const smp_app_access_secret_salt = process.env.SMP_APP_JWT_SECRET || smp_app_jwt_secret_salt ; 
+const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_SECRET || smp_app_access_secret_salt ; 
+
+
+const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCES_TOKEN_DURATION ;
+const smp_user_jwt_refresh_token_duration = process.env.SMP_USER_REFRESH_TOKEN_DURATION ;
+const smp_app_jwt_acces_token_duration = process.env.SMP_APP_ACCES_TOKEN_DURATION ;
+const smp_app_jwt_refresh_token_duration = process.env.SMP_APP_REFRESH_TOKEN_DURATION ;
 
 /**
  * 
@@ -255,6 +272,20 @@ const appConfig = {
   componentName: componentName,
   componentShortName: componentShortName,
   componentTag: serviceFullTag,
+  // Salt information for AuthN
+  userJWTSecretSalt: smp_user_jwt_secret_salt || "",
+  userAccessTokenSalt: smp_user_access_secret_salt || "",
+  userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
+  appJWTSecretSalt: smp_app_jwt_secret_salt || "", 
+  appAccesTokenSalt: smp_app_access_secret_salt || "" ,
+  appRefreshTokenSalt: smp_app_refresh_secret_salt || "" ,
+ 
+  // Duration information for AuthN
+  userAccessTokenDuration: smp_user_jwt_access_token_duration || acces_token_max_duration,
+  appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
+  userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
+  appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
+
   componentInstanceSerial: instanceSerial,
   verboseLevel: computeVerbosityLevel(debug),
   defaultCurrencyDevice: process.env.APP_DEFAULT_CURRENCY_DEVICE || "EUR",

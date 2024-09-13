@@ -28,9 +28,8 @@ export {
 
 export { appConfig, gRPCConfig, dbConfig, cacheConfig,rabbitMQConfig } from './src/configs/env.js';
 export { getRequestLogger, logger } from './src/configs/logger.js';
-export { generateUserToken, generateAppToken, 
-    hashKeyWithArgon, verifyKeyWithArgon, 
-    getUserFromToken, geyAppFromToken,  } from './src/utils/authentication.js';
+export { generateUserToken, generateAppToken, hashKeyWithArgon, verifyKeyWithArgon, 
+    verifyUserToken, verifyAppToken, verifyHaskTokenWithBCrypt, hashTokenWithBCrypt  } from './src/utils/authentication.js';
 // export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
 export { slug, uuid, entityCreator, entityUpdater } from './src/utils/entityMutation.js'
@@ -45,3 +44,9 @@ export {
 export {
     requestUUIDMiddleware, useAppAuth
 } from './src/middleware/requestMiddleware.js';
+
+export {
+    generateToken, verifyToken
+} from './src/security/jwt.js'; export {
+    hashPassword, comparePassword
+} from './src/security/hash.js';
