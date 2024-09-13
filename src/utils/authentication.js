@@ -29,7 +29,7 @@ async function verifyKeyWithArgon(password, hashKey) {
 }
 
 // Generate token using JWT 
-function hashTokenWithBCrypt(payload, expirationDuration, salt) {
+function hashTokenWithBCrypt(payload, salt) {
   return bcrypt.hahs(payload, salt);
 }
 
@@ -41,7 +41,7 @@ function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
 
 // Generate token using JWT 
 function generateJWTToken(payload, expirationDuration, salt) {
-  return jwt.sign(payload, salt, {expiresIn: expirationDuration});
+  return jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
 }
 
 
