@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
-const acces_token_max_duration = 1440 // 60*24 => 24h
-const refresh_token_max_duration = 43200 // 60 * 24 * 30 => 30d , 1 month
+const acces_token_max_duration = 86400 // 60*60*24 => 24h in second
+const refresh_token_max_duration = 2592000 // 60*60 * 24 * 30 => 30d ~ 1 month
 
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
