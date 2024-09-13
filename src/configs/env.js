@@ -54,22 +54,22 @@ function computeVerbosityLevel(debug) {
   // Verbose level 0 means debug mode is on so give everything we got (silly mode)
   let verboseLevel = 0;
   switch (debug) {
-    case 'debug':
+    case 'd', 'debug':
       verboseLevel = 1;
       break;
-    case 'verbose':
+    case 'v', 'verbose':
       verboseLevel = 2;
       break;
-    case 'info':
+    case 'i', 'info':
       verboseLevel = 3;
       break;
     case 'io', 'http', 'file':
       verboseLevel = 4;
       break;
-    case 'warnning', 'warn', 'warning':
+    case 'w', 'warn', 'warnning', 'warning':
       verboseLevel = 5;
       break;
-    case 'error':
+    case 'e', 'err', 'error':
       verboseLevel = 6;
       break;
     default:
