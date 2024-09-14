@@ -50,7 +50,7 @@ function generateJWTToken(payload, expirationDuration, salt) {
 // Verify generated token using JWT
 function verifyJWTToken(token, salt) {
   const verifResult = jwt.verify(token, salt);
-  console.log(`Token to check with salt: ${salt} ${token} - ${verifResult}`);
+  console.log(`Token to check with salt: ${salt} ${token} - ${verifResult.toString()}`);
   return verifResult;
 }
 
@@ -71,21 +71,20 @@ function generateAppToken(context, app, expirationDuration = appConfig.appRefres
 
 // Verify generated token using JWT for user
 function verifyUserToken(context, userToken, salt = appConfig.userJWTSecretSalt) {
-  context?.logger?.info(`User Refresh Token : ${userToken}, salt to use: ${salt}`);
-  const veirificationResult = verifyJWTToken(userToken, salt);
-  context?.logger?.debug(token, "verify result for user: ", veirificationResult);
-  return veirificationResult;
+  context?.logger?.info(`User Refresh Token : ${userToken}, Salt to use: ${salt}`);
+  const verificationResult = verifyJWTToken(userToken, salt);
+  context?.logger?.debug(token, "Verify Result For User: ", verificationResult);
+  return verificationResult;
 }
 
 // Verify generated token using JWT for user
 function verifyAppToken(context, appToken, salt = appConfig.appJWTSecretSalt) {
-  const veirificationResult = verifyJWTToken(appToken, salt);
-  context?.logger?.debug(token, "verify result for app: ", veirificationResult);
-  return veirificationResult;
+  const verificationResult = verifyJWTToken(appToken, salt);
+  context?.logger?.debug(token, "Verify Result For App: ", verificationResult);
+  return verificationResult;
 }
 
 async function getAppFromToken(context, appToken) {
-
   let app = await cache.getAsync(appToken);
   if(!app) {
     throw new Error('geyAppFromToken::Error resolving app token api key');
