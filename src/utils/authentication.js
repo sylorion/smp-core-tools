@@ -40,7 +40,10 @@ async function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
 
 // Generate token using JWT 
 function generateJWTToken(payload, expirationDuration, salt) {
-  return jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
+  console.log(`New token to generate with salt: ${salt} expire on ${expirationDuration} seconds`);
+  const generatedToken = jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
+  console.log(`*******New generated token : ${generatedToken}\t for ${payload}`);
+  return generatedToken;
 }
 
 
