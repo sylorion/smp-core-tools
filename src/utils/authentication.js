@@ -33,7 +33,6 @@ async function hashTokenWithBCrypt(payload, salt) {
   return await crypt.hahs(payload, salt);
 }
 
-
 // Verify generated token using JWT
 async function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
   return await bcrypt.compare(unhashedToken, hashedToken)
@@ -53,29 +52,28 @@ function verifyJWTToken(token, salt) {
 // Generate token using JWT for user
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, salt = appConfig.userJWTSecretSalt) {
   // Générer le token JWT
-  const userPayload = user.dataValues ?? user;
-  context.logger.debug(userPayload)
+  const userPayload = user.dataValues ?? user; 
   const token = generateJWTToken(userPayload, expirationDuration, salt);
-  context.logger.info(token)
+  context?.logger?.info(token)
   return token;
 }
 
 // Generate token using JWT for application
 function generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, salt = appConfig.appJWTSecretSalt) {
-  return generateJWTToken(context, app, expirationDuration, salt)
+  return generateJWTToken(app, expirationDuration, salt)
 }
 
 // Verify generated token using JWT for user
 function verifyUserToken(context, userToken, salt = appConfig.userJWTSecretSalt) {
   const veirificationResult = verifyJWTToken(userToken, salt);
-  context.logger.debug(token, "verify result for user: ", veirificationResult);
+  context?.logger?.debug(token, "verify result for user: ", veirificationResult);
   return veirificationResult;
 }
 
 // Verify generated token using JWT for user
 function verifyAppToken(context, appToken, salt = appConfig.appJWTSecretSalt) {
   const veirificationResult = verifyJWTToken(appToken, salt);
-  context.logger.debug(token, "verify result for app: ", veirificationResult);
+  context?.logger?.debug(token, "verify result for app: ", veirificationResult);
   return veirificationResult;
 }
 
