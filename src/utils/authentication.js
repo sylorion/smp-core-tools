@@ -53,7 +53,7 @@ function verifyJWTToken(token, salt) {
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, salt = appConfig.userJWTSecretSalt) {
   // Générer le token JWT
   const userPayload = user.dataValues ?? user; 
-  context?.logger?.info(`Payload : ${payload}, expiration duration: ${expirationDuration}, salt: ${salt}`);
+  context?.logger?.info(`Payload : ${user}, expiration duration: ${expirationDuration}, salt: ${salt}`);
   const token = generateJWTToken(userPayload, expirationDuration, salt);
   context?.logger?.info(token)
   return token;
@@ -78,7 +78,6 @@ function verifyAppToken(context, appToken, salt = appConfig.appJWTSecretSalt) {
   context?.logger?.debug(token, "verify result for app: ", veirificationResult);
   return veirificationResult;
 }
-
 
 async function getAppFromToken(context, appToken) {
 
