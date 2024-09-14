@@ -49,7 +49,9 @@ function generateJWTToken(payload, expirationDuration, salt) {
 
 // Verify generated token using JWT
 function verifyJWTToken(token, salt) {
-  return jwt.verify(token, salt)
+  const verifResult = jwt.verify(token, salt);
+  console.log(`Token to check with salt: ${salt} ${token} - ${verifResult}`);
+  return verifResult;
 }
 
 // Generate token using JWT for user
