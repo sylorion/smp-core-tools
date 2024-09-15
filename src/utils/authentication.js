@@ -44,7 +44,7 @@ function generateJWTToken(payload, expirationDuration, salt) {
   const generatedToken = jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
   console.log(`*******New generated token : ${generatedToken}\t for ${JSON.stringify(payload)}`);
   const verifResult = jwt.verify(generatedToken, salt);
-  console.log(`Token to check with salt: ${salt} ${token} - ${verifResult.toString()}`);
+  console.log(`Token to check with salt: ${salt} ${generatedToken} - ${verifResult.toString()}`);
   return generatedToken;
 }
 
