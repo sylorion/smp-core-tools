@@ -71,30 +71,6 @@ function verifyAppToken(context, appToken, expirationDuration = appConfig.appRef
   return verifyJWTToken(appToken, expirationDuration, secret);
 }
 
-async function getAppFromToken(context, appToken) {
-  let app = await cache.getAsync(appToken);
-  if (!app) {
-    throw new Error('getAppFromToken::Error resolving app token api key');
-  }
-  app.authKey = appToken;
-  return app;
-}
-
-async function getUserFromToken(context, token) {
-  try {
-    const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
-    context.logger.debug(`getUserFromToken::Payload du JWT décodé: ${JSON.stringify(decodedPayload)}`);
-    return decodedPayload;
-  } catch (err) {
-    context.logger.warning(`getUserFromToken::Erreur lors de la vérification du JWT: ${err.message}`);
-    let user = await cache.getAsync(token);
-    if (!user) {
-      throw new Error('getUserFromToken::User not found in cache');
-    }
-    return user;
-  }
-}
-
 export {
   generateUserToken,
   generateAppToken,
