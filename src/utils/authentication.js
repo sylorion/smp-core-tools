@@ -35,26 +35,18 @@ async function verifyHashTokenWithBCrypt(unhashedToken, hashedToken) {
 }
 
 function generateJWTToken(payload, expirationDuration, secret) {
-  console.log(`New token to generate with secret: ${secret} expire in ${expirationDuration} seconds`);
-  const generatedToken = jwt.sign(payload, secret, { expiresIn: expirationDuration });
-  console.log(`*******New generated token: ${generatedToken}\t for ${JSON.stringify(payload)}`);
+   const generatedToken = jwt.sign(payload, secret, { expiresIn: expirationDuration });
   return generatedToken;
 }
 
 function verifyJWTToken(token, expirationDuration, secret) {
-  try {
-    const verifResult = jwt.verify(token, secret, { expiresIn: expirationDuration });
-    console.log(`Token verified with secret: ${secret} - ${JSON.stringify(verifResult)}`);
-    return verifResult;
-  } catch (err) {
-    console.error(`Token verification failed: ${err.message}`);
-    throw err;
-  }
+  const verifResult = jwt.verify(token, secret, { expiresIn: expirationDuration });
+  return verifResult;
 }
 
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
   const userPayload = user.dataValues ?? user;
-  context?.logger?.info(`Payload: ${JSON.stringify(user)}, expiration duration: ${expirationDuration}, secret: ${secret}`);
+  context?.logger?.info(`Payload: ${JSON.stringify(user)}, expiration duration: ${expirationDuration}, Salt Secret: ${secret}`);
   return generateJWTToken(userPayload, expirationDuration, secret);
 }
 
