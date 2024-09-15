@@ -42,10 +42,11 @@ async function verifyHaskTokenWithBCrypt(unhashedToken, hashedToken) {
 function generateJWTToken(payload, expirationDuration, salt) {
   console.log(`New token to generate with salt: ${salt} expire on ${expirationDuration} seconds`);
   const generatedToken = jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
-  console.log(`*******New generated token : ${generatedToken}\t for ${payload}`);
+  console.log(`*******New generated token : ${generatedToken}\t for ${JSON.stringify(payload)}`);
+  const verifResult = jwt.verify(generatedToken, salt);
+  console.log(`Token to check with salt: ${salt} ${token} - ${verifResult.toString()}`);
   return generatedToken;
 }
-
 
 // Verify generated token using JWT
 function verifyJWTToken(token, salt) {
@@ -58,9 +59,8 @@ function verifyJWTToken(token, salt) {
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, salt = appConfig.userJWTSecretSalt) {
   // Générer le token JWT
   const userPayload = user.dataValues ?? user; 
-  context?.logger?.info(`Payload : ${user}, expiration duration: ${expirationDuration}, salt: ${salt}`);
+  context?.logger?.info(`Payload : ${JSON.stringify(user)}, expiration duration: ${expirationDuration}, salt: ${salt}`);
   const token = generateJWTToken(userPayload, expirationDuration, salt);
-  context?.logger?.info(token)
   return token;
 }
 
@@ -71,7 +71,7 @@ function generateAppToken(context, app, expirationDuration = appConfig.appRefres
 
 // Verify generated token using JWT for user
 function verifyUserToken(context, userToken, salt = appConfig.userJWTSecretSalt) {
-  context?.logger?.info(`User Refresh Token : ${userToken}, Salt to use: ${salt}`);
+  context?.logger?.info(`User Refresh Token to check : ${userToken}, Salt to use: ${salt}`);
   const verificationResult = verifyJWTToken(userToken, salt);
   context?.logger?.debug(token, "Verify Result For User: ", verificationResult);
   return verificationResult;
