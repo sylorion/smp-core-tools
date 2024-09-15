@@ -43,14 +43,14 @@ function generateJWTToken(payload, expirationDuration, salt) {
   console.log(`New token to generate with salt: ${salt} expire on ${expirationDuration} seconds`);
   const generatedToken = jwt.sign(payload, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
   console.log(`*******New generated token : ${generatedToken}\t for ${JSON.stringify(payload)}`);
-  const verifResult = jwt.verify(generatedToken, salt);
+  const verifResult = jwt.verify(generatedToken, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
   console.log(`Token to check with salt: ${salt} ${generatedToken} - ${verifResult.toString()}`);
   return generatedToken;
 }
 
 // Verify generated token using JWT
-function verifyJWTToken(token, salt) {
-  const verifResult = jwt.verify(token, salt);
+function verifyJWTToken(token, expirationDuration, salt) {
+  const verifResult = jwt.verify(token, salt, {expiresIn: expirationDuration, algorithm: 'HS256'});
   console.log(`Token to check with salt: ${salt} ${token} - ${verifResult.toString()}`);
   return verifResult;
 }
@@ -70,16 +70,16 @@ function generateAppToken(context, app, expirationDuration = appConfig.appRefres
 }
 
 // Verify generated token using JWT for user
-function verifyUserToken(context, userToken, salt = appConfig.userJWTSecretSalt) {
+function verifyUserToken(context, userToken, expirationDuration = appConfig.userRefreshTokenDuration, salt = appConfig.userJWTSecretSalt) {
   context?.logger?.info(`User Refresh Token to check : ${userToken}, Salt to use: ${salt}`);
-  const verificationResult = verifyJWTToken(userToken, salt);
+  const verificationResult = verifyJWTToken(userToken, expirationDuration, salt);
   context?.logger?.debug(token, "Verify Result For User: ", verificationResult);
   return verificationResult;
 }
 
 // Verify generated token using JWT for user
-function verifyAppToken(context, appToken, salt = appConfig.appJWTSecretSalt) {
-  const verificationResult = verifyJWTToken(appToken, salt);
+function verifyAppToken(context, appToken, expirationDuration = appConfig.appRefreshTokenDuration, salt = appConfig.appJWTSecretSalt) {
+  const verificationResult = verifyJWTToken(appToken, expirationDuration, salt);
   context?.logger?.debug(token, "Verify Result For App: ", verificationResult);
   return verificationResult;
 }
