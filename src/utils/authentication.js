@@ -35,12 +35,14 @@ async function verifyHashTokenWithBCrypt(unhashedToken, hashedToken) {
 }
 
 function generateJWTToken(payload, expirationDuration, secret) {
-   const generatedToken = jwt.sign(payload, secret, { expiresIn: expirationDuration });
+  // Handly compute the exp time to avoid a strange bug
+  const expTime = Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration));
+   const generatedToken = jwt.sign({...payload, maxAge: '30d', exp: expTime}, secret, {algorithm: 'HS512'});
   return generatedToken;
 }
 
-function verifyJWTToken(token, expirationDuration, secret) {
-  const verifResult = jwt.verify(token, secret, { expiresIn: expirationDuration });
+function verifyJWTToken(token, secret) {
+  const verifResult = jwt.verify(token, secret, {algorithm: 'HS512'});
   return verifResult;
 }
 
@@ -54,13 +56,13 @@ function generateAppToken(context, app, expirationDuration = appConfig.appRefres
   return generateJWTToken(app, expirationDuration, secret);
 }
 
-function verifyUserToken(context, userToken, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
+function verifyUserToken(context, userToken, secret = appConfig.userJWTSecretSalt) {
   context?.logger?.info(`User Refresh Token to check: ${userToken}, Secret to use: ${secret}`);
-  return verifyJWTToken(userToken, expirationDuration, secret);
+  return verifyJWTToken(userToken, secret);
 }
 
-function verifyAppToken(context, appToken, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
-  return verifyJWTToken(appToken, expirationDuration, secret);
+function verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) {
+  return verifyJWTToken(appToken, secret);
 }
 
 export {

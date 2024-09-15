@@ -264,6 +264,7 @@ const requestServerSpelling = serviceFullName + " " + providedServiceType + " " 
 
 const appConfig = {
   envExc: env,
+  domain: process.env.SMP_MU_DOMAIN_NAME ?? "services.ceo",
   apiPort: process.env.SMP_MU_SERVICE_API_PORT ?? 4000,
   verbose: debug,
   version: providedServiceVersion,
