@@ -6,7 +6,8 @@ const ACTIONS = {
   CREATED: 'created',
   UPDATED: 'updated',
   DELETED: 'deleted',
-  VISITED: 'visited',  // Utilisation de minuscules pour cohérence
+  VISITED: 'visited',  
+  LISTED: 'listed',
 };
 
 Object.freeze(ACTIONS);
@@ -22,7 +23,8 @@ function generateCrudOperations(name, customEvents = {}) {
     created: `${name}.${ACTIONS.CREATED}`,
     updated: `${name}.${ACTIONS.UPDATED}`,
     deleted: `${name}.${ACTIONS.DELETED}`,
-    visited: `${name}.${ACTIONS.VISITED}`
+    visited: `${name}.${ACTIONS.VISITED}`,
+    listed: `${name}.${ACTIONS.LISTED}`,
   };
 
   // Combiner les événements standards avec les événements personnalisés
@@ -160,7 +162,7 @@ const SMPevents = {
     ...generateCrudOperations('UserToken')  
   },
   ResetPasswordToken: {
-    ...generateCrudOperations('ResetPasswordToken', { created: 'User.ResetPasswordToken' })  
+    ...generateCrudOperations('ResetPasswordToken')  
   },
 
   // [MU-DOCUMENT]
