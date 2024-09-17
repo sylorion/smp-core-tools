@@ -36,9 +36,9 @@ function generateCrudOperations(name, customEvents = {}) {
 
 /**
  * Configuration des événements pour chaque entité des différents microservices,
- * accessible directement via `SMPevents.User.visited` ou `SMPevents.UserToken.resetToken`.
+ * accessible directement via `SMPEvents.User.visited` ou `SMPEvents.UserToken.resetToken`.
  */
-const SMPevents = {
+const SMPEvents = {
 
   // [MU-USERSPACE]
   User: {
@@ -171,6 +171,6 @@ const SMPevents = {
   },
 };
 
-Object.freeze(SMPevents);
+Object.freeze(SMPEvents);
 
-export { SMPevents, ACTIONS };
+export { SMPEvents, ACTIONS };
