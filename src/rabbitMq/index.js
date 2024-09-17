@@ -1,174 +1,174 @@
 /**
- * Configuration object for Subscribed Microservices Events (SMPevents).
- * This object maps each microservice's domain to the entities within that domain,
- * along with the CRUD operations each entity supports. This setup is used to
- * ensure that microservices subscribe only to valid and supported events,
- * enabling a robust, scalable, and error-resistant event-driven architecture.
- *
- * Structure:
- * Each key in the object represents a microservice domain, such as 'location' or 'userSpace'.
- * Each domain contains sub-keys that represent the entities within that domain.
- * Each entity is associated with an array of strings representing the CRUD operations
- * that the entity supports: 'created', 'updated', and 'deleted'.
- *
- * Usage:
- * This configuration is used by a validation function within the RabbitMQ service setup
- * to check if microservices are subscribed to valid events. The validation function
- * ensures that all active subscriptions in `muConsumers` match against the events listed
- * in `SMPevents`.
- *
- * Example:
- * If a microservice subscribes to listen for 'created' and 'deleted' events on 'User'
- * within the 'userSpace' domain, the validation function will confirm this subscription
- * by referencing the `SMPevents` configuration.
- *
- * @type {Object}
+ * Valid action types for CRUD operations.
+ * @constant {Object}
  */
-
-const SMPevents = {
-  location: {
-    Place: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  userSpace: {
-    Profile: {
-      operations: ['created', 'updated', 'deleted'] 
-    },
-    UserRole: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    PaymentMethod: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    PaymentConfig: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Role: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    User: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    UserPreference: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  organization: {
-    Organization: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    UserOrganization: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    TermsAndConditions: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    FaqOrganization: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    OrganizationMedia: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Industry: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    TagOrganization: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    TopicOrganization: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  catalog: {
-    Service: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Criteria: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Asset: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    ServiceAsset: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    ServiceMedia: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    FaqAnswer: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    FaqQuestion: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    FaqService: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    ServiceAttribute: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Topic: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Tag: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  accounting: {
-    Invoice: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Estimate: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Transaction: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    EstimateAsset: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  notification: {
-    Notification: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    NotificationTemplate: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  reviewComment: {
-    Comment: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    Review: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  authentication: {
-    Application: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    ApplicationToken: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    UserToken: {
-      operations: ['created', 'updated', 'deleted']
-    },
-    ResetPasswordToken: {
-      operations: ['created']
-    }
-  },
-  document: {
-    Media: {
-      operations: ['created', 'updated', 'deleted']
-    }
-  },
-  upload: {
-    Application: {
-      operations: ['created']
-    }
-  }
+const ACTIONS = {
+  CREATED: 'created',
+  UPDATED: 'updated',
+  DELETED: 'deleted',
+  VISITED: 'visited',  // Utilisation de minuscules pour cohérence
 };
 
-export { SMPevents };
+Object.freeze(ACTIONS);
+
+/**
+ * Génère les opérations CRUD pour une entité donnée et permet l'ajout d'événements personnalisés.
+ * @param {string} name - Le nom de l'entité (e.g., 'User', 'Profile').
+ * @param {Object} [customEvents={}] - Un objet représentant les événements personnalisés.
+ * @returns {Object} - Objet contenant les actions CRUD et les événements personnalisés.
+ */
+function generateCrudOperations(name, customEvents = {}) {
+  const defaultEvents = {
+    created: `${name}.${ACTIONS.CREATED}`,
+    updated: `${name}.${ACTIONS.UPDATED}`,
+    deleted: `${name}.${ACTIONS.DELETED}`,
+    visited: `${name}.${ACTIONS.VISITED}`
+  };
+
+  // Combiner les événements standards avec les événements personnalisés
+  return {
+    ...defaultEvents,
+    ...customEvents
+  };
+}
+
+/**
+ * Configuration des événements pour chaque entité des différents microservices,
+ * accessible directement via `SMPevents.User.visited` ou `SMPevents.UserToken.resetToken`.
+ */
+const SMPevents = {
+
+  // [MU-USERSPACE]
+  User: {
+    ...generateCrudOperations('User', { deactivated: 'User.deactivated' })  
+  },
+  Profile: {
+    ...generateCrudOperations('Profile')
+  },
+  PaymentMethod: {
+    ...generateCrudOperations('PaymentMethod')
+  },
+  PaymentConfig: {
+    ...generateCrudOperations('PaymentConfig')
+  },
+  Role: {
+    ...generateCrudOperations('Role')
+  },
+  UserPreference: {
+    ...generateCrudOperations('UserPreference')
+  },
+
+  // [MU-ORGANIZATION]
+  Organization: {
+    ...generateCrudOperations('Organization')
+  },
+  UserOrganization: {
+    ...generateCrudOperations('UserOrganization')
+  },
+  TermsAndConditions: {
+    ...generateCrudOperations('TermsAndConditions')
+  },
+  FaqOrganization: {
+    ...generateCrudOperations('FaqOrganization')
+  },
+  OrganizationMedia: {
+    ...generateCrudOperations('OrganizationMedia')
+  },
+  Industry: {
+    ...generateCrudOperations('Industry')
+  },
+  TagOrganization: {
+    ...generateCrudOperations('TagOrganization')
+  },
+  TopicOrganization: {
+    ...generateCrudOperations('TopicOrganization')
+  },
+
+  // [MU-CATALOG]
+  Service: {
+    ...generateCrudOperations('Service')
+  },
+  Criteria: {
+    ...generateCrudOperations('Criteria')
+  },
+  Asset: {
+    ...generateCrudOperations('Asset')
+  },
+  ServiceAsset: {
+    ...generateCrudOperations('ServiceAsset')
+  },
+  ServiceMedia: {
+    ...generateCrudOperations('ServiceMedia')
+  },
+  FaqAnswer: {
+    ...generateCrudOperations('FaqAnswer')
+  },
+  FaqQuestion: {
+    ...generateCrudOperations('FaqQuestion')
+  },
+  FaqService: {
+    ...generateCrudOperations('FaqService')
+  },
+  ServiceAttribute: {
+    ...generateCrudOperations('ServiceAttribute')
+  },
+  Topic: {
+    ...generateCrudOperations('Topic')
+  },
+  Tag: {
+    ...generateCrudOperations('Tag')
+  },
+
+  // [MU-ACCOUNTING]
+  Invoice: {
+    ...generateCrudOperations('Invoice')
+  },
+  Estimate: {
+    ...generateCrudOperations('Estimate')
+  },
+  Transaction: {
+    ...generateCrudOperations('Transaction')
+  },
+  EstimateAsset: {
+    ...generateCrudOperations('EstimateAsset')
+  },
+
+  // [MU-NOTIFICATION]
+  Notification: {
+    ...generateCrudOperations('Notification')
+  },
+  NotificationTemplate: {
+    ...generateCrudOperations('NotificationTemplate')
+  },
+
+  // [MU-REVIEWCOMMENT]
+  Comment: {
+    ...generateCrudOperations('Comment')
+  },
+  Review: {
+    ...generateCrudOperations('Review')
+  },
+
+  // [MU-AUTHENTICATION]
+  Application: {
+    ...generateCrudOperations('Application')
+  },
+  ApplicationToken: {
+    ...generateCrudOperations('ApplicationToken') 
+  },
+  UserToken: {
+    ...generateCrudOperations('UserToken')  
+  },
+  ResetPasswordToken: {
+    ...generateCrudOperations('ResetPasswordToken', { created: 'User.ResetPasswordToken' })  
+  },
+
+  // [MU-DOCUMENT]
+  Media: {
+    ...generateCrudOperations('Media')
+  },
+};
+
+Object.freeze(SMPevents);
+
+export { SMPevents, ACTIONS };
