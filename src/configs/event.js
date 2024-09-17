@@ -62,11 +62,11 @@ class RabbitMQService {
 
 /**
  * Verifies the subscriptions against the SMP events configuration.
- * @param {Object} SMPevents - Supported events for each service and entity.
+ * @param {Object} SMPEvents - Supported events for each service and entity.
  * @param {Object} muConsumers - The microservices consumers configuration.
  * @returns {void}
  */
-async verifySubscriptions(SMPevents, muConsumers) {
+async verifySubscriptions(SMPEvents, muConsumers) {
   Object.keys(muConsumers).forEach(service => {
     Object.keys(muConsumers[service]).forEach(entity => {
       const entityConfig = muConsumers[service][entity];
@@ -79,7 +79,7 @@ async verifySubscriptions(SMPevents, muConsumers) {
       }
 
       // Vérification des opérations CRUD standards
-      const validEvents = SMPevents[entity] ? Object.values(SMPevents[entity]) : null;
+      const validEvents = SMPEvents[entity] ? Object.values(SMPEvents[entity]) : null;
 
       if (!validEvents) {
         console.warn(`[Warning]: No valid event configurations found for ${service}.${entity}.`);
@@ -94,7 +94,7 @@ async verifySubscriptions(SMPevents, muConsumers) {
         Object.keys(specialEvents).forEach(eventKey => {
           const specialEvent = specialEvents[eventKey].event;
           if (!validEvents.includes(specialEvent)) {
-            console.warn(`[Warning]: Special event '${specialEvent}' for ${entity} in service ${service} is not defined in SMPevents.`);
+            console.warn(`[Warning]: Special event '${specialEvent}' for ${entity} in service ${service} is not defined in SMPEvents.`);
           }
         });
       }
@@ -169,7 +169,7 @@ async verifySubscriptions(SMPevents, muConsumers) {
 
 /**
  * Publishes an event to the RabbitMQ exchange.
- * @param {string} event - The event string from SMPevents (e.g., 'SMPevents.User.visited').
+ * @param {string} event - The event string from SMPEvents (e.g., 'SMPEvents.User.visited').
  * @param {Object} data - The message payload to publish.
  * @param {Object} [options={}] - Additional options for publishing.
  * @returns {Promise<void>}
