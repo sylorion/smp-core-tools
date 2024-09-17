@@ -179,7 +179,6 @@ async publish(event, data, options = {}) {
   const formattedData = data ? { data: data.toJSON ? data.toJSON() : data } : {};
 
   const formattedMessage = JSON.stringify(formattedData);
-
   try {
    this.channel.publish(this.exchange, routingKey, Buffer.from(formattedMessage), options);
         console.log(`Event '${routingKey}' published successfully.`);
