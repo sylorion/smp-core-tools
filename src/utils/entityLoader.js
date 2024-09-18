@@ -61,7 +61,7 @@ function buildPaginationClause(pagination) {
 }
 
 // Fonction générique pour naviguer dans la liste des entités
-async function navigateEntityList(context, cb, pagination = {}, sort = {}, filters = []) {
+async function navigateEntityList(context, cb,  filters = [],pagination = {}, sort = {},) {
   // const span = trace.getTracer('default').startSpan('navigateEntityList');
   try {
     let flts = []
