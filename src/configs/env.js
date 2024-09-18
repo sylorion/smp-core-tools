@@ -3,6 +3,9 @@ import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
+const acces_token_max_duration = 86400 // 60*60*24 => 24h in second
+const refresh_token_max_duration = 2592000 // 60*60 * 24 * 30 => 30d ~ 1 month
+
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
   || process.env.NODE_ENV === 'development'
@@ -16,6 +19,20 @@ const isDevelopmentEnv = (env === 'dev')
 const isProductionEnv = (env === 'prod')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
+
+const smp_user_jwt_secret_salt = process.env.SMP_USER_JWT_SECRET ;
+const smp_user_access_secret_salt = process.env.SMP_USER_JWT_ACCESS_SECRET || smp_user_jwt_secret_salt;
+const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_REFRESH_SECRET || smp_user_access_secret_salt;
+
+const smp_app_jwt_secret_salt = process.env.SMP_APP_JWT_SECRET ; 
+const smp_app_access_secret_salt = process.env.SMP_APP_JWT_ACCESS_SECRET || smp_app_jwt_secret_salt ; 
+const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_REFRESH_SECRET || smp_app_access_secret_salt ; 
+
+
+const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCES_TOKEN_DURATION ;
+const smp_user_jwt_refresh_token_duration = process.env.SMP_USER_REFRESH_TOKEN_DURATION ;
+const smp_app_jwt_acces_token_duration = process.env.SMP_APP_ACCES_TOKEN_DURATION ;
+const smp_app_jwt_refresh_token_duration = process.env.SMP_APP_REFRESH_TOKEN_DURATION ;
 
 /**
  * 
@@ -37,22 +54,22 @@ function computeVerbosityLevel(debug) {
   // Verbose level 0 means debug mode is on so give everything we got (silly mode)
   let verboseLevel = 0;
   switch (debug) {
-    case 'debug':
+    case 'd', 'debug':
       verboseLevel = 1;
       break;
-    case 'verbose':
+    case 'v', 'verbose':
       verboseLevel = 2;
       break;
-    case 'info':
+    case 'i', 'info':
       verboseLevel = 3;
       break;
     case 'io', 'http', 'file':
       verboseLevel = 4;
       break;
-    case 'warnning', 'warn', 'warning':
+    case 'w', 'warn', 'warnning', 'warning':
       verboseLevel = 5;
       break;
-    case 'error':
+    case 'e', 'err', 'error':
       verboseLevel = 6;
       break;
     default:
@@ -90,7 +107,7 @@ if (databaseUsed) {
   let db_paranoid_file = secretPath + "db_paranoid";
   let db_schema_file = secretPath + "db_schema";
   let db_sync_file = secretPath + "db_sync";
-  console.log('Stat on secretPath: ', secretPath);
+  
   const stats = fs.statSync(secretPath, (err, stats) => {
     if (err) {
       console.error(err);
@@ -98,21 +115,19 @@ if (databaseUsed) {
     // we have access to the file stats in `stats`
   });
 
-  console.log('Stats: ', stats);
   // Check if the path is a directory.
   if (stats.isDirectory()) {
     console.log('Path to secret exists');
-    if (db_user_file && fs.existsSync(db_user_file)) {
-      console.log('db_user_file exists');
+    if (db_user_file && fs.existsSync(db_user_file)) { 
       usernameDB = fs.readFileSync(db_user_file, 'utf8', (err, data) => {
         if (!err && data) {
           console.log('usernameDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_user_file, " doesn't exists");
+          console.error("Path to file ", db_user_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_user_file doesn\'t exists');
+      console.error('db_user_file doesn\'t exists');
     }
     // We have to check if the file exists before reading it
     if (db_host_file && fs.existsSync(db_host_file)) {
@@ -120,11 +135,11 @@ if (databaseUsed) {
         if (!err && data) {
           console.log('hostDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_host_file, " doesn't exists");
+          console.error("Path to file ", db_host_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_host_file doesn\'t exists : ' + db_host_file);
+      console.error('db_host_file doesn\'t exists : ' + db_host_file);
     }
     // We have to check if the file exists before reading it
     if (db_port_file !== undefined && fs.existsSync(db_port_file)) {
@@ -132,11 +147,11 @@ if (databaseUsed) {
         if (!err && data) {
           console.log('portDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_port_file, " doesn't exists");
+          console.error("Path to file ", db_port_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_port_file doesn\'t exists : ' + db_port_file);
+      console.error('db_port_file doesn\'t exists : ' + db_port_file);
     }
     if (db_pswd_file !== undefined && fs.existsSync(db_pswd_file)) {
 
@@ -145,51 +160,51 @@ if (databaseUsed) {
         if (!err && data) {
           console.log('pswdDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_pswd_file, " doesn't exists");
+          console.error("Path to file ", db_pswd_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_pswd_file doesn\'t exists : ' + db_pswd_file);
+      console.error('db_pswd_file doesn\'t exists : ' + db_pswd_file);
     }
     if (db_database_file !== undefined && fs.existsSync(db_database_file)) {
       nameDB = fs.readFileSync(db_database_file, 'utf8', (err, data) => {
         if (!err && data) {
           console.log('nameDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_database_file, " doesn't exists");
+          console.error("Path to file ", db_database_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_database_file doesn\'t exists : ' + db_database_file);
+      console.error('db_database_file doesn\'t exists : ' + db_database_file);
     }
     if (db_timestamp_file !== undefined && fs.existsSync(db_timestamp_file)) {
       timestampDB = fs.readFileSync(db_timestamp_file, 'utf8', (err, data) => {
         if (!err && data) {
           console.log('timestampDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_timestamp_file, " doesn't exists");
+          console.error("Path to file ", db_timestamp_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_timestamp_file doesn\'t exists : ' + db_timestamp_file);
+      console.error('db_timestamp_file doesn\'t exists : ' + db_timestamp_file);
     }
     if (db_paranoid_file !== undefined && fs.existsSync(db_paranoid_file)) {
       paranoidDB = fs.readFileSync(db_paranoid_file, 'utf8', (err, data) => {
         if (!err && data) {
           console.log('paranoidDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_paranoid_file, " doesn't exists");
+          console.error("Path to file ", db_paranoid_file, " doesn't exists");
         }
       }).trim();
     } else {
-      console.log('db_paranoid_file doesn\'t exists : ' + db_paranoid_file);
+      console.error('db_paranoid_file doesn\'t exists : ' + db_paranoid_file);
     }
     if (db_schema_file !== undefined && fs.existsSync(db_schema_file)) {
       schemaDB = fs.readFileSync(db_schema_file, 'utf8', (err, data) => {
         if (!err && data) {
           console.log('schemaDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_schema_file, " doesn't exists");
+          console.error("Path to file ", db_schema_file, " doesn't exists");
         }
       }).trim();
     }
@@ -198,7 +213,7 @@ if (databaseUsed) {
         if (!err && data) {
           console.log('syncDB: ', data.trim());
         } else {
-          console.log("Path to file ", db_sync_file, " doesn't exists");
+          console.error("Path to file ", db_sync_file, " doesn't exists");
         }
       });
     }
@@ -228,9 +243,10 @@ const dbConfig = {
 // Cache System Config Object
 //
 const cacheConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
+  host: process.env.SMP_REDIS_HOSTNAME ?? (process.env.REDIS_HOST || 'localhost'),
   port: parseInt(`${process.env.REDIS_PORT || '6379'}`, 10),
-  password: process.env.REDIS_PASSWORD || undefined
+  username: process.env.SMP_MU_REDIS_USER ?? ( process.env.REDIS_USER || undefined),
+  password: process.env.SMP_MU_REDIS_PASSWORD ?? (process.env.REDIS_PASSWORD|| undefined),
 }
 
 //
@@ -249,6 +265,7 @@ const requestServerSpelling = serviceFullName + " " + providedServiceType + " " 
 
 const appConfig = {
   envExc: env,
+  domain: process.env.SMP_MU_DOMAIN_NAME ?? "services.ceo",
   apiPort: process.env.SMP_MU_SERVICE_API_PORT ?? 4000,
   verbose: debug,
   version: providedServiceVersion,
@@ -257,6 +274,20 @@ const appConfig = {
   componentName: componentName,
   componentShortName: componentShortName,
   componentTag: serviceFullTag,
+  // Salt information for AuthN
+  userJWTSecretSalt: smp_user_jwt_secret_salt || "",
+  userAccessTokenSalt: smp_user_access_secret_salt || "",
+  userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
+  appJWTSecretSalt: smp_app_jwt_secret_salt || "", 
+  appAccesTokenSalt: smp_app_access_secret_salt || "" ,
+  appRefreshTokenSalt: smp_app_refresh_secret_salt || "" ,
+ 
+  // Duration information for AuthN
+  userAccessTokenDuration: smp_user_jwt_access_token_duration || acces_token_max_duration,
+  appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
+  userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
+  appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
+
   componentInstanceSerial: instanceSerial,
   verboseLevel: computeVerbosityLevel(debug),
   defaultCurrencyDevice: process.env.APP_DEFAULT_CURRENCY_DEVICE || "EUR",
@@ -271,9 +302,5 @@ const rabbitMQConfig = {
   exchange: process.env.RABBITMQ_EXCHANGE,
   exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE,
 };
-
-const envObject = { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig, processEnv: process.env };
-
-console.log('Environment Configuration: ', envObject)
 
 export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig };

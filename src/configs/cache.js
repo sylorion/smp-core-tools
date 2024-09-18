@@ -18,7 +18,7 @@ if (appConfig.envExc !== 'dev'){
     host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
     port: cacheConfig.port, // le port du serveur Redis ex. 6379
     password: cacheConfig.password,
-    // si votre serveur Redis nécessite un mot de passe, ajoutez une clé password ici 
+    username: cacheConfig.username,
     socket: {
       host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
       port: cacheConfig.port, // le port du serveur Redis ex. 6379  
@@ -36,9 +36,9 @@ if (appConfig.envExc !== 'dev'){
 
   client.on('error', errorThrowing);
   client.on('connect', connectionEstablished) ;
-  promiseClient = () => client.connect() ;
-  getAsync      = promisify(client.get).bind(client);
-  setAsync      = promisify(client.set).bind(client);
+  const promiseClient = async () => client.connect() ;
+  const getAsync      = promisify(client.get).bind(client);
+  const setAsync      = promisify(client.set).bind(client);
 }
 const cache = { client, getAsync, setAsync, promiseClient }
 export { cache };
