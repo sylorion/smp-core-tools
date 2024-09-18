@@ -1,48 +1,26 @@
+// rabbitMQService.js (dans la bibliothèque partagée)
 import amqp from 'amqplib';
-import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from '../rabbitMq/handlerCRUDOperation.js';
-import { handleCallback } from '../handler/notificationHandler.js';
-import { rabbitMQConfig } from '../configs/env.js';
-import { ACTIONS } from '../rabbitMq/index.js';
 
-
-/**
- * RabbitMQService class to manage interactions with RabbitMQ.
- */
 class RabbitMQService {
-  /**
-   * Constructor to initialize RabbitMQService.
-   * @param {string} connectionURL - URL of the RabbitMQ server.
-   * @param {Object} models - Database models.
-   * @param {Object} mailingService - Mailing service.
-   * @param {Object} brevoMailingConfig - Brevo mailing configuration.
-   * @param {Object} internalNotificationConfig - Internal notification configuration.
-   * @param {Object} [logger=null] - Logger for logging purposes.
-   * @param {boolean} [durable=true] - Whether exchanges and queues are durable.
-   */
-  constructor(connectionURL, models, mailingService, brevoMailingConfig, internalNotificationConfig, logger = null, durable = true) {
+  constructor(connectionURL, SMPEvents, logger = null, durable = true) {
     this.connectionURL = connectionURL;
-    this.models = models;
-    this.mailingService = mailingService;
-    this.brevoMailingConfig = brevoMailingConfig;
-    this.internalNotificationConfig = internalNotificationConfig;
+    this.validEvents = SMPEvents; 
     this.logger = logger;
-    this.exchange = rabbitMQConfig.exchange;
-    this.µservice = process.env.SMP_MU_SERVICE_NAME;
     this.durable = durable;
+    this.exchange = process.env.RABBITMQ_EXCHANGE;
     this.channel = null;
     this.connection = null;
   }
 
   /**
-   * Connect to RabbitMQ server.
-   * @returns {Promise<void>}
+   * Connecte le service à RabbitMQ. Si la connexion est déjà établie, elle ne sera pas recréée.
    */
   async connect() {
-    if (this.connection && this.channel) return; // Avoid reconnecting if already connected
+    if (this.connection && this.channel) return; // Si déjà connecté, on ne reconnecte pas
     try {
       this.connection = await amqp.connect(this.connectionURL);
       this.channel = await this.connection.createChannel();
-      console.log('Connected to RabbitMQ');
+      // console.log('Connected to RabbitMQ');
     } catch (error) {
       console.error('Error connecting to RabbitMQ:', error);
       if (this.logger) this.logger.error('Error connecting to RabbitMQ:', error);
@@ -50,177 +28,120 @@ class RabbitMQService {
   }
 
   /**
-   * Closes RabbitMQ connection.
-   * @returns {Promise<void>}
+   * Vérifie si les abonnements sont valides par rapport aux événements définis globalement.
+   * @param {Object} consumerConfig - Configuration des consommateurs pour un microservice.
    */
-  async close() {
-    if (this.channel) await this.channel.close();
-    if (this.connection) await this.connection.close();
-    this.channel = null;
-    this.connection = null;
-  }
-
-/**
- * Verifies the subscriptions against the SMP events configuration.
- * @param {Object} SMPevents - Supported events for each service and entity.
- * @param {Object} muConsumers - The microservices consumers configuration.
- * @returns {void}
- */
-async verifySubscriptions(SMPevents, muConsumers) {
-  Object.keys(muConsumers).forEach(service => {
-    Object.keys(muConsumers[service]).forEach(entity => {
-      const entityConfig = muConsumers[service][entity];
+  verifySubscriptions(consumerConfig) {
+    Object.keys(consumerConfig).forEach((entityName) => {
+      const entityConfig = consumerConfig[entityName];
       const operations = entityConfig.operations || [];
-      const specialEvents = entityConfig.specialEvents || {};
 
-      if (!Array.isArray(operations)) {
-        console.warn(`[Warning]: Operations for ${entity} in service ${service} should be an array.`);
-        return;
-      }
+      // Récupère les événements valides pour l'entité
+      const validEventsForEntity = this.validEvents[entityName] || [];
 
-      // Vérification des opérations CRUD standards
-      const validEvents = SMPevents[entity] ? Object.values(SMPevents[entity]) : null;
-
-      if (!validEvents) {
-        console.warn(`[Warning]: No valid event configurations found for ${service}.${entity}.`);
-      } else {
-        // Vérifier les opérations CRUD
-        const invalidOps = operations.filter(op => !validEvents.includes(`${entity}.${op}`));
-        if (invalidOps.length > 0) {
-          console.warn(`[Warning]: Invalid operations ${invalidOps.join(', ')} for ${service}.${entity}.`);
-        }
-
-        // Vérifier les événements spéciaux
-        Object.keys(specialEvents).forEach(eventKey => {
-          const specialEvent = specialEvents[eventKey].event;
-          if (!validEvents.includes(specialEvent)) {
-            console.warn(`[Warning]: Special event '${specialEvent}' for ${entity} in service ${service} is not defined in SMPevents.`);
-          }
-        });
+      // Vérifie si toutes les opérations configurées sont valides
+      const invalidOps = operations.filter((operation) => !validEventsForEntity.includes(`${entityName}.${operation}`));
+      if (invalidOps.length > 0) {
+        console.warn(`[Warning]: Invalid operations ${invalidOps.join(', ')} for ${entityName}`);
       }
     });
-  });
-  console.log("Verification of subscriptions completed.");
-}
-
-
+  }
 
   /**
-   * Subscribe to a RabbitMQ topic and process incoming messages.
-   * @param {string} exchangeTopic - Name of the topic exchange.
-   * @param {string} routingKey - Routing key for the exchange.
-   * @param {string} queueName - Name of the queue.
-   * @param {string} entityName - Name of the entity.
-   * @param {string} operation - The CRUD operation ('created', 'updated', 'deleted').
-   * @param {Function} [callback=null] - Optional callback function for special events.
-   * @returns {Promise<void>}
+   * Souscrit à un topic RabbitMQ et consomme les messages.
+   * @param {string} exchangeTopic - Le topic RabbitMQ.
+   * @param {string} routingKey - La clé de routage.
+   * @param {string} queueName - Le nom de la file d'attente.
    */
-  async subscribeTopic(exchangeTopic, routingKey, queueName, entityName, operation, callback = null) {
-    await this.connect();
+  async subscribeTopic(exchangeTopic, routingKey, queueName) {
+    await this.connect(); // Assurer la connexion avant de souscrire au topic
     await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
     await this.channel.assertQueue(queueName, { durable: this.durable });
     await this.channel.bindQueue(queueName, exchangeTopic, routingKey);
-    console.log(`Subscribed to ${exchangeTopic} with routing key ${routingKey} for ${entityName} with operation ${operation}`);
-    const notificationCrudEntities = ['User', 'UserOrganization', 'UserPreference'];
-    this.channel.consume(queueName, async (msg) => {
+
+    this.channel.consume(queueName, (msg) => {
       if (msg) {
         try {
           const messageData = JSON.parse(msg.content.toString());
-          const parsedData = JSON.parse(messageData.data);
-
-          let idField, model;
-          if (entityName && this.models[entityName]) {
-            idField = `${entityName.charAt(0).toLowerCase()}${entityName.slice(1)}ID`;
-            model = this.models[entityName];
-          }
-
-          if (callback) {
-            await callback(parsedData, messageData, this.mailingService, this.brevoMailingConfig);
-          } else if (entityName && model && ((this.µservice !== 'notification') || notificationCrudEntities.includes(entityName))) {
-            switch (operation) {
-              case ACTIONS.CREATED:
-                await createEntityInDatabase(model, parsedData, parsedData[idField]);
-                break;
-              case ACTIONS.UPDATED:
-                await updateEntityInDatabase(model, parsedData, parsedData[idField]);
-                break;
-              case ACTIONS.DELETED:
-                await deleteEntityFromDatabase(model, parsedData[idField]);
-                break;
-              default:
-                throw new Error('Invalid operation');
-            }
-          }
-
-          if (this.µservice === 'notification') {
-            await handleCallback(routingKey, messageData, this.mailingService, this.brevoMailingConfig, this.internalNotificationConfig, this.models.User, this.models.Notification);
-          }
-
-          console.log(`Processed message for ${entityName} with operation ${operation}`);
-          this.channel.ack(msg);
+          console.log(`Message received on ${queueName}:`, messageData);
+          this.channel.ack(msg); // Accuser réception du message
         } catch (error) {
-          console.error(`Error processing message for ${entityName}:`, error);
+          console.error(`Error processing message for ${queueName}:`, error);
           this.channel.nack(msg, false, false);
-          if (this.logger) this.logger.error(`Error processing message for ${entityName}: ${error}`);
+          if (this.logger) this.logger.error(`Error processing message for ${queueName}: ${error}`);
         }
       }
     }, { noAck: false });
   }
 
-/**
- * Publishes an event to the RabbitMQ exchange.
- * @param {string} event - The event string from SMPevents (e.g., 'SMPevents.User.visited').
- * @param {Object} data - The message payload to publish.
- * @param {Object} [options={}] - Additional options for publishing.
- * @returns {Promise<void>}
- */
-async publish(event, data, options = {}) {
-  const routingKey = event;  // L'événement est utilisé directement comme routingKey
-  const formattedData = data ? { data: data.toJSON ? data.toJSON() : data } : {};
+  /**
+   * Publie un événement dans l'échange RabbitMQ.
+   * @param {string} event - L'événement à publier.
+   * @param {Object} data - Les données associées à l'événement.
+   */
+  async publish(event, data) {
+    await this.connect(); // Assurer la connexion avant de publier
+    const routingKey = event;
+    const formattedMessage = JSON.stringify({ data });
 
-  const formattedMessage = JSON.stringify(formattedData);
-  try {
-   this.channel.publish(this.exchange, routingKey, Buffer.from(formattedMessage), options);
-        console.log(`Event '${routingKey}' published successfully.`);
-  } catch (error) {
-    console.error(`Failed to publish event '${routingKey}':`, error);
-    if (this.logger) this.logger.error(`Failed to publish event '${routingKey}': ${error}`);
+    try {
+      this.channel.publish(this.exchange, routingKey, Buffer.from(formattedMessage));
+      console.log(`Event '${routingKey}' published successfully.`);
+    } catch (error) {
+      console.error(`Failed to publish event '${routingKey}':`, error);
+      if (this.logger) this.logger.error(`Failed to publish event '${routingKey}': ${error}`);
+    }
   }
+ 
+  /**
+ * Écoute les événements via RabbitMQ et déclenche une fonction de callback.
+ * @param {string} queueName - Le nom de la file d'attente RabbitMQ à écouter.
+ * @param {Function} onMessage - Fonction de callback appelée lorsque des messages sont reçus.
+ */
+async listenForEvents(queueName, onMessage) {
+  await this.connect(); // Assurer la connexion avant d'écouter
+  await this.channel.assertQueue(queueName, { durable: true });
+
+  // Consommer les messages de la queue
+  this.channel.consume(queueName, (msg) => {
+    if (msg !== null) {
+      const messageContent = JSON.parse(msg.content.toString());
+
+      const routingKey = msg.fields.routingKey;
+      
+      const eventData = messageContent.data;
+      onMessage(routingKey, eventData); 
+      this.channel.ack(msg);
+    }
+  });
 }
 
-
-
   /**
-   * Starts consumers for the specified microservices.
-   * @param {Object} microservices - The configuration of microservices and their operations.
-   * @returns {Promise<void>}
-   */
-  async startConsumers(microservices) {
-    await this.connect();
+ * Démarre les consommateurs pour un microservice.
+ * @param {Object} consumerConfig - La configuration des consommateurs pour un microservice.
+ */
+async startConsumers(consumerConfig) {
+  this.verifySubscriptions(consumerConfig);
+ await this.connect(); // Assurer la connexion avant de démarrer les consommateurs
+  for (const [microserviceName, config] of Object.entries(consumerConfig)) {
+    const exchangeName = `${microserviceName}.events`;
 
-    for (const [microserviceName, config] of Object.entries(microservices)) {
-      const exchangeName = `${microserviceName}.events`;
-      for (const [entityName, entityConfig] of Object.entries(config)) {
-        const { operations, specialEvents } = entityConfig;
+    for (const [entityName, entityConfig] of Object.entries(config)) {
+      const { operations } = entityConfig;
 
-        for (const operation of operations) {
-          const queueName = `${entityName}-${operation}-${this.µservice}-queue`;
-          const routingKey = `${entityName}.${operation}`;
-          this.subscribeTopic(exchangeName, routingKey, queueName, entityName, operation);
-        }
-
-        if (specialEvents) {
-          for (const [eventKey, eventConfig] of Object.entries(specialEvents)) {
-            const { event, callback } = eventConfig;
-            const queueName = `${entityName}-${eventKey}-${this.µservice}-queue`;
-            const routingKey = event;
-            this.subscribeTopic(exchangeName, routingKey, queueName, entityName, eventKey, callback);
-          }
-        }
-      }
+      // Configurer les consommateurs pour les opérations CRUD
+      operations.forEach((operation) => {
+        const queueName = `${entityName}-${operation}-${microserviceName}-queue`; // Nom de la queue dynamique
+        const routingKey = `${entityName}.${operation}`;
+        this.subscribeTopic(exchangeName, routingKey, queueName);
+        // console.log(`Consumer set up for ${entityName}.${operation} from ${exchangeName}`);
+        console.log(`create: ${queueName} with routing key: ${routingKey}`);
+      });
     }
-    console.log("All consumers have been set up for all microservices.");
   }
+  console.log('All consumers have been set up.');
+}
+
 }
 
 export { RabbitMQService };
