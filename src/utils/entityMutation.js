@@ -30,7 +30,7 @@ function uuid() {
  */
 async function entityCreator(entityContext, inputs, appContext) {
     if (!inputs) {
-        throw new UserInputDataValidationError(`Need inputs data for ${entityContext.entityName}`, entityContext.errorCodeMissingInputs);
+      throw new UserInputDataValidationError(`Need inputs data for ${entityContext.entityName}`, entityContext.errorCodeMissingInputs);
     }
     let newEntity = undefined
     let mEntity = undefined
@@ -38,41 +38,54 @@ async function entityCreator(entityContext, inputs, appContext) {
 
     // Could be managed by the caller before calling this function
     if (entityContext.checkEntityExistanceFn) {
-        mEntity = entityContext.checkEntityExistanceFn(inputs)
-        if (mEntity) {
-            if (entityContext.checkEntityExistTreatmentFn) {
-                entityContext.checkEntityExistTreatmentFn(inputs)
-            }
+      mEntity = entityContext.checkEntityExistanceCheckFn(inputs)
+      if (mEntity) {
+        if (entityContext.checkEntityExistsTreatmentFn) {
+          entityContext.checkEntityExistsTreatmentFn(inputs)
         }
+      }
+    } else {
+      mEntity = {};
     }
 
     try {
-        newEntity = (entityContext.creatorCallBackFn)(mEntity, inputs);
-        newEntity.uniqRef = uuid()
-        if (entityContext.slugAggregateUUIDLeft) {
-            newEntity.slug = newEntity.uniqRef + newEntity.slug ?? ""
+      if (entityContext.creatorCheckCallBackFn) {
+        newEntity = (entityContext.creatorCheckCallBackFn)(mEntity, inputs);
+      }
+      newEntity.uniqRef = uuid()
+      if (entityContext.slugAggregateUUIDLeft) {
+        newEntity.slug = newEntity.uniqRef + newEntity.slug ?? ""
+      }
+      if (entityContext.slugAggregateUUIDRight) {
+        newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef
+      }
+      const entity = await (entityContext.creatorCommitCallBackFn)(newEntity, dbOptions);
+      if (entity) {
+        if (entityContext.entityPublisherFn) {
+          await (entityContext.entityPublisherFn)(entityContext, entity);
         }
-        if (entityContext.slugAggregateUUIDRight) {
-            newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef
-        }
-        const entity = await (entityContext.entityModel).create(newEntity, dbOptions);
-        if (entity) {
-            if (entityContext.event) {
-                entityContext.event.publish(entityContext.entityAddTopic, entityContext.entityAddTopicFn(entity));
-            }
-            appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
-        } else {
-            // Should not happen du to throwing error on update faillure
-            throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.errorCodeEntityCreationFaillure);
-        }
-        // TODO Manage invalidate cache and others before returning 
-        if (entityContext.entityCacheManagerFn) {
-            return entityContext.entityCacheManagerFn(entity, appContext)
-        }
-        return entity
-    } catch (error) {
-        appContext.logger.error(error);
+        appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
+      } else {
+        // Should not happen du to throwing error on update faillure
         throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.errorCodeEntityCreationFaillure);
+      }
+      // Manage invalidate cache and others before returning 
+      if (entityContext.entityCacheSetFn) {
+        // Vérifier si les permissions sont dans le cache
+        let cacheEntryKey = undefined;
+        if (entityContext.entityCacheKey) {
+          cacheEntryKey = entityContext.entityCacheKey;
+        } else if (entityContext.entityCacheKeyFn) {
+          cacheEntryKey = entityContext.entityCacheKeyFn(entity);
+        }
+        if (cacheEntryKey) { 
+          await entityContext.entityCacheSetFn(cacheEntryKey, entityContext.entityCacheValue);
+        }
+      }
+      return entity
+    } catch (error) {
+      appContext.logger.error(error);
+      throw new SMPError(`Enable to create ${entityContext.entityName} cause : ${error}`, entityContext.errorCodeEntityCreationFaillure);
     }
 }
 
