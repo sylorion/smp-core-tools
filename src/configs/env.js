@@ -283,6 +283,7 @@ const appConfig = {
   appRefreshTokenSalt: smp_app_refresh_secret_salt || "" ,
  
   // Duration information for AuthN
+  sensitiveCachedDataDuration: process.env.SMP_MU_SENSITIVE_CACHED_DATA_DURATION || acces_token_max_duration,
   userAccessTokenDuration: smp_user_jwt_access_token_duration || acces_token_max_duration,
   appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
   userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
