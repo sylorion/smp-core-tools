@@ -18,7 +18,7 @@ if (appConfig.envExc !== 'dev'){
     host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
     port: cacheConfig.port, // le port du serveur Redis ex. 6379
     password: cacheConfig.password,
-    // si votre serveur Redis nécessite un mot de passe, ajoutez une clé password ici 
+    username: cacheConfig.username,
     socket: {
       host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
       port: cacheConfig.port, // le port du serveur Redis ex. 6379  

@@ -243,9 +243,10 @@ const dbConfig = {
 // Cache System Config Object
 //
 const cacheConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
+  host: process.env.SMP_REDIS_HOSTNAME ?? (process.env.REDIS_HOST || 'localhost'),
   port: parseInt(`${process.env.REDIS_PORT || '6379'}`, 10),
-  password: process.env.REDIS_PASSWORD || undefined
+  username: process.env.SMP_MU_REDIS_USER ?? ( process.env.REDIS_USER || undefined),
+  password: process.env.SMP_MU_REDIS_PASSWORD ?? (process.env.REDIS_PASSWORD|| undefined),
 }
 
 //

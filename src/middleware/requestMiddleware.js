@@ -5,7 +5,7 @@ import { appConfig } from '../../src/configs/env.js';
 function useAppAuth(req, res, next) {
   if (!req.getHeader(appConfig.defaultXAppAPIKeyName)) {
     res.status = 401;
-    res.headers[appConfig.defaultXAppRequestIDKeyName] = request.headers[appConfig.defaultXAppRequestIDKeyName];
+    res.headers[appConfig.defaultXAppRequestIDKeyName] = req.headers[appConfig.defaultXAppRequestIDKeyName];
   }
   next();
 }
