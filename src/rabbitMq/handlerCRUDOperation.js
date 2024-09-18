@@ -4,18 +4,27 @@
 
 /**
  * Updates an entity in the database.
- * @param {string} entityName - The name of the entity to update.
- * @param {Object} updateData - The data to update the entity with.
- * @param {number} entityId - The ID of the entity to update.
- * @returns {Promise<Object>} A promise resolved with the updated entity.
- * @throws {Error} If the entity ID is not provided or the entity is not found.
+ * @param {Object} entityName - Le modèle de l'entité (Sequelize model).
+ * @param {Object} updateData - Les données pour mettre à jour l'entité.
+ * @returns {Promise<Object>} Une promesse résolue avec l'entité mise à jour.
+ * @throws {Error} Si l'ID de l'entité n'est pas fourni ou si l'entité n'est pas trouvée.
  */
-async function updateEntityInDatabase(entityName, updateData, entityId) {
+async function updateEntityInDatabase(entityName, updateData) {
+  // Génère dynamiquement le nom de l'ID (ex: 'userID', 'profileID')
+  const entityIdKey = `${entityName.name.charAt(0).toLowerCase()}${entityName.name.slice(1)}ID`;
+
+  const entityId = updateData[entityIdKey];
+  
+  console.log('entityName:', entityName.name); // Log du nom de l'entité
+  console.log('entityIdKey:', entityIdKey); // Log du champ d'ID généré
+  console.log('entityId:', entityId); // Log de l'ID extrait
+  
   if (!entityId) {
-    throw new Error('No entity ID provided for update.', { statusCode: 400 });
+    throw new Error(`No ${entityIdKey} provided for update.`, { statusCode: 400 });
   }
 
   const entity = await entityName.findByPk(entityId);
+  
   if (!entity) {
     throw new Error(`Entity not found with ID: ${entityId}`, { statusCode: 404 });
   }
