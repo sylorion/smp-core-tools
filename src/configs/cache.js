@@ -36,9 +36,9 @@ if (appConfig.envExc !== 'dev'){
 
   client.on('error', errorThrowing);
   client.on('connect', connectionEstablished) ;
-  promiseClient = () => client.connect() ;
-  getAsync      = promisify(client.get).bind(client);
-  setAsync      = promisify(client.set).bind(client);
+  const promiseClient = async () => client.connect() ;
+  const getAsync      = promisify(client.get).bind(client);
+  const setAsync      = promisify(client.set).bind(client);
 }
 const cache = { client, getAsync, setAsync, promiseClient }
 export { cache };
