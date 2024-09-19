@@ -16,15 +16,15 @@ class RabbitMQService {
   }
 
   topicFromServiceName(serviceName){
-    return (`${serviceName}.events`);
+    return (`${serviceName}.events`).toLowerCase();
   }
  
   queueFromServiceAndEntityName(serviceName, entityName){
-    return (`${entityName}-${serviceName}-queue`);
+    return (`${entityName}-${serviceName}-queue`).toLowerCase();
   }
   
   routingKeyFromOperationOnEntity(serviceName, entityName, operation){
-    `rk.${serviceName}.${entityName}.${operation}`
+    return (`rk.${serviceName}.${entityName}.${operation}`).toLowerCase();
   }
   /**
    * Connecte le service à RabbitMQ. Si la connexion est déjà établie, elle ne sera pas recréée.
@@ -179,7 +179,7 @@ async startEventHandler(muConsumers) {
             console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
           }
         });
-        console.log(`RabbitMQ@Queue - ${queueName} with routing key: ${routingKey}`);
+        console.log(`RabbitMQ@Queue[${queueName}] bind routing key: ${routingKey}`);
       });
     });
   });
