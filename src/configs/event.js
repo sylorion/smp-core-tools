@@ -2,13 +2,14 @@
 import amqp from 'amqplib';
 
 class RabbitMQService {
-  constructor(connectionURL, SMPEvents, logger = null, durable = true) {
+  constructor(connectionURL, configEvents, models, logger = null, durable = true) {
     this.connectionURL = connectionURL;
-    this.validEvents = SMPEvents; 
+    this.validEvents = configEvents; 
     this.logger = logger;
     this.durable = durable;
     this.exchange = process.env.RABBITMQ_EXCHANGE;
     this.channel = null;
+    this.models = models;
     this.connection = null;
   }
 
@@ -79,17 +80,18 @@ class RabbitMQService {
    * @param {string} event - L'événement à publier.
    * @param {Object} data - Les données associées à l'événement.
    */
-  async publish(event, data) {
+  async publish(routingKey, data) {
     await this.connect(); // Assurer la connexion avant de publier
-    const routingKey = event;
     const formattedMessage = JSON.stringify({ data });
-
     try {
       this.channel.publish(this.exchange, routingKey, Buffer.from(formattedMessage));
-      console.log(`Event '${routingKey}' published successfully.`);
+      const msgSuccess = `Event '${routingKey}' published successfully.`; 
+      if (this.logger) this.logger.info(msgSuccess);
+      else console.log(msgSuccess);
     } catch (error) {
-      console.error(`Failed to publish event '${routingKey}':`, error);
-      if (this.logger) this.logger.error(`Failed to publish event '${routingKey}': ${error}`);
+      const msgError = `Failed to publish event '${routingKey}': ${error}`; 
+      if (this.logger) this.logger.error(msgError);
+      else console.error(msgError);
     }
   }
  
@@ -106,15 +108,68 @@ async listenForEvents(queueName, onMessage) {
   this.channel.consume(queueName, (msg) => {
     if (msg !== null) {
       const messageContent = JSON.parse(msg.content.toString());
-
       const routingKey = msg.fields.routingKey;
-      
       const eventData = messageContent.data;
-      onMessage(routingKey, eventData); 
-      this.channel.ack(msg);
+      try {
+        onMessage(routingKey, eventData); 
+        this.channel.ack(msg);
+      } catch (err) {
+        this.channel.nack(msg);
+      }
     }
   });
 }
+
+/**
+ * Démarre le gestionnaire d'événements pour traiter les événements et exécuter les callbacks.
+ * @param {Object} models - Les modèles du microservice.
+ * @param {Object} muConsumers - La configuration des consommateurs dans muConsume.
+ * @param {Object} rabbitMQService - Service RabbitMQ pour recevoir les événements.
+ */
+async startEventHandler(muConsumers) {
+  const callbackManager = new CallbackManager(this.models);
+    await this.connect(); // Assurer la connexion avant de souscrire au topic
+  // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
+  Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
+    const exchangeTopic = `${serviceName}.events`;
+      await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
+    Object.entries(entities).forEach(async ([entityName, entityConfig]) => {
+      const { operations = [] } = entityConfig;
+      operations.forEach(async (operation) => {
+        const queueName = `${entityName}-${operation}-${serviceName}-queue`;
+        const routingKey = `${serviceName}.${entityName}.${operation}`;
+        await Promise.all([
+          this.channel.assertQueue(queueName, { durable: this.durable }),
+          this.channel.bindQueue(queueName, exchangeTopic, routingKey)]
+        );
+        // Écoute des événements spécifiques à cette entité/opération
+        rabbitMQService.listenForEvents(queueName, (routingKey, eventData) => {
+          // Vérifier que routingKey est une chaîne valide avant d'appeler split
+          if (typeof routingKey !== 'string' || !routingKey) {
+            console.error(`Invalid event received: ${routingKey}`);
+            return;
+          }
+
+          const [eventService, eventEntity, eventOperation] = routingKey.split('.');
+
+          // Vérification que l'entité et l'opération correspondent
+          if (eventEntity === entityName && eventOperation === operation && eventService == serviceName) {
+            const callbacks = callbackManager.configureEntityCallbacks(entityConfig, serviceName, entityName);
+            if (callbacks[operation]) {
+              console.log(`Executing callbacks for ${entityName}.${operation}`);
+              callbackManager.executeCallbacks(operation, callbacks[operation], eventData);
+            } else {
+              console.warn(`No callbacks configured for ${entityName}.${operation}`);
+            }
+          } else {
+            console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
+          }
+        });
+      });
+    });
+  });
+}
+
 
   /**
  * Démarre les consommateurs pour un microservice.
