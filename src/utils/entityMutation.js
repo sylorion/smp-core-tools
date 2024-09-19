@@ -62,7 +62,7 @@ async function entityCreator(entityContext, inputs, appContext) {
       const entity = await (entityContext.creatorCommitCallBackFn)(newEntity, dbOptions);
       if (entity) {
         if (entityContext.entityPublisherFn) {
-          await (entityContext.entityPublisherFn)(entityContext, entity);
+          await (entityContext.entityPublisherFn)(appContext, entityContext, entity);
         }
         appContext.logger.info(`Create ${entityContext.entityName} with : ${entity}`);
       } else {
@@ -81,6 +81,7 @@ async function entityCreator(entityContext, inputs, appContext) {
         if (cacheEntryKey) { 
           await entityContext.entityCacheSetFn(cacheEntryKey, entityContext.entityCacheValue);
         }
+
       }
       return entity
     } catch (error) {
@@ -119,11 +120,11 @@ async function entityUpdater(entityContext, inputs, appContext) {
         throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.errorCodeEntityNotFound);
     }
     try {
-        const entity = await mEntity.update({ ...newEntity, ...dbOptions });
-        if (entity) {
-            if (entityContext.event) {
-                entityContext.event.publish(entityContext.entityUpdateTopic, entityContext.entityUpdateTopicFn(entity));
-            }
+      const entity = await (entityContext.updaterCommitCallBackFn)(newEntity, dbOptions);
+      if (entity) {
+        if (entityContext.entityPublisherFn) {
+          await (entityContext.entityPublisherFn)(appContext, entityContext, entity);
+        }
             appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${newEntity}`);
         } else {
             // Should not happen du to throwing error on update faillure
