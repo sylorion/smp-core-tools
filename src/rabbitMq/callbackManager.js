@@ -21,7 +21,6 @@ class CallbackManager {
    */
   configureEntityCallbacks(entityConfig, serviceName, entityName) {
     const { operations = [], customCallbacks = {} } = entityConfig;
-
     const crudCallbacks = this.getCrudCallbacks(entityName);
     const configuredCallbacks = {};
 
@@ -30,7 +29,6 @@ class CallbackManager {
       const crudCallback = crudCallbacks[operation];
       configuredCallbacks[operation] = [...customCallbackList, crudCallback];
     });
-
     return configuredCallbacks;
   }
 
@@ -62,7 +60,6 @@ class CallbackManager {
     if (!model) {
       throw new Error(`Model not found for entity: ${entityName}`);
     }
-
     return {
       created: (data) => createEntityInDatabase(model, data), // Utilisation des fonctions CRUD de handlerCRUDOperation
       updated: (data) => updateEntityInDatabase(model, data),
