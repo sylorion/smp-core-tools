@@ -179,7 +179,7 @@ async startEventHandler(muConsumers) {
             console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
           }
         });
-        console.log(`RabbitMQ@Queue[${queueName}] bind routing key: ${routingKey}`);
+        console.log(`RabbitMQ@Queue[${queueName}] binding routing key: ${routingKey}`);
       });
     });
   });
