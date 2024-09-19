@@ -15,6 +15,17 @@ class RabbitMQService {
     this.callbackManager = new CallbackManager(models);
   }
 
+  topicFromServiceName(serviceName){
+    return (`${serviceName}.events`);
+  }
+ 
+  queueFromServiceAndEntityName(serviceName, entityName){
+    return (`${entityName}-${serviceName}-queue`);
+  }
+  
+  routingKeyFromOperationOnEntity(serviceName, entityName, operation){
+    `rk.${serviceName}.${entityName}.${operation}`
+  }
   /**
    * Connecte le service à RabbitMQ. Si la connexion est déjà établie, elle ne sera pas recréée.
    */
@@ -42,7 +53,7 @@ class RabbitMQService {
 
       // Récupère les événements valides pour l'entité
       const validEventsForEntity = this.validEvents[entityName] || [];
-
+      // const rk = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
       // Vérifie si toutes les opérations configurées sont valides
       const invalidOps = operations.filter((operation) => !validEventsForEntity.includes(`${entityName}.${operation}`));
       if (invalidOps.length > 0) {
@@ -83,11 +94,15 @@ class RabbitMQService {
    * @param {string} event - L'événement à publier.
    * @param {Object} data - Les données associées à l'événement.
    */
-  async publish(routingKey, data) {
+  async publish(rk, data) {
     await this.connect(); // Assurer la connexion avant de publier
     const formattedMessage = JSON.stringify({ data });
     try {
-      this.channel.publish(this.exchange, routingKey, Buffer.from(formattedMessage));
+      const [eventService, eventEntity, eventOperation] = rk.split('.');
+      const eventTopic = this.topicFromServiceName(eventService)
+      // const eventQueue = this.queueFromServiceAndEntityName(eventService, eventEntity)
+      const routingKey = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
+      this.channel.publish(this.eventTopic, routingKey, Buffer.from(formattedMessage));
       const msgSuccess = `Event '${routingKey}' published successfully.`; 
       if (this.logger) this.logger.info(msgSuccess);
       else console.log(msgSuccess);
@@ -106,7 +121,6 @@ class RabbitMQService {
 async listenForEvents(queueName, onMessage) {
   await this.connect(); // Assurer la connexion avant d'écouter
   await this.channel.assertQueue(queueName, { durable: true });
-
   // Consommer les messages de la queue
   this.channel.consume(queueName, (msg) => {
     if (msg !== null) {
@@ -131,10 +145,10 @@ async startEventHandler(muConsumers) {
     await this.connect(); // Assurer la connexion avant de souscrire au topic
   // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
   Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
-    const exchangeTopic = `${serviceName}.events`;
+    const exchangeTopic = this.topicFromServiceName(serviceName);
       await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
     Object.entries(entities).forEach(async ([entityName, entityConfig]) => {
-      const queueName = `${entityName}-${serviceName}-queue`;
+      const queueName = this.queueFromServiceAndEntityName(serviceName, entityName);
       const { operations = [] } = entityConfig;
       operations.forEach(async (operation) => {
         const routingKey = `${serviceName}.${entityName}.${operation}`;
