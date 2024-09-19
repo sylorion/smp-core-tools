@@ -1,5 +1,6 @@
 // rabbitMQService.js (dans la bibliothèque partagée)
 import amqp from 'amqplib';
+import { CallbackManager } from '../rabbitMq/callbackManager.js';
 
 class RabbitMQService {
   constructor(connectionURL, configEvents, models, logger = null, durable = true) {
@@ -8,9 +9,10 @@ class RabbitMQService {
     this.logger = logger;
     this.durable = durable;
     this.exchange = process.env.RABBITMQ_EXCHANGE;
-    this.channel = null;
     this.models = models;
     this.connection = null;
+    this.channel = null;
+    this.callbackManager = new CallbackManager(models);
   }
 
   /**
@@ -21,10 +23,11 @@ class RabbitMQService {
     try {
       this.connection = await amqp.connect(this.connectionURL);
       this.channel = await this.connection.createChannel();
-      // console.log('Connected to RabbitMQ');
+      if (this.logger) this.logger.info(`RabbitMQ Connected: ${new Date()}`);
+      else console.log(`RabbitMQ Connected: ${new Date()}`);
     } catch (error) {
-      console.error('Error connecting to RabbitMQ:', error);
       if (this.logger) this.logger.error('Error connecting to RabbitMQ:', error);
+      else console.error('Error connecting to RabbitMQ:', error);
     }
   }
 
@@ -127,7 +130,6 @@ async listenForEvents(queueName, onMessage) {
  * @param {Object} rabbitMQService - Service RabbitMQ pour recevoir les événements.
  */
 async startEventHandler(muConsumers) {
-  const callbackManager = new CallbackManager(this.models);
     await this.connect(); // Assurer la connexion avant de souscrire au topic
   // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
   Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
