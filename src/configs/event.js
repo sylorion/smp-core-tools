@@ -134,9 +134,9 @@ async startEventHandler(muConsumers) {
     const exchangeTopic = `${serviceName}.events`;
       await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
     Object.entries(entities).forEach(async ([entityName, entityConfig]) => {
+      const queueName = `${entityName}-${serviceName}-queue`;
       const { operations = [] } = entityConfig;
       operations.forEach(async (operation) => {
-        const queueName = `${entityName}-${operation}-${serviceName}-queue`;
         const routingKey = `${serviceName}.${entityName}.${operation}`;
         await Promise.all([
           this.channel.assertQueue(queueName, { durable: this.durable }),
@@ -165,6 +165,7 @@ async startEventHandler(muConsumers) {
             console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
           }
         });
+        console.log(`RabbitMQ@Queue - ${queueName} with routing key: ${routingKey}`);
       });
     });
   });
