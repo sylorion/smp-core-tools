@@ -124,10 +124,8 @@ async listenForEvents(queueName, onMessage) {
 }
 
 /**
- * Démarre le gestionnaire d'événements pour traiter les événements et exécuter les callbacks.
- * @param {Object} models - Les modèles du microservice.
- * @param {Object} muConsumers - La configuration des consommateurs dans muConsume.
- * @param {Object} rabbitMQService - Service RabbitMQ pour recevoir les événements.
+ * Démarre le gestionnaire d'événements pour traiter les événements et exécuter les callbacks. 
+ * @param {Object} muConsumers - La configuration des consommateurs dans muConsume. 
  */
 async startEventHandler(muConsumers) {
     await this.connect(); // Assurer la connexion avant de souscrire au topic
@@ -145,7 +143,7 @@ async startEventHandler(muConsumers) {
           this.channel.bindQueue(queueName, exchangeTopic, routingKey)]
         );
         // Écoute des événements spécifiques à cette entité/opération
-        rabbitMQService.listenForEvents(queueName, (routingKey, eventData) => {
+        this.listenForEvents(queueName, (routingKey, eventData) => {
           // Vérifier que routingKey est une chaîne valide avant d'appeler split
           if (typeof routingKey !== 'string' || !routingKey) {
             console.error(`Invalid event received: ${routingKey}`);
