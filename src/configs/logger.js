@@ -6,18 +6,19 @@ import { LogstashTransport } from 'winston-logstash-transport';
 const getRequestLogger = (label) => {
   // Créer un format personnalisé avec la date et l'heure
   const serviceLogFormat = winston.format.printf(({ level, message, timestamp, requestId }) => {
-    return ` ${level}:${timestamp} [${requestId ? `${requestId}` : ''}@${label}] ${message}`;
+    return `[${requestId ? `${requestId}` : 'QUERY-IN'}@${label}]::${level}:${timestamp} - ${message}`;
   });
 
   return winston.createLogger({
     level: 'info', // Ici, vous pouvez ajouter une configuration pour changer le niveau dynamiquement
     format: winston.format.combine(
       winston.format.label({ label }),
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
       winston.format(info => {
         info.requestId = info.requestId || undefined;
         return info;
       })(),
+      winston.format.timestamp({ format: 'YYYYMMDDHHmmss.SSS' }),
+
       serviceLogFormat
     ),
     transports: [
