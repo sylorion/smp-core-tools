@@ -69,6 +69,7 @@ async function entityCreator(entityContext, inputs, appContext) {
     if (entityContext.slugAggregateUUIDRight) {
       newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef;
     }
+    appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
     // Commit the new entity to the database
     const entity = await entityContext.creatorCommitCallBackFn(newEntity, dbOptions);
     if (!entity) {
