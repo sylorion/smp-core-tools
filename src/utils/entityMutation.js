@@ -44,16 +44,15 @@ async function entityCreator(entityContext, inputs, appContext) {
       mEntity = await entityContext.checkEntityExistanceCheckFn(inputs);
       if (mEntity) {
         if (entityContext.checkEntityExistsTreatmentFn) {
-          await entityContext.checkEntityExistsTreatmentFn(inputs);
+          await entityContext.checkEntityExistsTreatmentFn(mEntity, inputs);
         }
-        throw new SMPError(`Entity already exists: ${entityContext.entityName}`, 'ERROR_ENTITY_ALREADY_EXISTS');
       }
     } else {
       mEntity = {};  // Fallback case where no existence function is provided
     }
     // Invoke custom entity creation logic, if provided
     if (entityContext.creatorCheckCallBackFn) {
-      newEntity = await entityContext.creatorCheckCallBackFn(mEntity, inputs);
+      newEntity = await entityContext.creatorCheckCallBackFn(inputs);
       if (!newEntity) {
         throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
       }
@@ -61,12 +60,14 @@ async function entityCreator(entityContext, inputs, appContext) {
       newEntity = {};  // Default empty entity
     }
     // Assign UUID-based unique reference to the entity
-    newEntity.uniqRef = uuid();
+    if(!newEntity.uniqRef){
+      newEntity.uniqRef = uuid();
+    }
     // Handle slug generation based on entityContext options
-    if (entityContext.slugAggregateUUIDLeft) {
+    if (!newEntity.slug && entityContext.slugAggregateUUIDLeft) {
       newEntity.slug = newEntity.uniqRef + (newEntity.slug ?? "");
     }
-    if (entityContext.slugAggregateUUIDRight) {
+    if (!newEntity.slug && entityContext.slugAggregateUUIDRight) {
       newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef;
     }
     appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
