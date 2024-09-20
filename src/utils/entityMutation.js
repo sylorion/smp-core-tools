@@ -51,8 +51,8 @@ async function entityCreator(entityContext, inputs, appContext) {
       mEntity = {};  // Fallback case where no existence function is provided
     }
     // Invoke custom entity creation logic, if provided
-    if (entityContext.creatorCheckCallBackFn) {
-      newEntity = entityContext.creatorCheckCallBackFn(inputs);
+    if (entityContext.inputsValidatorCallBackFn) {
+      newEntity = entityContext.inputsValidatorCallBackFn(inputs);
       if (!newEntity) {
         throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
       }
@@ -71,8 +71,10 @@ async function entityCreator(entityContext, inputs, appContext) {
       newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef;
     }
     appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
-    // Commit the new entity to the database
-    const entity = await entityContext.creatorCommitCallBackFn(newEntity, dbOptions);
+    if(!entityContext.inputsCommitCallBackFn){ // Commit the new entity to the database
+    throw new SMPError(`Failed to create ${entityContext.entityName}, inputsCommitCallBackFn function is mandatory`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_FUNCTION_CREATION_UNAVAILABLE');
+    }
+    const entity = await entityContext.inputsCommitCallBackFn(newEntity, dbOptions);
     if (!entity) {
       throw new SMPError(`Failed to create ${entityContext.entityName}`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_ENTITY_CREATION_FAILED');
     }
