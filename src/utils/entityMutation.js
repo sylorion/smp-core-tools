@@ -39,7 +39,6 @@ async function entityCreator(entityContext, inputs, appContext) {
   let newEntity = undefined;
   let mEntity = undefined;
   const dbOptions = appendLoggingContext({}, appContext);
-  try {
     // Check if entity existence needs to be managed
     if (entityContext.checkEntityExistanceFn) {
       mEntity = await entityContext.checkEntityExistanceCheckFn(inputs);
@@ -81,6 +80,7 @@ async function entityCreator(entityContext, inputs, appContext) {
     }
     appContext.logger.info(`Created ${entityContext.entityName} with data: ${JSON.stringify(entity)}`);
     // Invalidate and set cache if cache management functions exist
+    try {
     if (entityContext.entityCacheSetFn) {
       let cacheEntryKey = entityContext.entityCacheKey || (entityContext.entityCacheKeyFn && entityContext.entityCacheKeyFn(entity));
       if (cacheEntryKey) {
