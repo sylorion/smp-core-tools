@@ -52,7 +52,7 @@ async function entityCreator(entityContext, inputs, appContext) {
     }
     // Invoke custom entity creation logic, if provided
     if (entityContext.creatorCheckCallBackFn) {
-      newEntity = await entityContext.creatorCheckCallBackFn(inputs);
+      newEntity = entityContext.creatorCheckCallBackFn(inputs);
       if (!newEntity) {
         throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
       }
