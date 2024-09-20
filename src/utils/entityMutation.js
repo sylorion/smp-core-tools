@@ -36,45 +36,42 @@ async function entityCreator(entityContext, inputs, appContext) {
   if (!appContext || typeof appContext.logger !== 'object') {
     throw new SMPError(`Invalid app context provided`, 'ERROR_INVALID_APP_CONTEXT');
   }
-  let newEntity = undefined;
-  let mEntity = undefined;
-  const dbOptions = appendLoggingContext({}, appContext);
-    // Check if entity existence needs to be managed
-    if (entityContext.checkEntityExistanceFn) {
-      mEntity = await entityContext.checkEntityExistanceCheckFn(inputs);
-      if (mEntity) {
-        if (entityContext.checkEntityExistsTreatmentFn) {
-          await entityContext.checkEntityExistsTreatmentFn(mEntity, inputs);
-        }
-      }
-    } else {
-      mEntity = {};  // Fallback case where no existence function is provided
-    }
+  let newEntity = inputs;
     // Invoke custom entity creation logic, if provided
-    if (entityContext.inputsValidatorCallBackFn) {
-      newEntity = entityContext.inputsValidatorCallBackFn(inputs);
-      if (!newEntity) {
-        throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
-      }
-    } else {
-      newEntity = {};  // Default empty entity
+  if (entityContext.inputsValidatorCallBackFn) {
+    newEntity = entityContext.inputsValidatorCallBackFn(inputs);
+    if (!newEntity) {
+      throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
     }
+  } 
+  let mEntity = newEntity;
+  // Check if entity existence needs to be managed
+  if (entityContext.checkEntityExistanceFn) {
+    mEntity = await entityContext.checkEntityExistanceCheckFn(newEntity);
+    if (mEntity) {
+      if (entityContext.checkEntityExistsTreatmentFn) {
+        mEntity = await entityContext.checkEntityExistsTreatmentFn(mEntity, newEntity);
+      }
+    }
+  }
     // Assign UUID-based unique reference to the entity
-    if(!newEntity.uniqRef){
-      newEntity.uniqRef = uuid();
+    if(!mEntity.uniqRef){
+      mEntity.uniqRef = uuid();
     }
     // Handle slug generation based on entityContext options
-    if (!newEntity.slug && entityContext.slugAggregateUUIDLeft) {
-      newEntity.slug = newEntity.uniqRef + (newEntity.slug ?? "");
+    if (!mEntity.slug && entityContext.slugAggregateUUIDLeft) {
+      mEntity.slug = mEntity.uniqRef + (mEntity.slug ?? "");
     }
-    if (!newEntity.slug && entityContext.slugAggregateUUIDRight) {
-      newEntity.slug = (newEntity.slug ?? "") + newEntity.uniqRef;
+    if (!mEntity.slug && entityContext.slugAggregateUUIDRight) {
+      mEntity.slug = (mEntity.slug ?? "") + mEntity.uniqRef;
     }
     appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
     if(!entityContext.inputsCommitCallBackFn){ // Commit the new entity to the database
     throw new SMPError(`Failed to create ${entityContext.entityName}, inputsCommitCallBackFn function is mandatory`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_FUNCTION_CREATION_UNAVAILABLE');
     }
-    const entity = await entityContext.inputsCommitCallBackFn(newEntity, dbOptions);
+
+    const dbOptions = appendLoggingContext({}, appContext);
+    const entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
     if (!entity) {
       throw new SMPError(`Failed to create ${entityContext.entityName}`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_ENTITY_CREATION_FAILED');
     }
@@ -109,47 +106,7 @@ async function entityCreator(entityContext, inputs, appContext) {
  * @return {AnyEntity|Error} - The updated entity with correct update
  */
 async function entityUpdater(entityContext, inputs, appContext) {
-    if (!inputs) {
-        throw new UserInputDataValidationError(`Need new inputs data for ${entityContext.entityName}`, entityContext.errorCodeMissingInputs);
-    }
-    let newEntity = undefined
-    let mEntity = undefined
-    const dbOptions = appendLoggingContext({}, appContext)
-    try {
-        mEntity = await (entityContext.entityModel).findByPk(entityContext.entityID, dbOptions)
-        if (mEntity) {
-            newEntity = (entityContext.updaterCallBackFn)(mEntity, inputs);
-            if (newEntity.msgErr) {
-                throw new UserInputDataValidationError(`Processing inputs error for ${entityContext.entityName} update : ${newEntity.msgErr}`, entityContext.errorCodeInvalidInputs);
-            }
-        } else {
-            // Cannot happen due to error throwing if not found
-            throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.errorCodeEntityNotFound);
-        }
-    } catch (error) {
-        appContext.logger.error(error);
-        throw new SMPError(`Unable to find the ${entityContext.entityName} id ${entityContext.entityID}: ${error}`, entityContext.errorCodeEntityNotFound);
-    }
-    try {
-      const entity = await (entityContext.updaterCommitCallBackFn)(newEntity, dbOptions);
-      if (entity) {
-        if (entityContext.entityPublisherFn) {
-          await (entityContext.entityPublisherFn)(appContext, entityContext, entity);
-        }
-            appContext.logger.info(`Updated ${entityContext.entityName}  ${entityContext.entityID} with : ${newEntity}`);
-        } else {
-            // Should not happen du to throwing error on update faillure
-            throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.errorCodeEntityUpdateFaillure);
-        }
-        // TODO Manage invalidate cache and others before returning 
-        if (entityContext.entityCacheManagerFn) {
-            return entityContext.entityCacheManagerFn(entity, appContext)
-        }
-        return entity
-    } catch (error) {
-        appContext.logger.error(error);
-        throw new SMPError(`Enable to update ${entityContext.entityName}  ${entityContext.entityID} cause : ${error}`, entityContext.errorCodeEntityUpdateFaillure);
-    }
+    return entityCreator(entityContext, inputs, appContext);
 }
 
 export { slug, uuid, entityCreator, entityUpdater } ;
