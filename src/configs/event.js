@@ -26,6 +26,10 @@ class RabbitMQService {
   routingKeyFromOperationOnEntity(serviceName, entityName, operation){
     return (`rk.${serviceName}.${entityName}.${operation}`).toLowerCase();
   }
+
+  routingKeyFromOperationAndAppContext(entityName, operation){
+    return (`rk.${entityName}.${operation}`).toLowerCase();
+  }
   /**
    * Connecte le service à RabbitMQ. Si la connexion est déjà établie, elle ne sera pas recréée.
    */
@@ -102,7 +106,7 @@ class RabbitMQService {
       const eventTopic = this.topicFromServiceName(eventService)
       // const eventQueue = this.queueFromServiceAndEntityName(eventService, eventEntity)
       const routingKey = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
-      this.channel.publish(this.eventTopic, routingKey, Buffer.from(formattedMessage));
+      this.channel.publish(eventTopic ?? this.eventTopic , routingKey, Buffer.from(formattedMessage));
       const msgSuccess = `Event.publish at '${routingKey}' succeed.`; 
       if (this.logger) this.logger.info(msgSuccess);
       else console.log(msgSuccess);
