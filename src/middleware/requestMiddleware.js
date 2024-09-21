@@ -2,6 +2,8 @@
 import { v4 as uuidv4 } from 'uuid';
 // const { trace } = require('@opentelemetry/api');
 import { appConfig } from '../../src/configs/env.js'; 
+import { appTokens } from '../../src/configs/appTokens.js'; 
+
 function useAppAuth(req, res, next) {
   if (!req.getHeader(appConfig.defaultXAppAPIKeyName)) {
     res.status = 401;
@@ -18,6 +20,46 @@ function requestUUIDMiddleware(req, res, next) {
   next();
 }
 
+
+// Middleware pour vérifier le token d'application (applicative authentication)
+function checkAppToken(req, res, next) {
+  const appToken = req.headers[appConfig.defaultXAppRequestIDKeyName];
+  if ((!appToken || !appTokens[appToken]) && appConfig.envExc == "production") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+}
+
+// Middleware pour vérifier le token d'utilisateur (user authentication)
+function checkUserToken(req, res, next) {
+  const userToken = req.headers['authorization'];
+  if (!userToken || !userToken.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  // Extraction et vérification du token JWT
+  const token = userToken.split(' ')[1];
+  jwt.verify(token, jwtSecret, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
+    req.user = decoded;
+    next();
+  });
+}
+
+
+function extractBearer(req, res, next){
+  const authorizationHeader = req.headers['authorization'];
+  if (authorizationHeader && authorizationHeader.startsWith('Bearer ')) {
+      // Extraction du token sans le préfixe "Bearer "
+      const bearerToken = authorizationHeader.substring(7);
+      req.bearerToken = bearerToken;
+  } else {
+      req.bearerToken = null;
+  }
+  next();
+}
 //
 // // Define a custom middleware function to generate and attach the request ID
 // const requestUUIDMiddleware = (req, res, next) => {
