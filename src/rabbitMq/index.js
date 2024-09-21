@@ -93,7 +93,7 @@ const SMPEvents = {
   Authentication: {
     Application: generateCrudOperations('Authentication.Application'),
     ApplicationToken: generateCrudOperations('Authentication.ApplicationToken'),
-    UserToken: generateCrudOperations('Authentication.UserToken'),
+    UserToken: generateCrudOperations('Authentication.UserToken', { refreshed: 'Authentication.refreshed',  logout: 'Authentication.logout' }),
     ResetPasswordToken: generateCrudOperations('Authentication.ResetPasswordToken'),
   },
 
