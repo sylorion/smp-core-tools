@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 // const { trace } = require('@opentelemetry/api');
 import { appConfig } from '../../src/configs/env.js'; 
 import { appTokens } from '../../src/configs/appTokens.js'; 
+import { default as jwt } from 'jsonwebtoken'; 
 
 function useAppAuth(req, res, next) {
   if (!req.getHeader(appConfig.defaultXAppAPIKeyName)) {
@@ -24,9 +25,21 @@ function requestUUIDMiddleware(req, res, next) {
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
   const appToken = req.headers[appConfig.defaultXAppRequestIDKeyName];
-  if ((!appToken || !appTokens[appToken]) && appConfig.envExc == "production") {
+  if ((!appToken || !appTokens[appToken]) && appConfig.envExc == "prod") {
     return res.status(403).json({ message: 'Forbidden' });
   }
+  if (appToken && appTokens[appToken]) {
+    req.clientAppStaticConfig = appTokens[appToken] ;
+  }
+  jwt.verify(appToken, appConfig.appJWTSecretSalt, (err, decoded) => {
+    if (err && appConfig.envExc == "prod" ) {
+      return res.status(401).json({ message: 'Forbidden' });
+    }
+    // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
+    req.user = decoded;
+    next();
+  });
+  req.app = appToken;
   next();
 }
 
@@ -34,12 +47,16 @@ function checkAppToken(req, res, next) {
 function checkUserToken(req, res, next) {
   const userToken = req.headers['authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    if (appConfig.envExc != "prod") {
+      console.error("======== NO BEARER FOR USER DETECTED =========")
+    } else {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
   }
-  // Extraction et vérification du token JWT
+  // Extraction et vérification du token JWT from Bearer prefix
   const token = userToken.split(' ')[1];
-  jwt.verify(token, jwtSecret, (err, decoded) => {
-    if (err) {
+  jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
+    if (err && appConfig.envExc == "prod" ) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
@@ -68,4 +85,4 @@ function extractBearer(req, res, next){
 //   next();
 // };
 
-export { requestUUIDMiddleware, useAppAuth };
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken};
