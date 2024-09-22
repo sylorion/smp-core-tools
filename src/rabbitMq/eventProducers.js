@@ -94,9 +94,14 @@ const SMPEvents = {
     Application: generateCrudOperations('Authentication.Application'),
     ApplicationToken: generateCrudOperations('Authentication.ApplicationToken'),
     UserToken: generateCrudOperations('Authentication.UserToken'),
-    AuthN: { logged: 'AuthN.logged', refreshed: 'AuthN.refreshed', logout: 'AuthN.logout' },
+    User: generateCrudOperations('Authentication.User', { deactivated: 'Authentication.User.deactivated', logged: 'Authentication.User.logged', refreshed: 'Authentication.User.refreshed', logout: 'Authentication.User.logout' }),
     AuthZ: { logged: 'AuthZ.allowed', refreshed: 'AuthZ.denied', logout: 'AuthZ.removed', logout: 'AuthZ.added' },
     ResetPasswordToken: generateCrudOperations('Authentication.ResetPasswordToken'),
+  },
+
+  Authorization: {
+    Role: generateCrudOperations('Authorization.Role', { deactivated: 'Authorization.Role.revoked' }),
+    Member: { logged: 'Authorization.Member.allowed', refreshed: 'Authorization.Member.denied', logout: 'Authorization.Member.removed', logout: 'Authorization.Member.added' },
   },
 
   Document: {
