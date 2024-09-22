@@ -1,5 +1,5 @@
 // callbackManager.js (dans la bibliothèque partagée)
-import { SMPEvents } from './index.js';
+import { SMPEvents } from './eventProducers.js';
 import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from './handlerCRUDOperation.js';
 
 /**
