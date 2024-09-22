@@ -30,22 +30,20 @@ function checkAppToken(req, res, next) {
       return res.status(403).json({ message: 'Forbidden' });
     } else {
       console.error(`======== NO ${appConfig.defaultXAppRequestIDKeyName} FOR APPLICATION DETECTED =========`);
+      next();
     }
-    
-  }
-  if (appToken && appTokens[appToken]) {
+  } else {
     req.clientAppStaticConfig = appTokens[appToken] ;
+
+    jwt.verify(appToken, appConfig.appJWTSecretSalt, (err, decoded) => {
+      if (err && appConfig.envExc == "prod" ) {
+        return res.status(401).json({ message: 'Forbidden' });
+      }
+      // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
+      req.app = decoded;
+      next();
+    });
   }
-  jwt.verify(appToken, appConfig.appJWTSecretSalt, (err, decoded) => {
-    if (err && appConfig.envExc == "prod" ) {
-      return res.status(401).json({ message: 'Forbidden' });
-    }
-    // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
-    req.user = decoded;
-    next();
-  });
-  req.app = appToken;
-  next();
 }
 
 // Middleware pour vérifier le token d'utilisateur (user authentication)
@@ -59,17 +57,18 @@ function checkUserToken(req, res, next) {
     } else {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+  } else {
+    // Extraction et vérification du token JWT from Bearer prefix
+    const token = userToken.split(' ')[1];
+    jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
+      if (err && appConfig.envExc == "prod" ) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
+      req.user = decoded;
+      next();
+    });
   }
-  // Extraction et vérification du token JWT from Bearer prefix
-  const token = userToken.split(' ')[1];
-  jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
-    if (err && appConfig.envExc == "prod" ) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
-    req.user = decoded;
-    next();
-  });
 }
 
 
