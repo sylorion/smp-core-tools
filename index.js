@@ -47,6 +47,5 @@ export {StripeUtils} from './src/SMPPayment/stripe.js'
 export {
     requestCounter,
 } from './src/middleware/monitor.js';
-export {
-    requestUUIDMiddleware, useAppAuth
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken 
 } from './src/middleware/requestMiddleware.js';
