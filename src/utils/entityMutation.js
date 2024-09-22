@@ -72,7 +72,7 @@ async function entityCreator(entityContext, inputs, appContext) {
 
     const dbOptions = appendLoggingContext({}, appContext);
     let entity = mEntity;
-    // entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
+    entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
     if (!entity) {
       throw new SMPError(`Failed to create ${entityContext.entityName}`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_ENTITY_CREATION_FAILED');
     }
