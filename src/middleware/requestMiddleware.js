@@ -25,8 +25,13 @@ function requestUUIDMiddleware(req, res, next) {
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
   const appToken = req.headers[appConfig.defaultXAppRequestIDKeyName];
-  if ((!appToken || !appTokens[appToken]) && appConfig.envExc == "prod") {
-    return res.status(403).json({ message: 'Forbidden' });
+  if ((!appToken || !appTokens[appToken]) ) {
+    if(appConfig.envExc == "prod"){
+      return res.status(403).json({ message: 'Forbidden' });
+    } else {
+      console.error(`======== NO ${appConfig.defaultXAppRequestIDKeyName} FOR APPLICATION DETECTED =========`);
+    }
+    
   }
   if (appToken && appTokens[appToken]) {
     req.clientAppStaticConfig = appTokens[appToken] ;
@@ -48,7 +53,9 @@ function checkUserToken(req, res, next) {
   const userToken = req.headers['authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
     if (appConfig.envExc != "prod") {
-      console.error("======== NO BEARER FOR USER DETECTED =========")
+      console.error(`======== NO headers[authorization] FOR USER DETECTED =========`);
+      console.error("======== NO BEARER FOR USER DETECTED =========");
+      next();
     } else {
       return res.status(401).json({ message: 'Unauthorized' });
     }
