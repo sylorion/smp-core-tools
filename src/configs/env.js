@@ -9,14 +9,26 @@ const refresh_token_max_duration = 2592000 // 60*60 * 24 * 30 => 30d ~ 1 month
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
   || process.env.NODE_ENV === 'development'
-  || process.env.NODE_ENV === 'dev') {
-  env = "dev"
+  || process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'd') {
+  env = 'dev'
+} else if (process.env.NODE_ENV === 'int'
+  || process.env.NODE_ENV === 'i' || process.env.NODE_ENV === 'integ'
+  || process.env.NODE_ENV === 'integration') { 
+    env = 'int'
+} else if (process.env.NODE_ENV === 'local'
+  || process.env.NODE_ENV === 'l' || process.env.NODE_ENV === 'loc'
+  || process.env.NODE_ENV === 'local') {
+  env = 'local'
+} else if (process.env.NODE_ENV === 'prod'
+  || process.env.NODE_ENV === 'i' || process.env.NODE_ENV === 'produc'
+  || process.env.NODE_ENV === 'integration') {
+  env = 'prod'
 } else {
   env = process.env.NODE_ENV
 }
 
-const isDevelopmentEnv = (env === 'dev')
-const isProductionEnv = (env === 'prod')
+const isDevelopmentEnv = (env === 'dev' || env === 'local')
+const isProductionEnv = (env === 'prod' || env === 'int')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 
@@ -265,6 +277,8 @@ const requestServerSpelling = serviceFullName + " " + providedServiceType + " " 
 
 const appConfig = {
   envExc: env,
+  isDevelopmentEnv: isDevelopmentEnv,
+  isProductionEnv: isProductionEnv,
   domain: process.env.SMP_MU_DOMAIN_NAME ?? "services.ceo",
   apiPort: process.env.SMP_MU_SERVICE_API_PORT ?? 4000,
   verbose: debug,

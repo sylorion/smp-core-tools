@@ -8,9 +8,8 @@
 
 export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
-export { RabbitMQService } from './src/configs/event.js'
-export { startEventHandler } from './src/rabbitMq/eventHandler.js'
-export { SMPEvents } from './src/rabbitMq/index.js'
+export { RabbitMQService } from './src/configs/event.js' 
+export { SMPEvents } from './src/rabbitMq/eventProducers.js'
 export { MailingService } from './src/configs/mailer.js'
 export { MailingServiceFactory } from './src/SMPMailing/MailingFactory.js'
 export {
@@ -48,6 +47,5 @@ export {StripeUtils} from './src/SMPPayment/stripe.js'
 export {
     requestCounter,
 } from './src/middleware/monitor.js';
-export {
-    requestUUIDMiddleware, useAppAuth
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken 
 } from './src/middleware/requestMiddleware.js';

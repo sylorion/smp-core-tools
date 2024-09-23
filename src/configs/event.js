@@ -26,6 +26,10 @@ class RabbitMQService {
   routingKeyFromOperationOnEntity(serviceName, entityName, operation){
     return (`rk.${serviceName}.${entityName}.${operation}`).toLowerCase();
   }
+
+  routingKeyFromOperationAndAppContext(entityName, operation){
+    return (`rk.${entityName}.${operation}`).toLowerCase();
+  }
   /**
    * Connecte le service à RabbitMQ. Si la connexion est déjà établie, elle ne sera pas recréée.
    */
@@ -102,7 +106,7 @@ class RabbitMQService {
       const eventTopic = this.topicFromServiceName(eventService)
       // const eventQueue = this.queueFromServiceAndEntityName(eventService, eventEntity)
       const routingKey = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
-      this.channel.publish(this.eventTopic, routingKey, Buffer.from(formattedMessage));
+      this.channel.publish(eventTopic ?? this.eventTopic , routingKey, Buffer.from(formattedMessage));
       const msgSuccess = `Event.publish at '${routingKey}' succeed.`; 
       if (this.logger) this.logger.info(msgSuccess);
       else console.log(msgSuccess);
@@ -151,7 +155,7 @@ async startEventHandler(muConsumers) {
       const queueName = this.queueFromServiceAndEntityName(serviceName, entityName);
       const { operations = [] } = entityConfig;
       operations.forEach(async (operation) => {
-        const routingKey = `${serviceName}.${entityName}.${operation}`;
+        const routingKey = this.routingKeyFromOperationOnEntity(serviceName, entityName, operation);
         await Promise.all([
           this.channel.assertQueue(queueName, { durable: this.durable }),
           this.channel.bindQueue(queueName, exchangeTopic, routingKey)]
@@ -163,7 +167,6 @@ async startEventHandler(muConsumers) {
             console.error(`Invalid event received: ${routingKey}`);
             return;
           }
-
           const [eventService, eventEntity, eventOperation] = routingKey.split('.');
 
           // Vérification que l'entité et l'opération correspondent
@@ -179,7 +182,7 @@ async startEventHandler(muConsumers) {
             console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
           }
         });
-        console.log(`RabbitMQ@Queue[${queueName}] binding routing key: ${routingKey}`);
+        console.log(`RabbitMQ@${exchangeTopic}[${queueName}] binding routing key: ${routingKey}`);
       });
     });
   });
