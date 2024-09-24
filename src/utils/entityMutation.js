@@ -55,44 +55,36 @@ async function entityCreator(entityContext, inputs, appContext) {
       }
     }
   }
-  // Assign UUID-based unique reference to the entity
-  if(!mEntity.uniqRef){
-    mEntity.uniqRef = uuid();
-  }
-  // Handle slug generation based on entityContext options
-  if (!mEntity.slug){
-    if (entityContext.entitySlugGenerationFn) {
-      mEntity.slug = entityContext.entitySlugGenerationFn(entity); 
-    } else {
-      mEntity.slug = mEntity.uniqRef;
+    // Assign UUID-based unique reference to the entity
+    if(!mEntity.uniqRef){
+      mEntity.uniqRef = uuid();
     }
-  }
-  if(entityContext.slugAggregateUUIDLeft) {
-    mEntity.slug = mEntity.uniqRef + mEntity.slug ;
-  } 
-  if (!mEntity.slug && entityContext.slugAggregateUUIDRight) {
-    mEntity.slug = mEntity.slug + mEntity.uniqRef;
-  }
+    // Handle slug generation based on entityContext options
+    if (!mEntity.slug && entityContext.slugAggregateUUIDLeft) {
+      mEntity.slug = mEntity.uniqRef + (mEntity.slug ?? "");
+    }
+    if (!mEntity.slug && entityContext.slugAggregateUUIDRight) {
+      mEntity.slug = (mEntity.slug ?? "") + mEntity.uniqRef;
+    }
+    appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
+    if(!entityContext.inputsCommitCallBackFn){ // Commit the new entity to the database
+    throw new SMPError(`Failed to create ${entityContext.entityName}, inputsCommitCallBackFn function is mandatory`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_FUNCTION_CREATION_UNAVAILABLE');
+    }
 
-  appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
-  if(!entityContext.inputsCommitCallBackFn){ // Commit the new entity to the database
-  throw new SMPError(`Failed to create ${entityContext.entityName}, inputsCommitCallBackFn function is mandatory`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_FUNCTION_CREATION_UNAVAILABLE');
-  }
-
-  const dbOptions = appendLoggingContext({}, appContext);
-  let entity = mEntity;
-  entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
-  if (!entity) {
-    throw new SMPError(`Failed to create ${entityContext.entityName}`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_ENTITY_CREATION_FAILED');
-  }
-  // Publish entity if a publisher function is available
-  if (entityContext.entityPublisherFn) {
-    await entityContext.entityPublisherFn(appContext, entityContext, entity);
-  }
-  // TODO Delete sensitives informations
-  appContext.logger.info(`Created ${entityContext.entityName} with data: ${JSON.stringify(entity)}`);
-  // Invalidate and set cache if cache management functions exist
-  try {
+    const dbOptions = appendLoggingContext({}, appContext);
+    let entity = mEntity;
+    // entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
+    entity = await entityContext.inputsCommitCallBackFn(mEntity, dbOptions);
+    if (!entity) {
+      throw new SMPError(`Failed to create ${entityContext.entityName}`, entityContext.errorCodeEntityCreationFaillure || 'ERROR_ENTITY_CREATION_FAILED');
+    }
+    // Publish entity if a publisher function is available
+    if (entityContext.entityPublisherFn) {
+      await entityContext.entityPublisherFn(appContext, entityContext, entity);
+    }
+    appContext.logger.info(`Created ${entityContext.entityName} with data: ${JSON.stringify(entity)}`);
+    // Invalidate and set cache if cache management functions exist
+    try {
     if (entityContext.entityCacheSetFn) {
       let cacheEntryKey = entityContext.entityCacheKey || (entityContext.entityCacheKeyFn && entityContext.entityCacheKeyFn(entity));
       if (cacheEntryKey) {
@@ -110,6 +102,7 @@ async function entityCreator(entityContext, inputs, appContext) {
 }
 
 /**
+ * @deprecated
  * Helper to update entity with a given entity managing description and a app context
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
  * @param {Any} inputs - The actual inputs to consider for the describted entity
