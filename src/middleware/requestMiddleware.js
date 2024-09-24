@@ -51,8 +51,7 @@ function checkUserToken(req, res, next) {
   const userToken = req.headers['authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
     if (appConfig.envExc != "prod") {
-      console.error(`======== NO headers[authorization] FOR USER DETECTED =========`);
-      console.error("======== NO BEARER FOR USER DETECTED =========");
+      console.error("======== NO BEARER FOR USER UNDETECTED =========");
       next();
     } else {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -60,12 +59,13 @@ function checkUserToken(req, res, next) {
   } else {
     // Extraction et vérification du token JWT from Bearer prefix
     const token = userToken.split(' ')[1];
+    console.warn(token);
     jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
       // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
-      req.user = decoded;
+      req.user = decoded; 
       next();
     });
   }
