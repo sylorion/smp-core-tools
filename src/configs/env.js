@@ -32,6 +32,7 @@ const isProductionEnv = (env === 'prod' || env === 'int')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 
+const smp_user_password_secret_salt = process.env.SMP_USER_PASSWORD_SECRET ;
 const smp_user_jwt_secret_salt = process.env.SMP_USER_JWT_SECRET ;
 const smp_user_access_secret_salt = process.env.SMP_USER_JWT_ACCESS_SECRET || smp_user_jwt_secret_salt;
 const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_REFRESH_SECRET || smp_user_access_secret_salt;
@@ -289,6 +290,7 @@ const appConfig = {
   componentShortName: componentShortName,
   componentTag: serviceFullTag,
   // Salt information for AuthN
+  userPasswordSalt: smp_user_password_secret_salt || '',
   userJWTSecretSalt: smp_user_jwt_secret_salt || "",
   userAccessTokenSalt: smp_user_access_secret_salt || "",
   userRefreshTokenSalt: smp_user_refresh_secret_salt || "",

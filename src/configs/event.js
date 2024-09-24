@@ -106,8 +106,8 @@ class RabbitMQService {
       const eventTopic = this.topicFromServiceName(eventService)
       // const eventQueue = this.queueFromServiceAndEntityName(eventService, eventEntity)
       const routingKey = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
-      this.channel.publish(eventTopic ?? this.eventTopic , routingKey, Buffer.from(formattedMessage));
-      const msgSuccess = `Event.publish at '${routingKey}' succeed.`; 
+      this.channel.publish(eventTopic ?? this.eventTopic, routingKey, Buffer.from(formattedMessage));
+      const msgSuccess = `Event.publish to topic ${eventTopic} at '${routingKey}' key succeed.`; 
       if (this.logger) this.logger.info(msgSuccess);
       else console.log(msgSuccess);
     } catch (error) {
