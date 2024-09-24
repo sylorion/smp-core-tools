@@ -24,18 +24,21 @@ function requestUUIDMiddleware(req, res, next) {
 
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
-  const appToken = req.headers[appConfig.defaultXAppRequestIDKeyName];
-  if ((!appToken || !appTokens[appToken]) ) {
+  const appTokenId = req.headers[appConfig.defaultXAppAPIKeyIdName];
+  if ((!appTokenId || !appTokens[appTokenId]) ) {
     if(appConfig.envExc == "prod"){
       return res.status(403).json({ message: 'Forbidden' });
     } else {
-      console.error(`======== NO ${appConfig.defaultXAppRequestIDKeyName} FOR APPLICATION DETECTED =========`);
+      console.error(`======== NO ${appConfig.defaultXAppAPIKeyIdName} FOR APPLICATION DETECTED =========`);
       next();
     }
   } else {
-    req.clientAppStaticConfig = appTokens[appToken] ;
-
-    jwt.verify(appToken, appConfig.appJWTSecretSalt, (err, decoded) => {
+    req.clientAppStaticConfig = appTokens[appTokenId] ;
+    req.clientAppStaticConfig.acessToken = req.headers[appConfig.defaultXAppAPIKeyTokenName];
+    req.clientAppStaticConfig.id = appTokenId;
+    req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPIKeyTitleName];
+    console.log(`APPLICATION X AUTH: \n${JSON.stringify(req.clientAppStaticConfig)}\n\n`);
+    jwt.verify(appTokenId, appConfig.appJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Forbidden' });
       }
@@ -59,7 +62,7 @@ function checkUserToken(req, res, next) {
   } else {
     // Extraction et vérification du token JWT from Bearer prefix
     const token = userToken.split(' ')[1];
-    console.warn(token);
+    console.warn(`USER BAERER AUTHENTICATION: ${token}`);
     jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Unauthorized' });

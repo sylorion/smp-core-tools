@@ -164,7 +164,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
       mEntity = await entityContext.checkEntityExistenceFn(inputs);
       if (mEntity) {
         if (entityContext.checkEntityExistsTreatmentFn) {
-          mEntity = await entityContext.checkEntityExistsTreatmentFn(mEntity);
+          mEntity = await entityContext.checkEntityExistsTreatmentFn(mEntity, entity);
         }
         throw new SMPError(`Entity already exists: ${entityContext.entityName}`, 'ERROR_ENTITY_ALREADY_EXISTS');
       }
@@ -179,7 +179,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
         throw new SMPError(`Entity creation callback failed for ${entityContext.entityName}`, 'ERROR_CREATION_CALLBACK_FAILED');
       }
     } else {
-      newEntity = {};  // Entité vide par défaut
+      newEntity = mEntity;  // Entité precedemment validêe ou trouvêe
     }
 
     // Assign UUID-based unique reference to the entity
