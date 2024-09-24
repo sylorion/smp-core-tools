@@ -309,7 +309,9 @@ const appConfig = {
   verboseLevel: computeVerbosityLevel(debug),
   defaultCurrencyDevice: process.env.APP_DEFAULT_CURRENCY_DEVICE || "EUR",
   defaultXGraphqlServerName: process.env.APP_DEFAULT_X_GRAPHQL_SERVER || requestServerSpelling,
-  defaultXAppAPIKeyName: process.env.APP_DEFAULT_X_APP_API_KEY_NAME || 'x-services-app-key',
+  defaultXAppAPIKeyTitleName: process.env.APP_DEFAULT_X_APP_API_KEY_TITLE_NAME || 'x-services-app-name',
+  defaultXAppAPIKeyIdName: process.env.APP_DEFAULT_X_APP_API_KEY_ID_NAME || 'x-services-app-id',
+  defaultXAppAPIKeyTokenName: process.env.APP_DEFAULT_X_APP_API_KEY_TOKEN_NAME || 'x-services-app-token',
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
 }
 
