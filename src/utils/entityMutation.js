@@ -38,6 +38,7 @@ async function entityCreator(entityContext, inputs, appContext) {
     throw new SMPError(`Invalid app context provided`, 'ERROR_INVALID_APP_CONTEXT');
   }
   let newEntity = inputs;
+  let mEntity = inputs;
     // Invoke custom entity creation logic, if provided
   if (entityContext.inputsValidatorCallBackFn) {
     newEntity = entityContext.inputsValidatorCallBackFn(inputs);
@@ -145,7 +146,6 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
     } else {
       transaction = entityContext.entityDefinedTransaction;
     }
-
   try {
     // Validation des entrées si une fonction de validation est fournie
     if (entityContext.entityCheckInputsFn) {
@@ -163,7 +163,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
       mEntity = await entityContext.checkEntityExistenceFn(inputs);
       if (mEntity) {
         if (entityContext.checkEntityExistsTreatmentFn) {
-          mEntity = await entityContext.checkEntityExistsTreatmentFn( mEntity, inputs);
+          mEntity = await entityContext.checkEntityExistsTreatmentFn(mEntity, inputs);
         }
       }
     } else {
@@ -210,7 +210,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
         throw new SMPError(`Business error occurred for "${entityContext.entityName}": ${businessError.message}`, 'ERROR_BUSINESS_VALIDATION');
       }
     }
-    const dbOptions = appendLoggingContext({ where : {userID: newEntity.userID}, transaction: transaction }, appContext);
+    const dbOptions = appendLoggingContext({ transaction: transaction }, appContext);
 
     // Commettre la création de l'entité dans la base de données
     const entity = await entityContext.entityCommitCallBackFn(newEntity, dbOptions);
