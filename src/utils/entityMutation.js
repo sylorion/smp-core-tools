@@ -272,7 +272,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
  * @param {GraphQLContextType} appContext - The GraphQL context of the current query
  * @return {AnyEntity|Error} - The created entity that conforms to the model or an error
  */
-async function updateAnPublishEntity(entityContext, inputs, appContext) {
+export async function updateAnPublishEntity(entityContext, inputs, appContext) {
   // Vérifications préliminaires
   if (!entityContext || typeof entityContext !== 'object') {
     throw new SMPError(`Invalid entity context provided`, 'ERROR_INVALID_ENTITY_CONTEXT');
@@ -287,8 +287,8 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
     throw new SMPError(`Invalid app context provided`, 'ERROR_INVALID_APP_CONTEXT');
   }
 
-  let newEntity = undefined;
-  let mEntity = undefined;
+  let newEntity   = undefined;
+  let mEntity     = undefined;
   let transaction = undefined;
     if (!entityContext.entityDefinedTransaction) {
       // Commencer la transaction si applicable
@@ -296,7 +296,7 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
         transaction = await entityContext.entityTransactionStartFn(appContext);
       }      
     } else {
-      transaction = entityContext.entityDefinedTransaction;
+      transaction   = entityContext.entityDefinedTransaction;
     }
 
   try {
@@ -320,7 +320,7 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
         }
       }
     } else {
-      mEntity = inputs;  // Cas fallback si aucune fonction d'existence n'est fournie
+      mEntity   = inputs;  // Cas fallback si aucune fonction d'existence n'est fournie
     }
 
     // Logique de création personnalisée from user input
@@ -366,17 +366,18 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
     const dbOptions = appendLoggingContext({ where : {userID: newEntity.userID}, transaction: transaction }, appContext);
 
     // Commettre la création de l'entité dans la base de données
-    const entity = await entityContext.entityCommitCallBackFn(newEntity, dbOptions);
-    if (!entity) {
-      throw new SMPError(`Failed to save "${entityContext.entityName}" `, entityContext.errorCodeEntityCreationFailure || 'ERROR_ENTITY_CREATION_FAILED');
-    }
+    const entity = await entityContext.entityCommitCallBackFn(newEntity, dbOptions).then((result) => {
+      return result;
+    }).catch((res) => { 
+      throw new SMPError(`Failed to save "${entityContext.entityName}" ${entityContext.errorCodeEntityCreationFailure || 'ERROR_ENTITY_CREATION_FAILED'}: ${res}`);
+    });
 
     // Publier l'événement
     if (entityContext.entityPublisherFn) {
       await entityContext.entityPublisherFn(appContext, entityContext, entity);
     }
 
-    appContext.logger.info(`Created ${entityContext.entityName} with data: ${JSON.stringify(entity)}`);
+    appContext.logger.info(`Updated ${entityContext.entityName} with data: ${JSON.stringify(entity)}`);
 
     // Mise à jour du cache
     if (entityContext.entityCacheSetFn) {
@@ -404,7 +405,7 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
     return entity;
 
   } catch (error) {
-    appContext.logger.error(`Error in saveAndPublishEntity for "${entityContext.entityName}": ${error.message}`, { error });
+    appContext.logger.error(`Error in updateAndPublishEntity for "${entityContext.entityName}": ${error.message}`, { error });
     // Rollback de la transaction en cas d'erreur
     if (entityContext.entityTransactionRollbackFn) {
       await entityContext.entityTransactionRollbackFn(transaction);
@@ -412,7 +413,7 @@ async function updateAnPublishEntity(entityContext, inputs, appContext) {
     if (error instanceof SMPError) {
       throw error;  // Relancer l'erreur si c'est déjà une SMPError
     } else {
-      throw new SMPError(`Failed to create "${entityContext.entityName}": ${error.message}`, entityContext.errorCodeEntityCreationFailure || 'ERROR_UNKNOWN');
+      throw new SMPError(`Failed to update "${entityContext.entityName}": ${error.message}`, entityContext.errorCodeEntityCreationFailure || 'ERROR_UNKNOWN');
     }
   }
 }
