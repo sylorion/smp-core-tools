@@ -21,7 +21,6 @@ function requestUUIDMiddleware(req, res, next) {
   next();
 }
 
-
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
   const appTokenId = req.headers[appConfig.defaultXAppAPIKeyIdName];

@@ -290,7 +290,7 @@ const appConfig = {
   componentShortName: componentShortName,
   componentTag: serviceFullTag,
   // Salt information for AuthN
-  userPasswordSalt: smp_user_password_secret_salt || '',
+  userPasswordSalt: smp_user_password_secret_salt || 12,
   userJWTSecretSalt: smp_user_jwt_secret_salt || "",
   userAccessTokenSalt: smp_user_access_secret_salt || "",
   userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
