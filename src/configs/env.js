@@ -304,6 +304,10 @@ const appConfig = {
   appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
   userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
   appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
+  userMaxAccessTokenDuration: acces_token_max_duration,
+  userMaxRefreshTokenDuration: refresh_token_max_duration,
+  appMaxAccessTokenDuration: acces_token_max_duration,
+  appMaxRefreshTokenDuration: refresh_token_max_duration,
 
   componentInstanceSerial: instanceSerial,
   verboseLevel: computeVerbosityLevel(debug),
@@ -322,4 +326,4 @@ const rabbitMQConfig = {
   exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE,
 };
 
-export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig };
+export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig};
