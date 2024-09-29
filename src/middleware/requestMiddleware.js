@@ -33,10 +33,14 @@ function checkAppToken(req, res, next) {
     }
   } else {
     req.clientAppStaticConfig = appTokens[appTokenId] ;
-    req.clientAppStaticConfig.acessToken = req.headers[appConfig.defaultXAppAPIKeyTokenName];
+    req.clientAppStaticConfig.accessToken = req.headers[appConfig.defaultXAppAPIKeyTokenName];
     req.clientAppStaticConfig.id = appTokenId;
     req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPIKeyTitleName];
     console.log(`APPLICATION X AUTH: \n${JSON.stringify(req.clientAppStaticConfig)}\n\n`);
+    console.log(`defaultXAppAPIKeyTokenName : ${req.headers[appConfig.defaultXAppAPIKeyTokenName]}`);
+    console.log(`defaultXAppAPIKeyIdName : ${req.headers[appConfig.defaultXAppAPIKeyIdName]}`);
+    console.log(`defaultXAppAPIKeyTitleName : ${req.headers[appConfig.defaultXAppAPIKeyTitleName]}`);
+    console.log(`defaultXAppRequestIDKeyName : ${req.headers[appConfig.defaultXAppRequestIDKeyName]}`);
     jwt.verify(appTokenId, appConfig.appJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Forbidden' });
@@ -53,7 +57,8 @@ function checkUserToken(req, res, next) {
   const userToken = req.headers['authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
     if (appConfig.envExc != "prod") {
-      console.error("======== NO BEARER FOR USER UNDETECTED =========");
+      console.error("======== NO BEARER FOR USER UNDETECTED ========="); 
+      console.log(`Nouvelle requête de ${req.ip} depuis ${req.headers.origin} + referrer : ${req.headers.referer} `);
       next();
     } else {
       return res.status(401).json({ message: 'Unauthorized' });
