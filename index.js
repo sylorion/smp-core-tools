@@ -5,7 +5,7 @@
 // export { maxDirectivesPlugin } from '@escape.tech/graphql-armor-max-directives';
 // export { maxTokensPlugin } from '@escape.tech/graphql-armor-max-tokens';
 // export { createRedisCache } from '@envelop/response-cache-redis';
-
+export { cacheKey } from './src/utils/cacheKeysMap.js'
 export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js' 
