@@ -5,7 +5,7 @@
 // export { maxDirectivesPlugin } from '@escape.tech/graphql-armor-max-directives';
 // export { maxTokensPlugin } from '@escape.tech/graphql-armor-max-tokens';
 // export { createRedisCache } from '@envelop/response-cache-redis';
-
+export { cacheKey } from './src/utils/cacheKeysMap.js'
 export { db }           from './src/configs/db.js';
 export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js' 
@@ -38,7 +38,7 @@ export {   generateUserToken,
   hashTokenWithBCrypt } from './src/utils/authentication.js';
 // export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
-export { slug, uuid, entityCreator, entityUpdater } from './src/utils/entityMutation.js'
+export { slug, uuid, entityCreator, entityUpdater, saveAnPublishEntity, updateAnPublishEntity } from './src/utils/entityMutation.js'
 export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,

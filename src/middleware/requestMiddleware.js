@@ -21,21 +21,27 @@ function requestUUIDMiddleware(req, res, next) {
   next();
 }
 
-
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
-  const appToken = req.headers[appConfig.defaultXAppRequestIDKeyName];
-  if ((!appToken || !appTokens[appToken]) ) {
+  const appTokenId = req.headers[appConfig.defaultXAppAPIKeyIdName];
+  if ((!appTokenId || !appTokens[appTokenId]) ) {
     if(appConfig.envExc == "prod"){
       return res.status(403).json({ message: 'Forbidden' });
     } else {
-      console.error(`======== NO ${appConfig.defaultXAppRequestIDKeyName} FOR APPLICATION DETECTED =========`);
+      console.error(`======== NO ${appConfig.defaultXAppAPIKeyIdName} FOR APPLICATION DETECTED =========`);
       next();
     }
   } else {
-    req.clientAppStaticConfig = appTokens[appToken] ;
-
-    jwt.verify(appToken, appConfig.appJWTSecretSalt, (err, decoded) => {
+    req.clientAppStaticConfig = appTokens[appTokenId] ;
+    req.clientAppStaticConfig.accessToken = req.headers[appConfig.defaultXAppAPIKeyTokenName];
+    req.clientAppStaticConfig.id = appTokenId;
+    req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPIKeyTitleName];
+    console.log(`APPLICATION X AUTH: \n${JSON.stringify(req.clientAppStaticConfig)}\n\n`);
+    console.log(`defaultXAppAPIKeyTokenName : ${req.headers[appConfig.defaultXAppAPIKeyTokenName]}`);
+    console.log(`defaultXAppAPIKeyIdName : ${req.headers[appConfig.defaultXAppAPIKeyIdName]}`);
+    console.log(`defaultXAppAPIKeyTitleName : ${req.headers[appConfig.defaultXAppAPIKeyTitleName]}`);
+    console.log(`defaultXAppRequestIDKeyName : ${req.headers[appConfig.defaultXAppRequestIDKeyName]}`);
+    jwt.verify(appTokenId, appConfig.appJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Forbidden' });
       }
@@ -51,8 +57,8 @@ function checkUserToken(req, res, next) {
   const userToken = req.headers['authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
     if (appConfig.envExc != "prod") {
-      console.error(`======== NO headers[authorization] FOR USER DETECTED =========`);
-      console.error("======== NO BEARER FOR USER DETECTED =========");
+      console.error("======== NO BEARER FOR USER UNDETECTED ========="); 
+      console.log(`Nouvelle requête de ${req.ip} depuis ${req.headers.origin} + referrer : ${req.headers.referer} `);
       next();
     } else {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -60,12 +66,13 @@ function checkUserToken(req, res, next) {
   } else {
     // Extraction et vérification du token JWT from Bearer prefix
     const token = userToken.split(' ')[1];
+    console.warn(`USER BAERER AUTHENTICATION: ${token}`);
     jwt.verify(token, appConfig.userJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
       // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
-      req.user = decoded;
+      req.user = decoded; 
       next();
     });
   }
