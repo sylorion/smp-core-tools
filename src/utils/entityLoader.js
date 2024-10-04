@@ -2,6 +2,8 @@
 // Used for where clause parsing
 import DataLoader                    from 'dataloader';
 import { Sequelize, DataTypes, Op }  from 'sequelize';
+import { DBaseAccesError } from 'smp-core-tools';
+
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
 // import{ trace, SpanStatusCode } from '@opentelemetry/api';
@@ -71,7 +73,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
-    context.logger.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
+    context?.logger?.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
     const options = appendLoggingContext({
       offset,
       limit,
@@ -82,17 +84,17 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     const entities = await cb(options)
     if (entities.length == 0) { 
       msgErr = 'navigateEntityList:: No listing found.';
-      context.logger.error(msgErr); 
+      context?.logger?.error(msgErr); 
     }
     // span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
     // span.end();
     return entities
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
-    context.logger.error(msgErr);
+    context?.logger?.error(msgErr);
     // span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
     // span.end();
-    throw new DBaseAccesError('Database Acces Error navigateEntityList:: ', 'DB_ACCES_ERR_002')
+    throw new DBaseAccesError(`Database Acces Error navigateEntityList:: ${error}`, 'DB_ACCES_ERR_002')
   }
 }
 
