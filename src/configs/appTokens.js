@@ -12,7 +12,7 @@ const appTokens = {
         key: "upUV4TTTUZY3MM5Dw7FO0f4UPlCUby0zuB9MgHBqWdxHAKMNni4Rf3dLumstE9BqrlCiQJABmgO5kpbMrYHs04NJqB8sB8u7cRtzTSdNkAT9O1CNcnfRU3uY755tVbban47BE2epopqOhwY9Gx1cGG04lRJT+vSEumOGJT4LMlQ=",
     },
     ca69df3302d626b5: {
-        name: "SMP Android App",
+        name: "SMP Windows App",
         key: "McHoj6Zm3zENoRwrMimygtKuNoy749hU7zP0wMFsAxrklZVXP5Fln4O4h1vk39gFFji5V444HRXO53VvAMBztdnW4Yhfi1A0dn7ftNKFwPC6HZ7iv3RQQn3btzNKdSpGXIVL1elRQnuykXE/q17GDE76rGpjdJvR9HP6W/rEi30=",
     },
     f1060459e5d4c78b: {

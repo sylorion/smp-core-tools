@@ -22,7 +22,15 @@ if (appConfig.envExc !== 'dev'){
     socket: {
       host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
       port: cacheConfig.port, // le port du serveur Redis ex. 6379  
+      reconnectStrategy: function(retries) {
+        if (retries > 20) {
+          console.log("Too many attempts to reconnect. Redis connection was terminated");
+          return new Error("Too many retries.");
+        } else {
+          return retries * 500;
+        }
     }
+  }
   }
   );
 
@@ -31,7 +39,7 @@ if (appConfig.envExc !== 'dev'){
   }
 
   function errorThrowing(err) {
-    logger.error('Redis Client Error For the Gateway at ' + cacheConfig.host + ':' + cacheConfig.port, err);
+    logger.error('Redis Client Error at ' + cacheConfig.host + ':' + cacheConfig.port, err);
   }
 
   client.on('error', errorThrowing);

@@ -32,6 +32,7 @@ const isProductionEnv = (env === 'prod' || env === 'int')
 const debug = process.env.NODE_DEBUG || "info"
 const instanceSerial = process.env.SMP_MU_SERVICE_INSTANCE_SERIAL || 1
 
+const smp_user_password_secret_salt = process.env.SMP_USER_PASSWORD_SECRET ;
 const smp_user_jwt_secret_salt = process.env.SMP_USER_JWT_SECRET ;
 const smp_user_access_secret_salt = process.env.SMP_USER_JWT_ACCESS_SECRET || smp_user_jwt_secret_salt;
 const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_REFRESH_SECRET || smp_user_access_secret_salt;
@@ -289,6 +290,7 @@ const appConfig = {
   componentShortName: componentShortName,
   componentTag: serviceFullTag,
   // Salt information for AuthN
+  userPasswordSalt: smp_user_password_secret_salt || 12,
   userJWTSecretSalt: smp_user_jwt_secret_salt || "",
   userAccessTokenSalt: smp_user_access_secret_salt || "",
   userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
@@ -302,12 +304,18 @@ const appConfig = {
   appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
   userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
   appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
+  userAccessTokenMaxDuration: acces_token_max_duration,
+  userRefreshTokenMaxDuration: refresh_token_max_duration,
+  appAccessTokenMaxDuration: acces_token_max_duration,
+  appRefreshTokenMaxDuration: refresh_token_max_duration,
 
   componentInstanceSerial: instanceSerial,
   verboseLevel: computeVerbosityLevel(debug),
   defaultCurrencyDevice: process.env.APP_DEFAULT_CURRENCY_DEVICE || "EUR",
   defaultXGraphqlServerName: process.env.APP_DEFAULT_X_GRAPHQL_SERVER || requestServerSpelling,
-  defaultXAppAPIKeyName: process.env.APP_DEFAULT_X_APP_API_KEY_NAME || 'x-services-app-key',
+  defaultXAppAPIKeyTitleName: process.env.APP_DEFAULT_X_APP_API_KEY_TITLE_NAME || 'x-services-app-name',
+  defaultXAppAPIKeyIdName: process.env.APP_DEFAULT_X_APP_API_KEY_ID_NAME || 'x-services-app-id',
+  defaultXAppAPIKeyTokenName: process.env.APP_DEFAULT_X_APP_API_KEY_TOKEN_NAME || 'x-services-app-token',
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
 }
 
@@ -318,4 +326,4 @@ const rabbitMQConfig = {
   exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE,
 };
 
-export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig };
+export { appConfig, gRPCConfig, dbConfig, cacheConfig, isDevelopmentEnv, isProductionEnv, rabbitMQConfig};
