@@ -2,8 +2,9 @@
 
 // Création d'une classe de base pour les exceptions personnalisées
 class SMPError extends Error {
-  constructor(message, code) {
+  constructor(message, code, extension = {}) {
     super(message);
+    this.extension = extension;
     this.code = code;
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);

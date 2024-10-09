@@ -2,7 +2,7 @@
 // Used for where clause parsing
 import DataLoader                    from 'dataloader';
 import { Sequelize, DataTypes, Op }  from 'sequelize';
-import { DBaseAccesError } from 'smp-core-tools';
+import { DBaseAccesError } from '../utils/SMPError.js';
 
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
