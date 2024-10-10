@@ -2,7 +2,7 @@
 // Used for where clause parsing
 import DataLoader                    from 'dataloader';
 import { Sequelize, DataTypes, Op }  from 'sequelize';
-import { DBaseAccesError } from '../utils/SMPError.js';
+import { SMPError, DBaseAccesError } from '../utils/SMPError.js';
 
 
 // import { ObjectStatus, MediaType } from 'smp-core-schema'
@@ -94,7 +94,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     context?.logger?.error(msgErr);
     // span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
     // span.end();
-    throw new DBaseAccesError(`Database Acces Error navigateEntityList:: ${error}`, 'DB_ACCES_ERR_002')
+    throw new SMPError(`Database Acces Error navigateEntityList:: ${error}`, 'DB_ACCES_ERR_002')
   }
 }
 

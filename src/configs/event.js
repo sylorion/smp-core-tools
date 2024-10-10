@@ -167,7 +167,7 @@ async startEventHandler(muConsumers) {
             console.error(`Invalid event received: ${routingKey}`);
             return;
           }
-          const [eventService, eventEntity, eventOperation] = routingKey.split('.');
+          const [_, eventService, eventEntity, eventOperation] = routingKey.split('.');
 
           // Vérification que l'entité et l'opération correspondent
           if (eventEntity === entityName && eventOperation === operation && eventService == serviceName) {
