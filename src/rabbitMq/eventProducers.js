@@ -40,6 +40,7 @@ function generateCrudOperations(entityName, customEvents = {}) {
 const SMPEvents = {
   UserSpace: {
     User: generateCrudOperations('UserSpace.User', { deactivated: 'User.deactivated' }),
+    UserRole: generateCrudOperations('UserSpace.UserRole', { dismissed: 'UserRole.dismissed' }),
     Profile: generateCrudOperations('UserSpace.Profile'),
     PaymentMethod: generateCrudOperations('UserSpace.PaymentMethod'),
     PaymentConfig: generateCrudOperations('UserSpace.PaymentConfig'),
