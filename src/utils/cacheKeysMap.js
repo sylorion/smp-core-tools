@@ -49,7 +49,7 @@ export const cacheKey = {
   comment: keyFor('c'),
   review: keyFor('review'),
   application: keyFor('app'),
-  applicationToken: keyFor('at'),
+  applicationToken: keyFor('appt'),
   userToken: keyFor('ut'),
   authZ: keyFor('authz'),
   authN: keyFor('authn'),
