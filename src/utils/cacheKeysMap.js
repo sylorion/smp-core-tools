@@ -1,5 +1,5 @@
 
-function keyFor(initialKey, customEvents = {}) {
+function keyFor(initialKey) {
   const cacheKeyGenFn = (appId = 1, entityID, userID = undefined) => {
     if (userID) {
       return `app:${appId}:u:${userID}:${initialKey}:${entityID}` ;
@@ -53,12 +53,12 @@ export const cacheKey = {
   userToken: keyFor('ut'),
   authZ: keyFor('authz'),
   authN: keyFor('authn'),
-  recommandation: keyFor('rec'),
-  resetPasswordToken: keyFor('reset'),
+  recommender: keyFor('rec'),
+  resetPasswordToken: keyFor('rpwsd'),
   member: keyFor('member'),
   message: keyFor('msg'),
   media: keyFor('media'), 
-  contract: keyFor('rec'),
+  contract: keyFor('contract'),
   audit: keyFor('audit'),
   analytic: keyFor('ana'),
   joint: keyFor('joint')
