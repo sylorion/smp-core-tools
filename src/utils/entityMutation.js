@@ -3,7 +3,7 @@
 // const { slugify } = require('slugify');
 import { v4 as uuid } from 'uuid';
 import slugify from 'slugify';
-import {appendLoggingContext} from './entityLoader.js'
+import { appendLoggingContext } from './entityLoader.js'
 import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
 function slug(from) {

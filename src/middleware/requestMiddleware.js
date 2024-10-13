@@ -23,23 +23,24 @@ function requestUUIDMiddleware(req, res, next) {
 
 // Middleware pour vérifier le token d'application (applicative authentication)
 function checkAppToken(req, res, next) {
-  const appTokenId = req.headers[appConfig.defaultXAppAPIKeyIdName];
+  const appTokenId = req.headers[appConfig.defaultXAppAPIIdName];
   if ((!appTokenId || !appTokens[appTokenId]) ) {
     if(appConfig.envExc == "prod"){
       return res.status(403).json({ message: 'Forbidden' });
     } else {
-      console.error(`======== NO ${appConfig.defaultXAppAPIKeyIdName} FOR APPLICATION DETECTED =========`);
+      console.error(`======== NO ${appConfig.defaultXAppAPIIdName} FOR APPLICATION DETECTED =========`);
       next();
     }
   } else {
     req.clientAppStaticConfig = appTokens[appTokenId] ;
-    req.clientAppStaticConfig.accessToken = req.headers[appConfig.defaultXAppAPIKeyTokenName];
+    req.clientAppStaticConfig.accessToken = req.headers[appConfig.defaultXAppAPITokenName];
     req.clientAppStaticConfig.id = appTokenId;
-    req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPIKeyTitleName];
+    req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPITitleName];
     console.log(`APPLICATION X AUTH: \n${JSON.stringify(req.clientAppStaticConfig)}\n\n`);
-    console.log(`defaultXAppAPIKeyTokenName : ${req.headers[appConfig.defaultXAppAPIKeyTokenName]}`);
-    console.log(`defaultXAppAPIKeyIdName : ${req.headers[appConfig.defaultXAppAPIKeyIdName]}`);
-    console.log(`defaultXAppAPIKeyTitleName : ${req.headers[appConfig.defaultXAppAPIKeyTitleName]}`);
+    console.log(`defaultXAppAPITokenName : ${req.headers[appConfig.defaultXAppAPITokenName]}`);
+    console.log(`defaultXAppAPIKeyName : ${req.headers[appConfig.defaultXAppAPIKeyName]}`);
+    console.log(`defaultXAppAPIIdName : ${req.headers[appConfig.defaultXAppAPIIdName]}`);
+    console.log(`defaultXAppAPITitleName : ${req.headers[appConfig.defaultXAppAPITitleName]}`);
     console.log(`defaultXAppRequestIDKeyName : ${req.headers[appConfig.defaultXAppRequestIDKeyName]}`);
     jwt.verify(appTokenId, appConfig.appJWTSecretSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
