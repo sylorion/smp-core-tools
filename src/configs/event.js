@@ -134,7 +134,7 @@ async startEventHandler(muConsumers) {
     console.error('[Error]: connecting to RabbitMQ:', error);
     return;
   }
-  this.verifySubscriptions(consumerConfig);
+  this.verifySubscriptions(muConsumers);
   // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
   Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
     const exchangeTopic = this.topicFromServiceName(serviceName);
