@@ -42,7 +42,7 @@ class RabbitMQService {
       else console.log(`RabbitMQ Connected: ${new Date()}`);
     } catch (error) {
       if (this.logger) this.logger.error('Error connecting to RabbitMQ:', error);
-      else console.error('Error connecting to RabbitMQ:', error);
+      else console.error('[Error]: connecting to RabbitMQ:', error);
     }
   }
 
@@ -54,7 +54,6 @@ class RabbitMQService {
     Object.keys(consumerConfig).forEach((entityName) => {
       const entityConfig = consumerConfig[entityName];
       const operations = entityConfig.operations || [];
-
       // Récupère les événements valides pour l'entité
       const validEventsForEntity = this.validEvents[entityName] || [];
       // const rk = this.routingKeyFromOperationOnEntity(eventService, eventEntity, eventOperation);
@@ -67,39 +66,17 @@ class RabbitMQService {
   }
 
   /**
-   * Souscrit à un topic RabbitMQ et consomme les messages.
-   * @param {string} exchangeTopic - Le topic RabbitMQ.
-   * @param {string} routingKey - La clé de routage.
-   * @param {string} queueName - Le nom de la file d'attente.
-   */
-  async subscribeTopic(exchangeTopic, routingKey, queueName) {
-    await this.connect(); // Assurer la connexion avant de souscrire au topic
-    await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
-    await this.channel.assertQueue(queueName, { durable: this.durable });
-    await this.channel.bindQueue(queueName, exchangeTopic, routingKey);
-
-    this.channel.consume(queueName, (msg) => {
-      if (msg) {
-        try {
-          const messageData = JSON.parse(msg.content.toString());
-          console.log(`Message received on ${queueName}:`, messageData);
-          this.channel.ack(msg); // Accuser réception du message
-        } catch (error) {
-          console.error(`Error processing message for ${queueName}:`, error);
-          this.channel.nack(msg, false, false);
-          if (this.logger) this.logger.error(`Error processing message for ${queueName}: ${error}`);
-        }
-      }
-    }, { noAck: false });
-  }
-
-  /**
    * Publie un événement dans l'échange RabbitMQ.
    * @param {string} event - L'événement à publier.
    * @param {Object} data - Les données associées à l'événement.
    */
   async publish(rk, data) {
-    await this.connect(); // Assurer la connexion avant de publier
+    try {
+      await this.connect(); // Assurer la connexion avant de souscrire au topic
+    } catch (error) {
+      console.error('[Error]: connecting to RabbitMQ to publish event:', error);
+      return;
+    }
     const formattedMessage = JSON.stringify({ data });
     try {
       const [eventService, eventEntity, eventOperation] = rk.split('.');
@@ -111,7 +88,7 @@ class RabbitMQService {
       if (this.logger) this.logger.info(msgSuccess);
       else console.log(msgSuccess);
     } catch (error) {
-      const msgError = `Failed to publish event '${routingKey}': ${error}`; 
+      const msgError = `[Error]: Failed to publish event '${routingKey}': ${error}`; 
       if (this.logger) this.logger.error(msgError);
       else console.error(msgError);
     }
@@ -123,7 +100,12 @@ class RabbitMQService {
  * @param {Function} onMessage - Fonction de callback appelée lorsque des messages sont reçus.
  */
 async listenForEvents(queueName, onMessage) {
-  await this.connect(); // Assurer la connexion avant d'écouter
+  try {
+    await this.connect(); // Assurer la connexion avant de souscrire au topic
+  } catch (error) {
+    console.error('[Error]: connecting to RabbitMQ to listen events:', error);
+    return;
+  }
   await this.channel.assertQueue(queueName, { durable: true });
   // Consommer les messages de la queue
   this.channel.consume(queueName, (msg) => {
@@ -149,9 +131,10 @@ async startEventHandler(muConsumers) {
   try {
     await this.connect(); // Assurer la connexion avant de souscrire au topic
   } catch (error) {
-    console.error('Error connecting to RabbitMQ:', error);
+    console.error('[Error]: connecting to RabbitMQ:', error);
     return;
   }
+  this.verifySubscriptions(consumerConfig);
   // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
   Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
     const exchangeTopic = this.topicFromServiceName(serviceName);
@@ -169,7 +152,7 @@ async startEventHandler(muConsumers) {
         this.listenForEvents(queueName, (routingKey, eventData) => {
           // Vérifier que routingKey est une chaîne valide avant d'appeler split
           if (typeof routingKey !== 'string' || !routingKey) {
-            console.error(`Invalid event received: ${routingKey}`);
+            console.error(`[Error]: Invalid event received: ${routingKey}`);
             return;
           }
           const [_, eventService, eventEntity, eventOperation] = routingKey.split('.');
@@ -181,43 +164,16 @@ async startEventHandler(muConsumers) {
               console.log(`Executing callbacks for ${entityName}.${operation}`);
               callbackManager.executeCallbacks(operation, callbacks[operation], eventData);
             } else {
-              console.warn(`No callbacks configured for ${entityName}.${operation}`);
+              console.warn(`[Warning]: No callbacks configured for ${entityName}.${operation}`);
             }
           } else {
-            console.warn(`Received event ${routingKey} does not match ${entityName}.${operation}`);
+            console.warn(`[Warning]: Received event ${routingKey} does not match ${entityName}.${operation}`);
           }
         });
         console.log(`RabbitMQ@${exchangeTopic}[${queueName}] binding routing key: ${routingKey}`);
       });
     });
   });
-}
-
-
-  /**
- * Démarre les consommateurs pour un microservice.
- * @param {Object} consumerConfig - La configuration des consommateurs pour un microservice.
- */
-async startConsumers(consumerConfig) {
-  this.verifySubscriptions(consumerConfig);
- await this.connect(); // Assurer la connexion avant de démarrer les consommateurs
-  for (const [microserviceName, config] of Object.entries(consumerConfig)) {
-    const exchangeName = `${microserviceName}.events`;
-
-    for (const [entityName, entityConfig] of Object.entries(config)) {
-      const { operations } = entityConfig;
-
-      // Configurer les consommateurs pour les opérations CRUD
-      operations.forEach((operation) => {
-        const queueName = `${entityName}-${operation}-${microserviceName}-queue`; // Nom de la queue dynamique
-        const routingKey = `${entityName}.${operation}`;
-        this.subscribeTopic(exchangeName, routingKey, queueName);
-        // console.log(`Consumer set up for ${entityName}.${operation} from ${exchangeName}`);
-        console.log(`create: ${queueName} with routing key: ${routingKey}`);
-      });
-    }
-  }
-  console.log('All consumers have been set up.');
 }
 
 }
