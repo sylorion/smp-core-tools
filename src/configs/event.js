@@ -146,7 +146,12 @@ async listenForEvents(queueName, onMessage) {
  * @param {Object} muConsumers - La configuration des consommateurs dans muConsume. 
  */
 async startEventHandler(muConsumers) {
+  try {
     await this.connect(); // Assurer la connexion avant de souscrire au topic
+  } catch (error) {
+    console.error('Error connecting to RabbitMQ:', error);
+    return;
+  }
   // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
   Object.entries(muConsumers).forEach(async ([serviceName, entities]) => {
     const exchangeTopic = this.topicFromServiceName(serviceName);
