@@ -1,10 +1,10 @@
 
 function keyFor(initialKey) {
   const cacheKeyGenFn = (appId = 1, entityID, userID = undefined) => {
-    if (userID) {
-      return `app:${appId}:u:${userID}:${initialKey}:${entityID}` ;
-    } else {
+    if (undefined === userID || entityID == userID) {
       return `app:${appId}:${initialKey}:${entityID}` ;
+    } else {
+      return `app:${appId}:u:${userID}:${initialKey}:${entityID}` ;
     }
   }; 
   return cacheKeyGenFn;

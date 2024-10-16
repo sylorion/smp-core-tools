@@ -29,27 +29,27 @@ function checkAppToken(req, res, next) {
       return res.status(403).json({ message: 'Forbidden' });
     } else {
       console.error(`======== NO ${appConfig.defaultXAppAPIIdName} FOR APPLICATION DETECTED =========`);
-      next();
     }
+    next();
   } else {
     req.clientAppStaticConfig = appTokens[appTokenId] ;
     req.clientAppStaticConfig.accessToken = req.headers[appConfig.defaultXAppAPITokenName];
     req.clientAppStaticConfig.id = appTokenId;
     req.clientAppStaticConfig.title = req.headers[appConfig.defaultXAppAPITitleName];
     console.log(`APPLICATION X AUTH: \n${JSON.stringify(req.clientAppStaticConfig)}\n\n`);
-    console.log(`defaultXAppAPITokenName : ${req.headers[appConfig.defaultXAppAPITokenName]}`);
-    console.log(`defaultXAppAPIKeyName : ${req.headers[appConfig.defaultXAppAPIKeyName]}`);
-    console.log(`defaultXAppAPIIdName : ${req.headers[appConfig.defaultXAppAPIIdName]}`);
-    console.log(`defaultXAppAPITitleName : ${req.headers[appConfig.defaultXAppAPITitleName]}`);
-    console.log(`defaultXAppRequestIDKeyName : ${req.headers[appConfig.defaultXAppRequestIDKeyName]}`);
-    jwt.verify(appTokenId, appConfig.appJWTSecretSalt, (err, decoded) => {
+    console.log(`[defaultXAppAPITokenName] : ${req.headers[appConfig.defaultXAppAPITokenName]}`);
+    console.log(`[defaultXAppAPIKeyName] : ${req.headers[appConfig.defaultXAppAPIKeyName]}`);
+    console.log(`[defaultXAppAPIIdName] : ${req.headers[appConfig.defaultXAppAPIIdName]}`);
+    console.log(`[defaultXAppAPITitleName] : ${req.headers[appConfig.defaultXAppAPITitleName]}`);
+    console.log(`[defaultXAppRequestIDKeyName] : ${req.headers[appConfig.defaultXAppRequestIDKeyName]}`);
+    jwt.verify(appTokenId, appConfig.appJWTSecretSalt, null, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Forbidden' });
       }
       // Si le token est valide, vous pouvez ajouter des informations de l'utilisateur à req.user
-      req.app = decoded;
-      next();
+      req.application = decoded; 
     });
+    next();
   }
 }
 
