@@ -5,9 +5,15 @@ import { Sequelize, DataTypes, Op }  from 'sequelize';
 import { SMPError, DBaseAccesError } from '../utils/SMPError.js';
 
 
-// import { ObjectStatus, MediaType } from 'smp-core-schema'
-// import{ trace, SpanStatusCode } from '@opentelemetry/api';
-
+/**
+ * Appends a logging context to the given worker options.
+ *
+ * @param {Object} workerOptions - The original worker options.
+ * @param {Object} context - The context containing the logger.
+ * @param {Object} context.logger - The logger object.
+ * @param {Function} context.logger.info - The logging function to log info messages.
+ * @returns {Object} The new worker options with the logging context appended.
+ */
 function appendLoggingContext(workerOptions, context) {
   const additionnalOptions = { logging: (msg) => context.logger.info(msg) } ;
   return {...workerOptions, ...additionnalOptions}
@@ -64,7 +70,20 @@ function buildPaginationClause(pagination) {
 }
 
 // Fonction générique pour naviguer dans la liste des entités
-async function navigateEntityList(context, cb, filters = [], pagination = {}, sort = {},) {
+/**
+ * Navigates through a list of entities based on provided filters, pagination, and sorting options.
+ *
+ * @async
+ * @function navigateEntityList
+ * @param {Object} context - The context object, which may include a logger.
+ * @param {Function} cb - The callback function to fetch entities with the given options.
+ * @param {Array} [filters=[]] - An array of filters to apply to the entity list.
+ * @param {Object} [pagination={}] - An object containing pagination options (limit and offset).
+ * @param {Object} [sort={}] - An object containing sorting options.
+ * @returns {Promise<Array>} - A promise that resolves to an array of entities.
+ * @throws {SMPError} - Throws an SMPError if there is a database access error.
+ */
+async function navigateEntityList(context, cb, filters = [], pagination = {}, sort = {}) {
   // const span = trace.getTracer('default').startSpan('navigateEntityList');
   try {
     let flts = []
@@ -86,29 +105,15 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
       msgErr = 'navigateEntityList:: No listing found.';
       context?.logger?.error(msgErr); 
     }
-    // span.setStatus({ code: SpanStatusCode.OK, message: msgErr });
-    // span.end();
     return entities
   } catch (error) {
     const msgErr = "navigateEntityList:: " + error;
     context?.logger?.error(msgErr);
-    // span.setStatus({ code: SpanStatusCode.ERROR, message: msgErr });
-    // span.end();
     throw new SMPError(`Database Acces Error navigateEntityList:: ${error}`, 'DB_ACCES_ERR_002')
   }
 }
 
-
-// Fonction générique pour naviguer dans la liste des entités sans limite
-///!\ HARMFULL FUNCTION EXPERT USE ONLY
-/// HOW to make this API Private to internal ?
-async function unavigableEntityList(context, cb, filters = []) {
-  // const span = trace.getTracer('default').startSpan('unavigableEntityList');
-  const data = navigateEntityList(context, cb, filters, {}, {})
-  // span.setStatus({ code: SpanStatusCode.OK })
-  // span.end();
-  return data
-}
+const unavigableEntityList = async (context, cb, filters = []) => navigateEntityList(context, cb, filters, {}, {});
 
 /**
  * Helper to create entity with a given entity managing description and a app context
