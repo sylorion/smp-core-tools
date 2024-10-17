@@ -71,11 +71,9 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     if (Array.isArray(filters)) {
       flts = filters
     }
-    console.log("buildWhereClause FILTER : " + JSON.stringify(filters));
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
-    context?.logger?.info( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
     const options = appendLoggingContext({
       offset,
       limit,
@@ -106,7 +104,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
 /// HOW to make this API Private to internal ?
 async function unavigableEntityList(context, cb, filters = []) {
   // const span = trace.getTracer('default').startSpan('unavigableEntityList');
-  const data = navigateEntityList(context, cb, {}, {}, filters)
+  const data = navigateEntityList(context, cb, filters, {}, {})
   // span.setStatus({ code: SpanStatusCode.OK })
   // span.end();
   return data
