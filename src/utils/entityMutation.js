@@ -112,7 +112,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
  * @param {GraphQLContextType} appContext - The GraphQL context of the current query
  * @return {AnyEntity|Error} - The created entity that conforms to the model or an error
  */
-async function saveAnPublishEntity(entityContext, inputs, appContext) {
+async function saveAndPublishEntity(entityContext, inputs, appContext) {
   // Vérifications préliminaires
   if (!entityContext || typeof entityContext !== 'object') {
     throw new SMPError(`Invalid entity context provided`, 'ERROR_INVALID_ENTITY_CONTEXT');
@@ -267,7 +267,7 @@ async function saveAnPublishEntity(entityContext, inputs, appContext) {
  * @param {GraphQLContextType} appContext - The GraphQL context of the current query
  * @return {AnyEntity|Error} - The created entity that conforms to the model or an error
  */
-export async function updateAnPublishEntity(entityContext, inputs, appContext) {
+export async function updateAndPublishEntity(entityContext, inputs, appContext) {
   // Vérifications préliminaires
   if (!entityContext || typeof entityContext !== 'object') {
     throw new SMPError(`Invalid entity context provided`, 'ERROR_INVALID_ENTITY_CONTEXT');
@@ -413,4 +413,4 @@ export async function updateAnPublishEntity(entityContext, inputs, appContext) {
   }
 }
 
-export { slug, uuid, entityCreator, entityUpdater, saveAnPublishEntity } ;
+export { slug, uuid, entityCreator, entityUpdater, saveAndPublishEntity } ;
