@@ -9,7 +9,7 @@ import { SMPError, DBaseAccesError } from '../utils/SMPError.js';
 // import{ trace, SpanStatusCode } from '@opentelemetry/api';
 
 function appendLoggingContext(workerOptions, context) {
-  const additionnalOptions = {logging: (msg) => context.logger.info(msg) } ;
+  const additionnalOptions = { logging: (msg) => context.logger.info(msg) } ;
   return {...workerOptions, ...additionnalOptions}
 }
 
@@ -20,6 +20,7 @@ function appendLoggingContext(workerOptions, context) {
  */ 
 function buildWhereClause(filter) {
   let whereClause = { };
+  console.log("FILTER : " + JSON.stringify(filter));
   filter.forEach(condition => {
     const { field, value, operator } = condition;
     if (!whereClause[field]) whereClause[field] = {};
