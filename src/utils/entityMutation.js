@@ -174,19 +174,21 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
 
     // Assign UUID-based unique reference to the entity
     if(!mEntity.uniqRef){
-      if (entityContext.entityModel && entityContext.entityModel.uuid) {
-        mEntity.uniqRef = entityContext.entityModel?.uuid();
+      if (entityContext.entityModel && undefined !== entityContext.entityModel.uuid) {
+        mEntity.uniqRef = entityContext.entityModel.uuid();
       } else if (mEntity.entityModelUUIDFn) {
         mEntity.uniqRef = mEntity.entityModelUUIDFn();
       } else {
         appContext.logger.error(`Failed to generate UUID for ${entityContext.entityName}\nNo function provided for UUID generation`);
       }
     }
-
+    appContext.logger.info(`Ready to create ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
     // Handle slug generation based on entityContext options
     if (!newEntity.slug){
-      if ((!mEntity || !mEntity?.uniqRef) && entityContext.entitySlugGenerationFn) {
+      if (entityContext.entitySlugGenerationFn) {
         newEntity.slug = entityContext.entitySlugGenerationFn(newEntity); 
+      } else if (entityContext.entityModel.slug) {
+        newEntity.slug = entityContext.entityModel.slug(JSON.stringify(newEntity));
       } else {
         newEntity.slug = newEntity.uniqRef;
       }
