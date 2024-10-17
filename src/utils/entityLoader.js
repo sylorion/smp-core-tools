@@ -19,7 +19,7 @@ function appendLoggingContext(workerOptions, context) {
  * @returns {*} - The Sequelize filter format
  */ 
 function buildWhereClause(filter) {
-  let whereClause = { deletedAt: { [Op.is]: null } };
+  let whereClause = { };
   filter.forEach(condition => {
     const { field, value, operator } = condition;
     if (!whereClause[field]) whereClause[field] = {};
@@ -28,16 +28,16 @@ function buildWhereClause(filter) {
         whereClause[field] = value;
         break
       case '<':
-        whereClause[field] = { [Op.lt]: value };
+        whereClause[field] = {...whereClause[field], ...{ [Op.lt]: value }};
         break
       case '<=':
-        whereClause[field] = { [Op.lte]: value };
+        whereClause[field] = {...whereClause[field], ...{ [Op.lte]: value }};
         break
       case '>':
-        whereClause[field] = { [Op.gt]: value };
+        whereClause[field] = {...whereClause[field], ...{ [Op.gt]: value }};
         break
       case '>=':
-        whereClause[field] = { [Op.gte]: value };
+        whereClause[field] = {...whereClause[field], ...{ [Op.gte]: value }};
         break;
       //... other cases for other operators
     }
@@ -73,7 +73,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
-    context?.logger?.debug( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
+    context?.logger?.info( "navigateEntityList::LIMIT AND OFFSET CLAUSE : " + offset + " + " + limit);
     const options = appendLoggingContext({
       offset,
       limit,
