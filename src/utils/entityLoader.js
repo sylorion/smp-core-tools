@@ -20,7 +20,7 @@ function appendLoggingContext(workerOptions, context) {
  */ 
 function buildWhereClause(filter) {
   let whereClause = { };
-  console.log("FILTER : " + JSON.stringify(filter));
+  console.log("buildWhereClause FILTER : " + JSON.stringify(filter));
   filter.forEach(condition => {
     const { field, value, operator } = condition;
     if (!whereClause[field]) whereClause[field] = {};
@@ -71,6 +71,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     if (Array.isArray(filters)) {
       flts = filters
     }
+    console.log("buildWhereClause FILTER : " + JSON.stringify(filters));
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
