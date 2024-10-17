@@ -1,21 +1,7 @@
-// utils/entityBuilder.js
-// const { P } = require('pino');
-// const { slugify } = require('slugify');
-import { v4 as uuid } from 'uuid';
-import slugify from 'slugify';
+// utils/entityMutation.js
 import { appendLoggingContext } from './entityLoader.js'
 import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
-function slug(from) {
-    return slugify(from, {
-        replacement: '-',  // replace spaces with replacement character, defaults to `-`
-        remove: undefined, // remove characters that match this regex, let to the defaults `undefined`
-        lower: true,      // convert to lower case, defaults to `false`
-        strict: false,     // strip special characters except replacement, defaults to `false`
-        locale: 'en',      // language code of the locale to use
-        trim: true         // trim leading and trailing replacement chars, defaults to `true`
-    })
-}
 /**
  * @deprecated
  * Helper to create an entity with a given entity managing description and an app context.
@@ -57,7 +43,13 @@ async function entityCreator(entityContext, inputs, appContext) {
   }
     // Assign UUID-based unique reference to the entity
     if(!mEntity.uniqRef){
-      mEntity.uniqRef = uuid();
+      if (entityContext.entityModel && entityContext.entityModel.uuid) {
+        mEntity.uniqRef = entityContext.entityModel?.uuid();
+      } else if (mEntity.entityModelUUIDFn) {
+        mEntity.uniqRef = mEntity.entityModelUUIDFn();
+      } else {
+        appContext.logger.error(`Failed to generate UUID for ${entityContext.entityName}\nNo function provided for UUID generation`);
+      }
     }
     // Handle slug generation based on entityContext options
     if (!mEntity.slug && entityContext.slugAggregateUUIDLeft) {
