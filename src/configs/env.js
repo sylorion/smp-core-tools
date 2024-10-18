@@ -42,9 +42,9 @@ const smp_app_access_secret_salt = process.env.SMP_APP_JWT_ACCESS_SECRET || smp_
 const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_REFRESH_SECRET || smp_app_access_secret_salt ; 
 
 
-const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCES_TOKEN_DURATION ;
+const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCESS_TOKEN_DURATION ;
 const smp_user_jwt_refresh_token_duration = process.env.SMP_USER_REFRESH_TOKEN_DURATION ;
-const smp_app_jwt_acces_token_duration = process.env.SMP_APP_ACCES_TOKEN_DURATION ;
+const smp_app_jwt_access_token_duration = process.env.SMP_APP_ACCESS_TOKEN_DURATION ;
 const smp_app_jwt_refresh_token_duration = process.env.SMP_APP_REFRESH_TOKEN_DURATION ;
 
 /**
@@ -295,13 +295,13 @@ const appConfig = {
   userAccessTokenSalt: smp_user_access_secret_salt || "",
   userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
   appJWTSecretSalt: smp_app_jwt_secret_salt || "", 
-  appAccesTokenSalt: smp_app_access_secret_salt || "" ,
+  appAccessTokenSalt: smp_app_access_secret_salt || "" ,
   appRefreshTokenSalt: smp_app_refresh_secret_salt || "" ,
  
   // Duration information for AuthN
   sensitiveCachedDataDuration: process.env.SMP_MU_SENSITIVE_CACHED_DATA_DURATION || acces_token_max_duration,
   userAccessTokenDuration: smp_user_jwt_access_token_duration || acces_token_max_duration,
-  appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
+  appAccessTokenDuration: smp_app_jwt_access_token_duration || acces_token_max_duration ,
   userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
   appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
   userAccessTokenMaxDuration: acces_token_max_duration,
@@ -318,6 +318,7 @@ const appConfig = {
   defaultXAppAPITokenName: process.env.APP_DEFAULT_X_APP_API_TOKEN_NAME || 'x-services-app-token',
   defaultXAppAPIKeyName: process.env.APP_DEFAULT_X_APP_API_KEY_NAME || 'x-services-app-key',
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
+  defaultXApplicationStructure: process.env.APP_DEFAULT_X_APPLICATION_STRUCTURE || 'x-services-application',
 }
 
 const rabbitMQConfig = {
