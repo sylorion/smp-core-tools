@@ -34,7 +34,7 @@ function checkAppToken(req, res, next) {
     }
     next();
   } else {
-    jwt.verify(token, appConfig.appRefreshTokenSalt, null, (err, decoded) => {
+    jwt.verify(token, appConfig.appAccessTokenSalt, null, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         return res.status(401).json({ message: 'Forbidden' });
       }
@@ -90,5 +90,45 @@ function checkUserToken(req, res, next) {
   }
 }
 
-export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken};
 
+// Middleware pour vérifier le token d'utilisateur (user authentication)
+function userFromToken(context, req) {
+  const userToken = req.headers['authorization'] ?? req.headers['Authorization'];
+  if (!userToken || !userToken.startsWith('Bearer ')) {
+    if (appConfig.envExc != "prod") {
+      context.logger.error("======== NO BEARER FOR USER UNDETECTED ========="); 
+      context.logger.log(`Nouvelle requête de ${req.ip} depuis ${req.headers.origin} + referrer :\n ${req.headers.referer} `);
+    }
+  } else {
+    // Extraction et vérification du token JWT from Bearer prefix
+    const token = userToken.split(' ')[1];
+    jwt.verify(token, appConfig.userAccessTokenSalt, (err, decoded) => {
+      if (err && appConfig.envExc == "prod" ) {
+        context.logger.error("======== UNABLE TO VERIFY BEARER FOR USER =========");
+      }
+      req.headers["user"] = decoded; 
+      return decoded;
+    });
+  }
+  return null;
+}
+
+// Middleware pour vérifier le token d'application (applicative authentication)
+function applicationFromToken(appContext, req) {
+  const apIDToken = req.headers[appConfig.defaultXAppAPIIdName];
+  const appToken  = appTokens[apIDToken]
+  const token     = req.headers[appConfig.defaultXAppAPITokenName] ?? appToken;
+  if ((token) ) {
+    return jwt.verify(token, appConfig.appAccessTokenSalt, null, (err, decoded) => {
+      if (err) {
+        appContext.error(`======== INVALID APPLICATION TOKEN DETECTED =========`);
+        appContext.error(JSON.stringify(token, null, 2));
+      }
+      req.headers[appConfig.defaultXApplicationStructure] = decoded; 
+      return decoded;
+    }); 
+  }
+  return null;
+}
+
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken, applicationFromToken, userFromToken};
