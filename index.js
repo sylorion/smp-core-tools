@@ -7,7 +7,7 @@
 // export { createRedisCache } from '@envelop/response-cache-redis';
 export { cacheKey } from './src/utils/cacheKeysMap.js'
 export { db }           from './src/configs/db.js';
-export { cache } from './src/configs/cache.js';
+export { cache } from './src/configs/cache.js'; 
 export { RabbitMQService } from './src/configs/event.js' 
 export { SMPEvents } from './src/rabbitMq/eventProducers.js'
 export { MailingService } from './src/configs/mailer.js'
@@ -47,5 +47,5 @@ export {StripeUtils} from './src/SMPPayment/stripe.js'
 export {
     requestCounter,
 } from './src/middleware/monitor.js';
-export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken 
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken, applicationFromToken, userFromToken
 } from './src/middleware/requestMiddleware.js';

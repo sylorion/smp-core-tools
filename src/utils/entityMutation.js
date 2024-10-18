@@ -188,7 +188,7 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
       if (entityContext.entitySlugGenerationFn) {
         newEntity.slug = entityContext.entitySlugGenerationFn(newEntity); 
       } else if (entityContext.entityModel.slug) {
-        newEntity.slug = entityContext.entityModel.slug(JSON.stringify(newEntity.uniqRef));
+        newEntity.slug = entityContext.entityModel.slug(newEntity.uniqRef);
       } else {
         newEntity.slug = newEntity.uniqRef;
       }

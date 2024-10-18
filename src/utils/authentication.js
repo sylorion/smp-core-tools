@@ -17,27 +17,22 @@ const argonConfig = {
   timeCost: 3,           // The amount of computation realized and therefore the execution time
   parallelism: 6         // Number of threads
 };
-
 async function hashKeyWithArgon(key) {
   return await argon2.hash(key, argonConfig);
 }
-
 async function verifyKeyWithArgon(key, hashKey) {
   return await argon2.verify(hashKey, key);
 }
-
 async function hashTokenWithBCrypt(payload, salt) {
   return await bcrypt.hash(payload, salt);
 }
-
 async function verifyHashTokenWithBCrypt(unhashedToken, hashedToken) {
   return await bcrypt.compare(unhashedToken, hashedToken);
 }
-
 function generateJWTToken(payload, expirationDuration, secret) {
   // Handly compute the exp time to avoid a strange bug
-  const expTime = Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration));
-   const generatedToken = jwt.sign({...payload, maxAge: '30d', exp: expTime}, secret, {algorithm: 'HS512'});
+  const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
+   const generatedToken = jwt.sign({...payload, maxAge: '350d', exp: expTime}, secret, {algorithm: 'HS512'});
   return generatedToken;
 }
 

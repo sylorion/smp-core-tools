@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
-const acces_token_max_duration = 86400 // 60*60*24 => 24h in second
-const refresh_token_max_duration = 2592000 // 60*60 * 24 * 30 => 30d ~ 1 month
+const acces_token_max_duration = 86400000 // 60*60*24 => 24h in second
+const refresh_token_max_duration = 259200000 // 60*60 * 24 * 30 => 30d ~ 1 month
 
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
@@ -40,7 +40,6 @@ const smp_user_refresh_secret_salt = process.env.SMP_USER_JWT_REFRESH_SECRET || 
 const smp_app_jwt_secret_salt = process.env.SMP_APP_JWT_SECRET ; 
 const smp_app_access_secret_salt = process.env.SMP_APP_JWT_ACCESS_SECRET || smp_app_jwt_secret_salt ; 
 const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_REFRESH_SECRET || smp_app_access_secret_salt ; 
-
 
 const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCESS_TOKEN_DURATION ;
 const smp_user_jwt_refresh_token_duration = process.env.SMP_USER_REFRESH_TOKEN_DURATION ;
