@@ -140,11 +140,9 @@ class Authentication {
     const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
     return generateJWTToken({...userPayload, maxAge: '350d', exp: expTime}, expirationDuration, secret);
   }
-
   generateUserRefreshToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
     return this.generateUserToken(context, user, expirationDuration, appConfig.userRefreshTokenSalt);
   }
-  
   generateUserAccessToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
     return this.generateUserToken(context, user, expirationDuration, appConfig.userAccessTokenSalt);
   }
@@ -152,9 +150,15 @@ class Authentication {
   generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
     return generateJWTToken(app, expirationDuration, secret);
   }
-
+  
   verifyUserToken(context, userToken, secret = appConfig.userJWTSecretSalt) {
     return verifyJWTToken(userToken, secret);
+  }
+  verifyUserRefreshToken(context, userRefreshToken) {
+    return verifyUserToken(context, userRefreshToken, appConfig.userRefreshTokenSalt);
+  }
+  verifyUserAccessToken(context, userAccessToken) {
+    return verifyUserToken(context, userAccessToken, appConfig.userAccessTokenSalt);
   }
 
   verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) {
