@@ -63,7 +63,7 @@ function verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) 
 
 
 // Middleware pour vérifier le token d'utilisateur (user authentication)
-function userFromToken(context, req) {
+function userFromToken(context, req, secret = appConfig.userAccessTokenSalt) {
   const userToken = req.headers['authorization'] ?? req.headers['Authorization'];
   if (!userToken || !userToken.startsWith('Bearer ')) {
     if (appConfig.envExc != "prod") {
@@ -73,15 +73,14 @@ function userFromToken(context, req) {
   } else {
     // Extraction et vérification du token JWT from Bearer prefix
     const token = userToken.split(' ')[1];
-    jwt.verify(token, appConfig.userAccessTokenSalt, (err, decoded) => {
+    return jwt.verify(token, secret ?? appConfig.userAccessTokenSalt, (err, decoded) => {
       if (err && appConfig.envExc == "prod" ) {
         context.logger.error("======== UNABLE TO VERIFY BEARER FOR USER =========");
       }
       req.headers["user"] = decoded; 
       return decoded;
     });
-  }
-  return null;
+  } 
 }
 
 // Middleware pour vérifier le token d'application (applicative authentication)
@@ -129,15 +128,48 @@ class Authentication {
   //   return user;
   // }
 
+  async hashTokenWithBCrypt(payload, salt) {
+    return await bcrypt.hash(payload, salt);
+  }
+  async verifyHashTokenWithBCrypt(unhashedToken, hashedToken) {
+    return await bcrypt.compare(unhashedToken, hashedToken);
+  }
+
+  generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
+    const userPayload = user.dataValues ?? user;
+    const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
+    return generateJWTToken({...userPayload, maxAge: '350d', exp: expTime}, expirationDuration, secret);
+  }
+
+  generateUserRefreshToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
+    return this.generateUserToken(context, user, expirationDuration, appConfig.userRefreshTokenSalt);
+  }
+  
+  generateUserAccessToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
+    return this.generateUserToken(context, user, expirationDuration, appConfig.userAccessTokenSalt);
+  }
+
+  generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
+    return generateJWTToken(app, expirationDuration, secret);
+  }
+
+  verifyUserToken(context, userToken, secret = appConfig.userJWTSecretSalt) {
+    return verifyJWTToken(userToken, secret);
+  }
+
+  verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) {
+    return verifyJWTToken(appToken, secret);
+  }
+
   // Fonction pour générer un token JWT pour un utilisateur authentifié
   generateToken(context, user, expirationDuration, secret) {
-    const payload = { id: user.userID, username: user.username, plan: user.plan };
+
     const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
     try {
       const generatedToken = jwt.sign({...payload, maxAge: '350d', exp: expTime}, secret ?? this.secretKey, {algorithm: 'HS512'});
       return generatedToken;
     } catch (err) {
-      context?.logger?.error(`Error generated token: ${err}`);
+      context?.logger?.error(`Error generated token for ${JSON.stringify(user, null, 2) }: ${JSON.stringify(err, null, 2) }`);
       return null;
     }
   }
@@ -155,11 +187,13 @@ class Authentication {
   }
 
   userFromHttpHeader(appContext, req) {
-    return userFromToken(appContext, req);
+    if (!this.user) this.user = userFromToken(appContext, req);
+    return this.user; 
   }
 
   applicationFromHttpHeader(appContext, req) {
-    return applicationFromToken(appContext, req);
+    if (!this.app) this.app = applicationFromToken(appContext, req);
+    return this.app;
   }
 
   // Fonction pour vérifier si un utilisateur est connecté

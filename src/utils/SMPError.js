@@ -4,6 +4,7 @@
 class SMPError extends Error {
   constructor(message, code, extension = {}) {
     super(message);
+    this.message = message;
     this.extension = extension;
     this.code = code;
     this.name = this.constructor.name;
