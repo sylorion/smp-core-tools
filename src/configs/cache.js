@@ -48,5 +48,5 @@ if (!cacheConfig.host){
   getAsync      = promisify(client.get).bind(client);
   setAsync      = promisify(client.set).bind(client);
 }
-const cache = { ...client, getAsync, setAsync, promiseClient }
+const cache = { client, getAsync, setAsync, promiseClient }
 export { cache };
