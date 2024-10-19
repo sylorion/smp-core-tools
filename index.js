@@ -28,14 +28,14 @@ export {
 
 export { appConfig, gRPCConfig, dbConfig, cacheConfig,rabbitMQConfig } from './src/configs/env.js';
 export { getRequestLogger, logger } from './src/configs/logger.js';
-export {   generateUserToken,
+export {   generateUserToken, Authentication,
   generateAppToken,
   hashKeyWithArgon,
   verifyKeyWithArgon,
   verifyUserToken,
   verifyAppToken,
   verifyHashTokenWithBCrypt,
-  hashTokenWithBCrypt } from './src/utils/authentication.js';
+  hashTokenWithBCrypt, applicationFromToken, userFromToken } from './src/utils/authentication.js';
 // export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
 export { entityCreator, entityUpdater, saveAndPublishEntity, updateAndPublishEntity } from './src/utils/entityMutation.js'
@@ -47,5 +47,5 @@ export {StripeUtils} from './src/SMPPayment/stripe.js'
 export {
     requestCounter,
 } from './src/middleware/monitor.js';
-export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken, applicationFromToken, userFromToken
+export { requestUUIDMiddleware, useAppAuth, checkUserToken, checkAppToken
 } from './src/middleware/requestMiddleware.js';
