@@ -150,6 +150,12 @@ class Authentication {
   generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
     return generateJWTToken(app, expirationDuration, secret);
   }
+  generateAppRefreshToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration) {
+    return generateAppToken(context, app, expirationDuration, appConfig.appRefreshTokenSalt);
+  }
+  generateAppAccessToken(context, app, expirationDuration = appConfig.appAccessTokenDuration) {
+    return generateAppToken(context, app, expirationDuration, appConfig.appAccessTokenSalt);
+  }
   
   verifyUserToken(context, userToken, secret = appConfig.userJWTSecretSalt) {
     return verifyJWTToken(userToken, secret);
