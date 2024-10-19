@@ -1,15 +1,16 @@
 // src/utils/authentication.js
 import pkgjwt from 'jsonwebtoken'; 
 import { cache } from '../configs/cache.js';
-import { appConfig } from "../configs/env.js"; 
+import { appConfig } from '../../src/configs/env.js'; 
+import { appTokens } from '../../src/configs/appTokens.js'; 
 import pkgargon2 from 'argon2'; 
 import bcrypt from 'bcryptjs';
 
-export const hashPassword = (password, salt = 12) => bcrypt.hash(password, salt);
-export const comparePassword = (password, hashed) => bcrypt.compare(password, hashed);
-
 const jwt = pkgjwt;
 const argon2 = pkgargon2;
+
+export const hashPassword = (password, salt = 12) => bcrypt.hash(password, salt);
+export const comparePassword = (password, hashed) => bcrypt.compare(password, hashed);
 
 const argonConfig = {
   type: argon2.argon2id,
@@ -60,7 +61,122 @@ function verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) 
   return verifyJWTToken(appToken, secret);
 }
 
+
+// Middleware pour vérifier le token d'utilisateur (user authentication)
+function userFromToken(context, req) {
+  const userToken = req.headers['authorization'] ?? req.headers['Authorization'];
+  if (!userToken || !userToken.startsWith('Bearer ')) {
+    if (appConfig.envExc != "prod") {
+      context.logger.error("======== NO BEARER FOR USER UNDETECTED ========="); 
+      context.logger.log(`Nouvelle requête de ${req.ip} depuis ${req.headers.origin} + referrer :\n ${req.headers.referer} `);
+    }
+  } else {
+    // Extraction et vérification du token JWT from Bearer prefix
+    const token = userToken.split(' ')[1];
+    jwt.verify(token, appConfig.userAccessTokenSalt, (err, decoded) => {
+      if (err && appConfig.envExc == "prod" ) {
+        context.logger.error("======== UNABLE TO VERIFY BEARER FOR USER =========");
+      }
+      req.headers["user"] = decoded; 
+      return decoded;
+    });
+  }
+  return null;
+}
+
+// Middleware pour vérifier le token d'application (applicative authentication)
+function applicationFromToken(appContext, req) {
+  const apIDToken = req.headers[appConfig.defaultXAppAPIIdName];
+  const appToken  = appTokens[apIDToken]
+  const token     = req.headers[appConfig.defaultXAppAPITokenName] ?? appToken;
+  if ((token) ) {
+    return jwt.verify(token, appConfig.appAccessTokenSalt, null, (err, decoded) => {
+      if (err) {
+        appContext.error(`======== INVALID APPLICATION TOKEN DETECTED =========`);
+        appContext.error(JSON.stringify(token, null, 2));
+      }
+      req.headers[appConfig.defaultXApplicationStructure] = decoded; 
+      return decoded;
+    }); 
+  }
+  return null;
+}
+
+class Authentication {
+  constructor() {
+    this.cachedUsers = [];
+    this.user = undefined;
+    this.app = undefined;
+    this.cachedTokens = [];
+    this.secretKey = appConfig.userJWTSecretSalt;
+  }
+
+  // // Fonction pour créer un nouveau compte utilisateur
+  // createUser(username, password) {
+  //   const hashedPassword = bcrypt.hashSync(password, 10);
+  //   const user = new User({
+  //     username,
+  //     password: hashedPassword,
+  //   });
+  //   this.users.push(user);
+  //   return user;
+  // }
+
+  // // Fonction pour authentifier un utilisateur en base sur son mot de passe
+  // authenticateUser(username, password, login) {
+  //   const user = this.users.find((user) => user.username === username && bcrypt.compareSync(password, user.password));
+  //   if (!user) return null;
+  //   return user;
+  // }
+
+  // Fonction pour générer un token JWT pour un utilisateur authentifié
+  generateToken(context, user, expirationDuration, secret) {
+    const payload = { id: user.userID, username: user.username, plan: user.plan };
+    const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
+    try {
+      const generatedToken = jwt.sign({...payload, maxAge: '350d', exp: expTime}, secret ?? this.secretKey, {algorithm: 'HS512'});
+      return generatedToken;
+    } catch (err) {
+      context?.logger?.error(`Error generated token: ${err}`);
+      return null;
+    }
+  }
+
+  // Fonction pour vérifier si un token est valide
+  verifyToken(context, token) {
+    try {
+      const decoded = jwt.verify(token, this.secretKey, {algorithm: 'HS512'});
+      if (!decoded.userID || !decoded.username || !decoded.plan) return null;
+      return decoded;
+    } catch (err) {
+      context?.logger?.error(`Error verifying token: ${err}`);
+      return null;
+    }
+  }
+
+  userFromHttpHeader(appContext, req) {
+    return userFromToken(appContext, req);
+  }
+
+  applicationFromHttpHeader(appContext, req) {
+    return applicationFromToken(appContext, req);
+  }
+
+  // Fonction pour vérifier si un utilisateur est connecté
+  isConnected(user) {
+    return user && this.tokens[user._id];
+  }
+
+  // Fonction pour supprimer un token JWT
+  deleteToken(userId) {
+    if (!this.tokens[userId]) return;
+    delete this.tokens[userId];
+  }
+}
+
+
 export {
+  Authentication,
   generateUserToken,
   generateAppToken,
   hashKeyWithArgon,
@@ -68,5 +184,5 @@ export {
   verifyUserToken,
   verifyAppToken,
   verifyHashTokenWithBCrypt,
-  hashTokenWithBCrypt
+  hashTokenWithBCrypt, applicationFromToken, userFromToken
 };
