@@ -206,6 +206,11 @@ class Authentication {
     return this.app;
   }
 
+  userRetrieveRoles(appContext, req) {
+    if (!this.app) this.app = applicationFromToken(appContext, req);
+    return this.app;
+  }
+
   // Fonction pour vérifier si un utilisateur est connecté
   isConnected(user) {
     return user && this.tokens[user._id];
