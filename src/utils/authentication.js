@@ -8,7 +8,6 @@ import bcrypt from 'bcryptjs';
 
 const jwt = pkgjwt;
 const argon2 = pkgargon2;
-
 export const hashPassword = (password, salt = 12) => bcrypt.hash(password, salt);
 export const comparePassword = (password, hashed) => bcrypt.compare(password, hashed);
 
@@ -41,26 +40,21 @@ function verifyJWTToken(token, secret) {
   const verifResult = jwt.verify(token, secret, {algorithm: 'HS512'});
   return verifResult;
 }
-
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
   const userPayload = user.dataValues ?? user;
   context?.logger?.info(`Payload: ${JSON.stringify(user)}, expiration duration: ${expirationDuration}, Salt Secret: ${secret}`);
   return generateJWTToken(userPayload, expirationDuration, secret);
 }
-
 function generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
   return generateJWTToken(app, expirationDuration, secret);
 }
-
 function verifyUserToken(context, userToken, secret = appConfig.userJWTSecretSalt) {
   context?.logger?.info(`User Refresh Token to check: ${userToken}, Secret to use: ${secret}`);
   return verifyJWTToken(userToken, secret);
 }
-
 function verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) {
   return verifyJWTToken(appToken, secret);
 }
-
 
 // Middleware pour vérifier le token d'utilisateur (user authentication)
 function userFromToken(context, req, secret = appConfig.userAccessTokenSalt) {
@@ -146,7 +140,6 @@ class Authentication {
   generateUserAccessToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
     return this.generateUserToken(context, user, expirationDuration, appConfig.userAccessTokenSalt);
   }
-
   generateAppToken(context, app, expirationDuration = appConfig.appRefreshTokenDuration, secret = appConfig.appJWTSecretSalt) {
     return generateJWTToken(app, expirationDuration, secret);
   }
@@ -166,7 +159,6 @@ class Authentication {
   verifyUserAccessToken(context, userAccessToken) {
     return verifyUserToken(context, userAccessToken, appConfig.userAccessTokenSalt);
   }
-
   verifyAppToken(context, appToken, secret = appConfig.appJWTSecretSalt) {
     return verifyJWTToken(appToken, secret);
   }
@@ -200,17 +192,14 @@ class Authentication {
     if (!this.user) this.user = userFromToken(appContext, req);
     return this.user; 
   }
-
   applicationFromHttpHeader(appContext, req) {
     if (!this.app) this.app = applicationFromToken(appContext, req);
     return this.app;
   }
-
   userRetrieveRoles(appContext, req) {
     if (!this.app) this.app = applicationFromToken(appContext, req);
     return this.app;
   }
-
   // Fonction pour vérifier si un utilisateur est connecté
   isConnected(user) {
     return user && this.tokens[user._id];
