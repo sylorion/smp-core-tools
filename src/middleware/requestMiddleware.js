@@ -6,7 +6,7 @@ import { appTokens } from '../../src/configs/appTokens.js';
 import { default as jwt } from 'jsonwebtoken'; 
 
 function useAppAuth(req, res, next) {
-  if (!req.getHeader(appConfig.defaultXAppAPIKeyName)) {
+  if (!req.headers[appConfig.defaultXAppAPIKeyName]) {
     res.status = 401;
     res.headers[appConfig.defaultXAppRequestIDKeyName] = req.headers[appConfig.defaultXAppRequestIDKeyName];
   }
