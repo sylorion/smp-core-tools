@@ -227,7 +227,24 @@ async function entityByUniqKey(entityContext, appContext) {
   }
 }
 
-
+/**
+ * Helper to create entity with a given entity managing description and a app context
+ * @replace entityByIDs; entiyBySlugs; entityByUniqRefs
+ * @example ```
+    const entityConf = {
+      entityName: "EntityName", 
+      entityUniqKeyName: "fieldName",
+      entityUniqKeyValues: fieldArrayValues, 
+      entityModel: entityModelObject, 
+      eventKey: entityEventKey,
+      entityPublisherFn: async (_, conf, msg) => await context.event.publish(conf.eventKey, msg),
+    }; 
+    return entityByUniqKeys(entityConf, context)
+    ```
+ * @param {EntityManagingDescription} entityContext - The given parameter from the query client
+ * @param {GraphQLContextType} appContext - the graphQL context of the current query
+ * @return {[AnyEntity]|Error} - The retrieved entity 
+ */
 async function entityByUniqKeys(entityContext, { pagination = {}, sort = {}, filter = [] }, appContext) {
   const uniqKeysFilter = {
     field: entityContext.entityUniqKeyName,
