@@ -123,7 +123,8 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
  */
 const unavigableEntityList = async (context, cb, filters = []) => navigateEntityList(context, cb, filters, {}, {});
 
-/**
+/**`
+ * @deprecated use entityByUniqKeys instead
  * Helper to create entity with a given entity managing description and a app context
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
  * @param {Any} params - The actual arguments to consider for the describted entity
@@ -140,7 +141,6 @@ async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = 
     field: entityContext.entityIDName,
     value: ids.map(id => parseInt(id)),
     operator: "=",
-
   }
   const findEntities = async (options) => (entityContext.entityModel).findAll(options) ;
 
@@ -206,10 +206,10 @@ async function entityByID(entityContext, entityID, appContext) {
   }
 }
 
-async function entityByUniqKey(entityContext, entityUnidKeyName, entityUniqValue, appContext) {
+async function entityByUniqKey(entityContext, appContext) {
   try {
     appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${entityUnidKeyName} = ${entityUniqValue}`)
-    const filter = {field: entityUnidKeyName, operator:"=", value:entityUniqValue};
+    const filter = {field: entityContext.entityUniqKeyName, operator:"=", value: entityContext.entityUniqKeyValue};
     const whereClause = buildWhereClause([filter]);
     appContext.logger.info(`entityByUniqKey:: whereClause: ${JSON.stringify(whereClause)}`);
     const foundEntity = await (entityContext.entityModel).findOne(appendLoggingContext({where:whereClause}, appContext));
@@ -227,11 +227,34 @@ async function entityByUniqKey(entityContext, entityUnidKeyName, entityUniqValue
   }
 }
 
+
+async function entityByUniqKeys(entityContext, { pagination = {}, sort = {}, filter = [] }, appContext) {
+  const uniqKeysFilter = {
+    field: entityContext.entityUniqKeyName,
+    value: entityContext.entityUniqKeyName == entityContext.entityIDName ? ids.map(id => parseInt(id)) : entityContext.entityUniqKeyValues,
+    operator: "=",
+  }
+  const findEntities = async (options) => (entityContext.entityModel).findAll(options) ;
+
+  try {
+    const listingEntities = await navigateEntityList(appContext, findEntities , [uniqKeysFilter, ...filter], pagination, sort)
+    if(entityContext.entityPublisherFn){
+      entityContext.entityPublisherFn(appContext, entityContext, listingEntities);
+    }
+    return listingEntities
+  } catch(error) {
+    const msgErr = `Error fetching for uniq keys from ${entityContext.entityName}: ${error}`;
+    appContext.logger?.error(msgErr);
+    throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+  } 
+}
+
+
 export { 
   buildWhereClause,
   buildOrderClause,
   buildPaginationClause,
-  unavigableEntityList, entityByID, entityByUniqKey,
+  unavigableEntityList, entityByID, entityByUniqKey, entityByUniqKeys,
   navigateEntityList, appendLoggingContext,
   entityListing, entityListingByIDs
 }

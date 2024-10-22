@@ -23,7 +23,7 @@ export {
     buildPaginationClause, 
     unavigableEntityList,
     navigateEntityList, appendLoggingContext,
-    entityListingByIDs, entityByID, entityListing, entityByUniqKey
+    entityListingByIDs, entityByID, entityListing, entityByUniqKey, entityByUniqKeys
 } from './src/utils/entityLoader.js'
 
 export { appConfig, gRPCConfig, dbConfig, cacheConfig,rabbitMQConfig } from './src/configs/env.js';
