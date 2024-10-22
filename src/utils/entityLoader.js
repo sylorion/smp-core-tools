@@ -90,6 +90,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
     if (Array.isArray(filters)) {
       flts = filters
     }
+    context.logger.info(`navigateEntityList:: filters: ${JSON.stringify(flts)}`);
     const whereClause = buildWhereClause(flts); 
     const orderClause = buildOrderClause(sort); 
     const { limit: limit, offset: offset } = buildPaginationClause(pagination);
@@ -100,7 +101,7 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
       where: whereClause,
     }, context)
     let msgErr
-    const entities = await cb(options)
+    const entities = await cb(options) 
     if (entities.length == 0) { 
       msgErr = 'navigateEntityList:: No listing found.';
       context?.logger?.error(msgErr); 
@@ -153,18 +154,18 @@ async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = 
  * @return {[AnyEntity]|Error} - The listed entities in conformance to the model 
  */
 async function entityListing(entityContext, { pagination = {}, sort = {}, filter = [] }, appContext, infos) {
-  const findEntities = async (options) => { (entityContext.entityModel).findAll(options) }
+  const findEntities = async (options) => (entityContext.entityModel).findAll(options) ;
   // Security for filter some time user provide {} instead of [] or [{}]
   try {
-    const listingEntities = await navigateEntityList(appContext, findEntities , filters, pagination, sort)
-    if(entityContext.event){
-      entityContext.event.publish(entityContext.entityListingTopic, entityContext.entityPublisherFn(appContext, entityContext, listingEntities));
+    const listingEntities = await navigateEntityList(appContext, findEntities , filter, pagination, sort)
+    if(entityContext.entityPublisherFn){
+      entityContext.entityPublisherFn(appContext, entityContext, listingEntities);
     }
-    return response
+    return listingEntities
   } catch(error) {
     const msgErr = `Error fetching ${entityContext.entityName}:   ${error}`;
-    context.logger.error(msgErr);
-    throw error
+    appContext.logger?.error(msgErr);
+    throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
   }
 }
 
