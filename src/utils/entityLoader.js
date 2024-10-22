@@ -196,12 +196,30 @@ async function entityByID(entityContext, entityID, appContext) {
       return foundEntity
     } else {
       const msgErr = `Error fetching ${entityContext.entityName}`;
-      context.logger.error(msgErr);
+      appContext.logger.error(msgErr);
       throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
     }
   } catch (error) {
     const msgErr = `Error fetching ${entityContext.entityName} : ${error} `;
-    context.logger.error(msgErr);
+    appContext.logger.error(msgErr);
+    throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+  }
+}
+
+async function entityByUniqKey(entityContext, entityUnidKeyName, entityUniqValue, appContext) {
+  try {
+    appContext.logger.info(`Retrieve ${entityContext.entityName} details  + ${entityID}`)
+    const foundEntity = await (entityContext.entityModel).findOne(appendLoggingContext({where: {field: entityUnidKeyName, operator: Op.eq}}, appContext));
+    if (foundEntity) {
+      return foundEntity
+    } else {
+      const msgErr = `Error fetching ${entityContext.entityName}`;
+      appContext.logger.error(msgErr);
+      throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+    }
+  } catch (error) {
+    const msgErr = `Error fetching ${entityContext.entityName} : ${error} `;
+    appContext.logger.error(msgErr);
     throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
   }
 }
@@ -210,7 +228,7 @@ export {
   buildWhereClause,
   buildOrderClause,
   buildPaginationClause,
-  unavigableEntityList, entityByID,
+  unavigableEntityList, entityByID, entityByUniqKey,
   navigateEntityList, appendLoggingContext,
   entityListing, entityListingByIDs
 }
