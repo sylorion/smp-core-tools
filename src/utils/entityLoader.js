@@ -208,7 +208,7 @@ async function entityByID(entityContext, entityID, appContext) {
 
 async function entityByUniqKey(entityContext, appContext) {
   try {
-    appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${entityUnidKeyName} = ${entityUniqValue}`)
+    appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${entityUniqKeyName} = ${entityUniqValue}`)
     const filter = {field: entityContext.entityUniqKeyName, operator:"=", value: entityContext.entityUniqKeyValue};
     const whereClause = buildWhereClause([filter]);
     appContext.logger.info(`entityByUniqKey:: whereClause: ${JSON.stringify(whereClause)}`);
