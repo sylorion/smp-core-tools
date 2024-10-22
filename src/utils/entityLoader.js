@@ -137,12 +137,24 @@ async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = 
   }
   // If so let do it generaly
   const idsFilter = {
-    field: entityContext.entityIDFieldName,
+    field: entityContext.entityIDName,
     value: ids.map(id => parseInt(id)),
-    operator: "="
+    operator: "=",
+
   }
-  const resultingArray = entityContext.entityListingTopicFn(parent, { pagination: pagination, sort: sort, filter: [idsFilter, ...filter] }, context, infos)
-  return resultingArray
+  const findEntities = async (options) => (entityContext.entityModel).findAll(options) ;
+
+  try {
+    const listingEntities = await navigateEntityList(appContext, findEntities , [idsFilter, ...filter], pagination, sort)
+    if(entityContext.entityPublisherFn){
+      entityContext.entityPublisherFn(appContext, entityContext, listingEntities);
+    }
+    return listingEntities
+  } catch(error) {
+    const msgErr = `Error fetching ${entityContext.entityName}:   ${error}`;
+    appContext.logger?.error(msgErr);
+    throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+  } 
 }
 
 /**
