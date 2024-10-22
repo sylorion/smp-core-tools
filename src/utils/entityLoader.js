@@ -113,6 +113,13 @@ async function navigateEntityList(context, cb, filters = [], pagination = {}, so
   }
 }
 
+/**
+ * @deprecated
+ * @param {*} context 
+ * @param {*} cb 
+ * @param {*} filters 
+ * @returns 
+ */
 const unavigableEntityList = async (context, cb, filters = []) => navigateEntityList(context, cb, filters, {}, {});
 
 /**
@@ -146,13 +153,12 @@ async function entityListingByIDs(entityContext, { ids, pagination = {}, sort = 
  * @return {[AnyEntity]|Error} - The listed entities in conformance to the model 
  */
 async function entityListing(entityContext, { pagination = {}, sort = {}, filter = [] }, appContext, infos) {
-  const findProfiles = async (options) => { (entityContext.entityModel).findAll(options) }
+  const findEntities = async (options) => { (entityContext.entityModel).findAll(options) }
   // Security for filter some time user provide {} instead of [] or [{}]
-  const filters = Array.isArray(filter) ? filter : []
   try {
-    const response = await navigateEntityList(context, findProfiles , pagination, sort, filters)
+    const listingEntities = await navigateEntityList(appContext, findEntities , filters, pagination, sort)
     if(entityContext.event){
-      entityContext.event.publish(entityContext.entityListingTopic, entityContext.entityListingTopicFn(response));
+      entityContext.event.publish(entityContext.entityListingTopic, entityContext.entityPublisherFn(appContext, entityContext, listingEntities));
     }
     return response
   } catch(error) {
@@ -170,27 +176,20 @@ async function entityListing(entityContext, { pagination = {}, sort = {}, filter
  * @return {[AnyEntity]|Error} - The retrieved entity 
  */
 async function entityByID(entityContext, entityID, appContext) {
-  if (appContext.db && appContext.logger) {
-    try {
-      appContext.logger.info(`Retrieve ${entityContext.entityName} details  + ${entityID}`)
-      const foundEntity = await Profile.findByPk(entityID, appendLoggingContext({}, context));
-      if (foundEntity) {
-        return foundEntity
-      } else {
-        const msgErr = `Error fetching ${entityContext.entityName}`;
-        context.logger.error(msgErr);
-        throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
-      }
-    } catch (error) {
-      const msgErr = `Error fetching ${entityContext.entityName} : ${error} `;
+  try {
+    appContext.logger.info(`Retrieve ${entityContext.entityName} details  + ${entityID}`)
+    const foundEntity = await (entityContext.entityModel).findByPk(entityID, appendLoggingContext({}, appContext));
+    if (foundEntity) {
+      return foundEntity
+    } else {
+      const msgErr = `Error fetching ${entityContext.entityName}`;
       context.logger.error(msgErr);
       throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
     }
-  } else {
-    const msgErr = `context.db && context.logger is not true`;
-    // Not sur we have the correct error
-    console.error(msgErr);
-    throw SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
+  } catch (error) {
+    const msgErr = `Error fetching ${entityContext.entityName} : ${error} `;
+    context.logger.error(msgErr);
+    throw new SMPError(msgErr, entityContext.errorCodeEntityListingFaillure)
   }
 }
 
