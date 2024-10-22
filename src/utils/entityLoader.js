@@ -1,7 +1,7 @@
 // src/utils/dataloader.js
 // Used for where clause parsing
 import DataLoader                    from 'dataloader';
-import { Sequelize, DataTypes, Op }  from 'sequelize';
+import { Sequelize, DataTypes, Op}  from 'sequelize';
 import { SMPError, DBaseAccesError } from '../utils/SMPError.js';
 
 
@@ -208,8 +208,11 @@ async function entityByID(entityContext, entityID, appContext) {
 
 async function entityByUniqKey(entityContext, entityUnidKeyName, entityUniqValue, appContext) {
   try {
-    appContext.logger.info(`Retrieve ${entityContext.entityName} details  + ${entityID}`)
-    const foundEntity = await (entityContext.entityModel).findOne(appendLoggingContext({where: {field: entityUnidKeyName, operator: Op.eq}}, appContext));
+    appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${entityUnidKeyName} = ${entityUniqValue}`)
+    const filter = {field: entityUnidKeyName, operator:"=", value:entityUniqValue};
+    const whereClause = buildWhereClause([filter]);
+    appContext.logger.info(`entityByUniqKey:: whereClause: ${JSON.stringify(whereClause)}`);
+    const foundEntity = await (entityContext.entityModel).findOne(appendLoggingContext({where:whereClause}, appContext));
     if (foundEntity) {
       return foundEntity
     } else {
