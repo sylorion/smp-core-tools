@@ -108,6 +108,10 @@ const SMPEvents = {
   Document: {
     Media: generateCrudOperations('Document.Media'),
   },
+
+  Location: {
+    Place: generateCrudOperations('Location.Place'),
+  },
 };
 
 Object.freeze(SMPEvents);
