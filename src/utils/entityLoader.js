@@ -208,11 +208,11 @@ async function entityByID(entityContext, entityID, appContext) {
 
 async function entityByUniqKey(entityContext, appContext) {
   try {
-    appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${ entityContext.entityUniqKeyName} = ${ entityContext.entityUniqKeyValue}`)
-    const filter = {field: entityContext.entityUniqKeyName, operator:"=", value: entityContext.entityUniqKeyValue};
-    const whereClause = buildWhereClause([filter]);
-    appContext.logger.info(`entityByUniqKey:: whereClause: ${JSON.stringify(whereClause)}`);
-    const foundEntity = await (entityContext.entityModel).findOne(appendLoggingContext({where:whereClause}, appContext));
+    // appContext.logger.info(`Retrieve ${entityContext.entityName} details for ${ entityContext.entityUniqKeyName} = ${ entityContext.entityUniqKeyValue}`)
+    const foundEntity = 
+    entityContext.entityUniqKeyName == entityContext.entityIDName 
+    ? await (entityContext.entityModel).findByPk(entityContext.entityUniqKeyValue, appendLoggingContext({}, appContext))
+    : await (entityContext.entityModel).findOne(appendLoggingContext({where: buildWhereClause([{field: entityContext.entityUniqKeyName, operator:"=", value: entityContext.entityUniqKeyValue}])}, appContext));
     if (foundEntity) {
       return foundEntity
     } else {
