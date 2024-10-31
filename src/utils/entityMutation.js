@@ -173,11 +173,11 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
     }
 
     // Assign UUID-based unique reference to the entity
-    if(!mEntity.uniqRef){
+    if(!newEntity.uniqRef){
       if (entityContext.entityModel && undefined !== entityContext.entityModel.uuid) {
-        mEntity.uniqRef = entityContext.entityModel.uuid();
+        newEntity.uniqRef = entityContext.entityModel.uuid();
       } else if (mEntity.entityModelUUIDFn) {
-        mEntity.uniqRef = mEntity.entityModelUUIDFn();
+        newEntity.uniqRef = newEntity.entityModelUUIDFn();
       } else {
         appContext.logger.error(`Failed to generate UUID for ${entityContext.entityName}\nNo function provided for UUID generation`);
       }
