@@ -241,7 +241,7 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
     }
 
     // Commit de la transaction si elle existe
-    if (entityContext.entityTransactionCommitFn) {
+    if (entityContext.entityDefinedTransaction && entityContext.entityTransactionCommitFn) {
       await entityContext.entityTransactionCommitFn(transaction);
     }
 
@@ -250,7 +250,7 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
   } catch (error) {
     appContext.logger.error(`Error in saveAndPublishEntity for "${entityContext.entityName}": ${error.message}`, { error });
     // Rollback de la transaction en cas d'erreur
-    if (entityContext.entityTransactionRollbackFn) {
+    if (entityContext.entityDefinedTransaction && entityContext.entityTransactionRollbackFn) {
       await entityContext.entityTransactionRollbackFn(transaction);
     }
     if (error instanceof SMPError) {
