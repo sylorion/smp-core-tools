@@ -73,10 +73,11 @@ const SMPEvents = {
   },
 
   Accounting: {
-    Invoice: generateCrudOperations('Accounting.Invoice'),
+    Invoice: generateCrudOperations('Accounting.Invoice', { paid: 'Accounting.Invoice.paid' }, { paymentFailed: 'Accounting.Invoice.paymentFailed' }),
     Estimate: generateCrudOperations('Accounting.Estimate'),
     Transaction: generateCrudOperations('Accounting.Transaction'),
     EstimateAsset: generateCrudOperations('Accounting.EstimateAsset'),
+    InvoicePaymentIntent:{ created: 'Accounting.InvoicePaymentIntent.created' },
   },
 
   Notification: {
