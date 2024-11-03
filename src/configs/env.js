@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const secretPath = (new String(process.env.SMP_ROOT_SECRETS_FOLDER ?? '../run/secrets/')).toString();
 const databaseUsed = (new String(process.env.SMP_MAIN_DATABASE_USED ?? 'postgresql')).toString();
 
-const acces_token_max_duration = 86400 // 60*60*24 => 24h in second
-const refresh_token_max_duration = 2592000 // 60*60 * 24 * 30 => 30d ~ 1 month
+const acces_token_max_duration = 86400000 // 60*60*24 => 24h in second
+const refresh_token_max_duration = 259200000 // 60*60 * 24 * 30 => 30d ~ 1 month
 
 var env;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'develop'
@@ -41,10 +41,9 @@ const smp_app_jwt_secret_salt = process.env.SMP_APP_JWT_SECRET ;
 const smp_app_access_secret_salt = process.env.SMP_APP_JWT_ACCESS_SECRET || smp_app_jwt_secret_salt ; 
 const smp_app_refresh_secret_salt = process.env.SMP_APP_JWT_REFRESH_SECRET || smp_app_access_secret_salt ; 
 
-
-const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCES_TOKEN_DURATION ;
+const smp_user_jwt_access_token_duration = process.env.SMP_USER_ACCESS_TOKEN_DURATION ;
 const smp_user_jwt_refresh_token_duration = process.env.SMP_USER_REFRESH_TOKEN_DURATION ;
-const smp_app_jwt_acces_token_duration = process.env.SMP_APP_ACCES_TOKEN_DURATION ;
+const smp_app_jwt_access_token_duration = process.env.SMP_APP_ACCESS_TOKEN_DURATION ;
 const smp_app_jwt_refresh_token_duration = process.env.SMP_APP_REFRESH_TOKEN_DURATION ;
 
 /**
@@ -256,9 +255,9 @@ const dbConfig = {
 // Cache System Config Object
 //
 const cacheConfig = {
-  host: process.env.SMP_REDIS_HOSTNAME ?? (process.env.REDIS_HOST || 'localhost'),
-  port: parseInt(`${process.env.REDIS_PORT || '6379'}`, 10),
-  username: process.env.SMP_MU_REDIS_USER ?? ( process.env.REDIS_USER || undefined),
+  host: process.env.SMP_MU_REDIS_HOSTNAME ?? (process.env.REDIS_HOST || 'localhost'),
+  port: parseInt(`${process.env.SMP_MU_REDIS_PORT  ?? (process.env.REDIS_PORT || '6379')}`, 10),
+  username: process.env.SMP_MU_REDIS_USER ?? ( process.env.REDIS_USER ||"admin"),
   password: process.env.SMP_MU_REDIS_PASSWORD ?? (process.env.REDIS_PASSWORD|| undefined),
 }
 
@@ -295,13 +294,13 @@ const appConfig = {
   userAccessTokenSalt: smp_user_access_secret_salt || "",
   userRefreshTokenSalt: smp_user_refresh_secret_salt || "",
   appJWTSecretSalt: smp_app_jwt_secret_salt || "", 
-  appAccesTokenSalt: smp_app_access_secret_salt || "" ,
+  appAccessTokenSalt: smp_app_access_secret_salt || "" ,
   appRefreshTokenSalt: smp_app_refresh_secret_salt || "" ,
  
   // Duration information for AuthN
   sensitiveCachedDataDuration: process.env.SMP_MU_SENSITIVE_CACHED_DATA_DURATION || acces_token_max_duration,
   userAccessTokenDuration: smp_user_jwt_access_token_duration || acces_token_max_duration,
-  appAccesTokenDuration: smp_app_jwt_acces_token_duration || acces_token_max_duration ,
+  appAccessTokenDuration: smp_app_jwt_access_token_duration || acces_token_max_duration ,
   userRefreshTokenDuration: smp_user_jwt_refresh_token_duration || refresh_token_max_duration, 
   appRefreshTokenDuration: smp_app_jwt_refresh_token_duration || refresh_token_max_duration,
   userAccessTokenMaxDuration: acces_token_max_duration,
@@ -313,10 +312,12 @@ const appConfig = {
   verboseLevel: computeVerbosityLevel(debug),
   defaultCurrencyDevice: process.env.APP_DEFAULT_CURRENCY_DEVICE || "EUR",
   defaultXGraphqlServerName: process.env.APP_DEFAULT_X_GRAPHQL_SERVER || requestServerSpelling,
-  defaultXAppAPIKeyTitleName: process.env.APP_DEFAULT_X_APP_API_KEY_TITLE_NAME || 'x-services-app-name',
-  defaultXAppAPIKeyIdName: process.env.APP_DEFAULT_X_APP_API_KEY_ID_NAME || 'x-services-app-id',
-  defaultXAppAPIKeyTokenName: process.env.APP_DEFAULT_X_APP_API_KEY_TOKEN_NAME || 'x-services-app-token',
+  defaultXAppAPITitleName: process.env.APP_DEFAULT_X_APP_API_TITLE_NAME || 'x-services-app-name',
+  defaultXAppAPIIdName: process.env.APP_DEFAULT_X_APP_API_ID_NAME || 'x-services-app-id',
+  defaultXAppAPITokenName: process.env.APP_DEFAULT_X_APP_API_TOKEN_NAME || 'x-services-app-token',
+  defaultXAppAPIKeyName: process.env.APP_DEFAULT_X_APP_API_KEY_NAME || 'x-services-app-key',
   defaultXAppRequestIDKeyName: process.env.APP_DEFAULT_X_APP_REQUEST_ID_KEY_NAME || 'x-services-request-id',
+  defaultXApplicationStructure: process.env.APP_DEFAULT_X_APPLICATION_STRUCTURE || 'x-services-application',
 }
 
 const rabbitMQConfig = {

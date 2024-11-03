@@ -1,67 +1,72 @@
 
-function keyFor(initialKey, customEvents = {}) {
-  const cacheKeyGenFn = (appId = 1, entityID, userID = undefined) => {
-    if (userID) {
-      return `app:${appId}:u:${userID}:${initialKey}:${entityID}` ;
-    } else {
+function keyFor(initialKey) {
+  const cacheKeyGenFn = (appId = 1, entityID = undefined, userID = undefined) => {
+    if (undefined === userID || (entityID !== undefined && entityID == userID)) {
       return `app:${appId}:${initialKey}:${entityID}` ;
+    } else if (undefined === userID && entityID == undefined) {
+      return `app:${appId}:u:${userID}:${initialKey}` ;
+    } else if (undefined === userID && entityID == undefined) {
+      return `app:${appId}:u:${userID}:${initialKey}` ;
+    } else {
+      return `app:${appId}:u:${userID}:${initialKey}:${entityID}` ;
     }
   }; 
   return cacheKeyGenFn;
 }
 
 export const cacheKey = {
-  user: keyFor('u'),
-  profile: keyFor('profile'),
-  paymentMethod: keyFor('pm'),
-  paymentConfig: keyFor('pc'),
-  role: keyFor('role'),
-  userPreference: keyFor('preference'),
-  organization: keyFor('org'),
-  userOrganization: keyFor('uorg'),
-  termsAndConditions: keyFor('tac'),
-  faqOrganization: keyFor('faq:org'),
-  organizationMedia: keyFor('org:media'),
-  industry: keyFor('industry'),
-  tagOrganization: keyFor('tag:org'),
-  topicOrganization: keyFor('topic:org'),
-  service: keyFor('s'),
-  criteria: keyFor('criteria'),
+  analytic: keyFor('ana'),
+  application: keyFor('app'),
+  applicationToken: keyFor('appt'),
   asset: keyFor('a'),
-  serviceAsset: keyFor('s:a'),
-  serviceMedia: keyFor('s:media'),
+  audit: keyFor('audit'),
+  authN: keyFor('authn'),
+  authZ: keyFor('authz'),
+  comment: keyFor('c'),
+  contract: keyFor('contract'),
+  criteria: keyFor('criteria'),
+  estimate: keyFor('e'),
+  estimateAsset: keyFor('e:asset'),
   faqAnswer: keyFor('faq:answer'),
+  faqOrganization: keyFor('faq:org'),
   faqQuestion: keyFor('faq:question'),
   faqService: keyFor('faq:s'),
-  serviceAttribute: keyFor('s:attr'),
-  topic: keyFor('topic'),
-  tag: keyFor('tag'),
-  receipt:keyFor('r'),
+  industry: keyFor('industry'),
   invoice: keyFor('i'),
-  reversal: keyFor('rev'),
-  estimate: keyFor('e'),
-  transaction: keyFor('t'),
-  estimateAsset: keyFor('e:asset'),
-  notification: keyFor('n'),
-  notificationTemplate: keyFor('n:template'),
-  template: keyFor('template'),
-  reviewComment:keyFor('rc'), 
-  comment: keyFor('c'),
-  review: keyFor('review'),
-  application: keyFor('app'),
-  applicationToken: keyFor('at'),
-  userToken: keyFor('ut'),
-  authZ: keyFor('authz'),
-  authN: keyFor('authn'),
-  recommandation: keyFor('rec'),
-  resetPasswordToken: keyFor('reset'),
+  joint: keyFor('joint'),
+  media: keyFor('media'),
   member: keyFor('member'),
   message: keyFor('msg'),
-  media: keyFor('media'), 
-  contract: keyFor('rec'),
-  audit: keyFor('audit'),
-  analytic: keyFor('ana'),
-  joint: keyFor('joint')
+  notification: keyFor('n'),
+  notificationTemplate: keyFor('n:template'),
+  organization: keyFor('org'),
+  organizationMedia: keyFor('org:media'),
+  paymentConfig: keyFor('pc'),
+  paymentMethod: keyFor('pm'),
+  place: keyFor('place'),
+  profile: keyFor('profile'),
+  receipt: keyFor('r'),
+  recommender: keyFor('rec'),
+  resetPasswordToken: keyFor('rpwsd'),
+  review: keyFor('review'),
+  reviewComment: keyFor('rc'),
+  reversal: keyFor('rev'),
+  role: keyFor('role'),
+  service: keyFor('s'),
+  serviceAsset: keyFor('s:a'),
+  serviceAttribute: keyFor('s:attr'),
+  serviceMedia: keyFor('s:media'),
+  tag: keyFor('tag'),
+  tagOrganization: keyFor('tag:org'),
+  template: keyFor('template'),
+  termsAndConditions: keyFor('tac'),
+  topic: keyFor('topic'),
+  topicOrganization: keyFor('topic:org'),
+  transaction: keyFor('t'),
+  user: keyFor('u'),
+  userOrganization: keyFor('uorg'),
+  userPreference: keyFor('preference'),
+  userToken: keyFor('ut')
 };
 
 

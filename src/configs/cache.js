@@ -9,7 +9,7 @@ let client
 let getAsync
 let setAsync
 let promiseClient
-if (appConfig.envExc !== 'dev'){
+if (!cacheConfig.host){
 
   getAsync = null;
   setAsync = null;
@@ -44,9 +44,9 @@ if (appConfig.envExc !== 'dev'){
 
   client.on('error', errorThrowing);
   client.on('connect', connectionEstablished) ;
-  const promiseClient = async () => client.connect() ;
-  const getAsync      = promisify(client.get).bind(client);
-  const setAsync      = promisify(client.set).bind(client);
+  promiseClient = async () => client.connect() ;
+  getAsync      = promisify(client.get).bind(client);
+  setAsync      = promisify(client.set).bind(client);
 }
 const cache = { client, getAsync, setAsync, promiseClient }
 export { cache };

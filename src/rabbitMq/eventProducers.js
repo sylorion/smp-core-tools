@@ -40,6 +40,7 @@ function generateCrudOperations(entityName, customEvents = {}) {
 const SMPEvents = {
   UserSpace: {
     User: generateCrudOperations('UserSpace.User', { deactivated: 'User.deactivated' }),
+    UserRole: generateCrudOperations('UserSpace.UserRole', { dismissed: 'UserRole.dismissed' }),
     Profile: generateCrudOperations('UserSpace.Profile'),
     PaymentMethod: generateCrudOperations('UserSpace.PaymentMethod'),
     PaymentConfig: generateCrudOperations('UserSpace.PaymentConfig'),
@@ -92,8 +93,8 @@ const SMPEvents = {
   },
 
   Authentication: {
-    Application: generateCrudOperations('Authentication.Application'),
-    ApplicationToken: generateCrudOperations('Authentication.ApplicationToken'),
+    Application: generateCrudOperations('Authentication.Application', {logged: 'Authentication.Application.logged', register: 'Authentication.Application.register', desactivated: 'Authentication.Application.desactivated', logout: 'Authentication.Application.logout'}),
+    ApplicationToken: generateCrudOperations('Authentication.ApplicationToken', {refreshed: 'Authentication.ApplicationToken.refreshed'}),
     UserToken: generateCrudOperations('Authentication.UserToken', {refreshed: 'Authentication.UserToken.refreshed'}),
     User: generateCrudOperations('Authentication.User', { deactivated: 'Authentication.User.deactivated', logged: 'Authentication.User.logged', signup: 'Authentication.User.signup', logout: 'Authentication.User.logout' }),
     AuthZ: { allowed: 'AuthZ.allowed', denied: 'AuthZ.denied', removed: 'AuthZ.removed', added: 'AuthZ.added' },
@@ -107,6 +108,10 @@ const SMPEvents = {
 
   Document: {
     Media: generateCrudOperations('Document.Media'),
+  },
+
+  Location: {
+    Place: generateCrudOperations('Location.Place'),
   },
 };
 
