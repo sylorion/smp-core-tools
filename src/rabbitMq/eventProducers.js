@@ -82,8 +82,9 @@ const SMPEvents = {
   },
 
   Notification: {
-    Notification: generateCrudOperations('Notification.Notification'),
+    Notification: generateCrudOperations('Notification.Notification', { read: 'Notification.Notification.read' }),
     NotificationTemplate: generateCrudOperations('Notification.NotificationTemplate'),
+    NotiUser: { created: 'Notification.NotiUser.created' },
   },
 
   ReviewComment: {
