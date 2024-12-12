@@ -162,59 +162,58 @@ class RabbitMQService {
       console.error('[Error]: Unable to start event handler, not connected to RabbitMQ.');
       return;
     }
-
+  
     this.verifySubscriptions(muConsumers);
-
-    // Écouter les événements pour chaque entité et chaque opération définie dans muConsumers
+  
+    // Process events for each entity and operation defined in muConsumers
     for (const [serviceName, entities] of Object.entries(muConsumers)) {
       const exchangeTopic = this.topicFromServiceName(serviceName);
+  
       try {
         await this.channel.assertExchange(exchangeTopic, 'topic', { durable: this.durable });
       } catch (error) {
         console.error(`[Error]: Failed to assert exchange ${exchangeTopic}:`, error);
         continue;
       }
-
+  
       for (const [entityName, entityConfig] of Object.entries(entities)) {
         const queueName = this.queueFromServiceAndEntityName(serviceName, entityName);
         const { operations = [] } = entityConfig;
-
+  
         for (const operation of operations) {
           const routingKey = this.routingKeyFromOperationOnEntity(serviceName, entityName, operation);
+  
           try {
             await Promise.all([
               this.channel.assertQueue(queueName, { durable: this.durable }),
-              this.channel.bindQueue(queueName, exchangeTopic, routingKey)
+              this.channel.bindQueue(queueName, exchangeTopic, routingKey),
             ]);
-            console.log(`RabbitMQ@${exchangeTopic}[${queueName}] binding routing key: ${routingKey}`);
           } catch (error) {
             console.error(`[Error]: Failed to bind queue ${queueName} with routing key ${routingKey}:`, error);
             continue;
           }
-
-          // Écoute des événements spécifiques à cette entité/opération
+  
+          // Listen for specific events for the entity/operation
           this.listenForEvents(queueName, (routingKey, eventData) => {
             if (typeof routingKey !== 'string' || !routingKey) {
               console.error(`[Error]: Invalid event received: ${routingKey}`);
               return;
             }
-
+  
             const [_, eventService, eventEntity, eventOperation] = routingKey.split('.');
-            if (eventEntity === entityName && eventOperation === operation && eventService === serviceName) {
-              // Configure callbacks for the specified entity, service, and operation
+            const normalizedEventEntity = eventEntity.toLowerCase();
+            const normalizedEntityName = entityName.toLowerCase();
+  
+            if (
+              normalizedEventEntity === normalizedEntityName &&
+              eventOperation === operation &&
+              eventService === serviceName
+            ) {
               const callbacks = this.callbackManager.configureEntityCallbacks(entityConfig, serviceName, entityName);
-              // Check if there are callbacks configured for the operation
+  
               if (callbacks[operation]) {
-                console.log(`Executing callbacks for ${entityName}.${operation}`);
-                // Execute the configured callbacks with the provided event data
                 this.callbackManager.executeCallbacks(operation, callbacks[operation], eventData);
-              } else {
-                // Log a warning if no callbacks are configured for the operation
-                console.warn(`[Warning]: No callbacks configured for ${entityName}.${operation}`);
               }
-            } else {
-              // Log a warning if the received event does not match the expected entity, operation, or service
-              console.warn(`[Warning]: Received event ${routingKey} does not match ${entityName}.${operation}`);
             }
           });
         }
