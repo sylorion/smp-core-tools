@@ -1,41 +1,61 @@
-// callbackManager.js (dans la bibliothèque partagée)
 import { createEntityInDatabase, updateEntityInDatabase, deleteEntityFromDatabase } from './handlerCRUDOperation.js';
 
 /**
- * Gestionnaire de callbacks pour chaque entité et opération.
- * Gère les callbacks CRUD et personnalisés, et vérifie les abonnements dans SMPEvents.
+ * CallbackManager class
+ * Manages CRUD and special event callbacks for each entity in a microservice.
  */
 class CallbackManager {
+  /**
+   * Initializes the CallbackManager with the models used for CRUD operations.
+   * @param {Object} models - The models to be used for CRUD operations, typically provided by an ORM like Sequelize.
+   */
   constructor(models) {
     this.models = models;
-
   }
 
   /**
-   * Configure les callbacks CRUD et personnalisés pour chaque entité, en fonction des opérations spécifiées.
-   * @param {Object} entityConfig - La configuration de l'entité dans muConsume.
-   * @param {string} serviceName - Le nom du microservice (ex: 'UserSpace').
-   * @param {string} entityName - Le nom de l'entité (ex: 'User').
-   * @returns {Object} Un objet contenant les callbacks configurés pour chaque opération.
+   * Configures callbacks for each entity based on CRUD operations and special events.
+   * Special event callbacks override CRUD callbacks for specific operations.
+   * @param {Object} entityConfig - The configuration for the entity in muConsumers.
+   * @param {string} serviceName - The name of the microservice (e.g., 'UserSpace').
+   * @param {string} entityName - The name of the entity (e.g., 'User').
+   * @returns {Object} An object containing the configured callbacks for each operation.
    */
   configureEntityCallbacks(entityConfig, serviceName, entityName) {
-    const { operations = [], customCallbacks = {} } = entityConfig;
-    const crudCallbacks = this.getCrudCallbacks(entityName);
+    const { operations = [], specialEvents = {} } = entityConfig;
     const configuredCallbacks = {};
 
-    operations.forEach((operation) => {
-      const customCallbackList = customCallbacks[operation] || [];
-      const crudCallback = crudCallbacks[operation];
-      configuredCallbacks[operation] = [...customCallbackList, crudCallback];
+    // Configure CRUD callbacks if no special event is defined for the operation
+    try {
+      const crudCallbacks = this.getCrudCallbacks(entityName);
+
+      operations.forEach((operation) => {
+        if (!specialEvents[operation]) {
+          const crudCallback = crudCallbacks[operation];
+          if (crudCallback) {
+            configuredCallbacks[operation] = [crudCallback];
+          }
+        }
+      });
+    } catch (error) {
+      console.warn(`CRUD callbacks could not be configured for entity '${entityName}': ${error.message}`);
+    }
+
+    // Add special event callbacks, overriding CRUD callbacks if necessary
+    Object.entries(specialEvents).forEach(([operation, eventDetails]) => {
+      if (eventDetails.callback && typeof eventDetails.callback === 'function') {
+        configuredCallbacks[operation] = [eventDetails.callback];
+      }
     });
+
     return configuredCallbacks;
   }
 
   /**
-   * Exécute tous les callbacks pour une opération spécifiée avec les données d'événement.
-   * @param {string} operation - Le nom de l'opération (e.g. 'created', 'updated').
-   * @param {Array<Function>} callbacks - Liste des callbacks à exécuter.
-   * @param {Object} eventData - Les données associées à l'événement.
+   * Executes all callbacks for a specified operation with the provided event data.
+   * @param {string} operation - The name of the operation (e.g., 'created', 'updated').
+   * @param {Array<Function>} callbacks - The list of callbacks to execute.
+   * @param {Object} eventData - The data associated with the event.
    */
   executeCallbacks(operation, callbacks, eventData) {
     if (callbacks && callbacks.length > 0) {
@@ -50,17 +70,20 @@ class CallbackManager {
   }
 
   /**
-   * Retourne les callbacks CRUD pour une entité donnée.
-   * @param {string} entityName - Le nom de l'entité.
-   * @returns {Object} Un objet contenant les callbacks CRUD pour chaque opération.
+   * Retrieves the CRUD callbacks for a specified entity.
+   * Each operation ('created', 'updated', 'deleted') is mapped to its corresponding handler.
+   * @param {string} entityName - The name of the entity.
+   * @returns {Object} An object containing the CRUD callbacks for each operation.
+   * @throws Will throw an error if the model for the specified entity is not found.
    */
   getCrudCallbacks(entityName) {
-    const model = this.models[entityName];
+    const normalizedEntityName = entityName.charAt(0).toUpperCase() + entityName.slice(1).toLowerCase();
+    const model = this.models[normalizedEntityName];
     if (!model) {
-      throw new Error(`Model not found for entity: ${entityName}`);
+      throw new Error(`Model not found for entity: ${normalizedEntityName}`);
     }
     return {
-      created: (data) => createEntityInDatabase(model, data), // Utilisation des fonctions CRUD de handlerCRUDOperation
+      created: (data) => createEntityInDatabase(model, data),
       updated: (data) => updateEntityInDatabase(model, data),
       deleted: (data) => deleteEntityFromDatabase(model, data.id),
     };
