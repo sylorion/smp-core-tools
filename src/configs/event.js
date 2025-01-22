@@ -104,29 +104,53 @@ class RabbitMQService {
   }
 
   /**
-   * Listens for events via RabbitMQ and triggers a callback function.
-   * @param {string} queueName - The name of the RabbitMQ queue to listen to.
-   * @param {Function} onMessage - Callback function called when messages are received.
-   */
-  async listenForEvents(queueName, onMessage) {
-    await this.connect();  
-    if (this.isConnected) {
+ * Listens for events via RabbitMQ and triggers a callback function.
+ * @param {string} queueName - The name of the RabbitMQ queue to listen to.
+ * @param {Function} onMessage - Callback function called when messages are received.
+ */
+async listenForEvents(queueName, onMessage) {
+  await this.connect();  
+  if (this.isConnected) {
+      console.log(`Connecté à RabbitMQ, écoute de la queue : "${queueName}"`);
+
+      // Déclare la queue avec une configuration durable
       await this.channel.assertQueue(queueName, { durable: true });
-      this.channel.consume(queueName, (msg) => {
-        if (msg !== null) {
-          const messageContent = JSON.parse(msg.content.toString());
-          const routingKey = msg.fields.routingKey;
-          const eventData = messageContent.data;
-          try {
-            onMessage(routingKey, eventData); 
-            this.channel.ack(msg);
-          } catch (err) {
-            this.channel.nack(msg);
+
+      // Configure le prefetch pour limiter le traitement à un message à la fois
+      this.channel.prefetch(1);
+
+      // Consommation des messages
+      this.channel.consume(queueName, async (msg) => {
+          if (msg) {
+              try {
+              
+                  const messageContent = JSON.parse(msg.content.toString());
+                  const routingKey = msg.fields.routingKey;
+
+                  // Logs essentiels
+                  console.log(`Message reçu : routingKey="${routingKey}", contenu=${JSON.stringify(messageContent)}`);
+
+          
+                  await onMessage(routingKey, messageContent.data);
+
+                  // Accuse réception
+                  this.channel.ack(msg);
+                  console.log(`Message traité et ack envoyé pour userID="${messageContent?.data?.userID}"`);
+              } catch (err) {
+                  // Gestion des erreurs
+                  console.error('Erreur lors du traitement du message :', err);
+
+                  // Rejette le message avec réinjection
+                  this.channel.nack(msg, false, true);
+                  console.warn('Message rejeté et réinséré dans la queue pour nouvel essai');
+              }
           }
-        }
       });
-    }
+
+      console.log(`Consommateur attaché à la queue "${queueName}"`);
   }
+}
+
 
   /**
    * Logs an informational message.
@@ -193,29 +217,78 @@ class RabbitMQService {
             continue;
           }
   
-          // Listen for specific events for the entity/operation
           this.listenForEvents(queueName, (routingKey, eventData) => {
             if (typeof routingKey !== 'string' || !routingKey) {
-              console.error(`[Error]: Invalid event received: ${routingKey}`);
-              return;
+                console.error(`[Error]: Invalid or missing routing key: ${routingKey}`);
+                return;
             }
-  
+        
+            // Log initial pour confirmer la réception de l’événement
+            console.log('Routing key reçue :', routingKey);
+        
+            // Extraction et vérification des parties de la routing key
             const [_, eventService, eventEntity, eventOperation] = routingKey.split('.');
+            if (!eventService || !eventEntity || !eventOperation) {
+                console.error('Routing key mal formée ou incomplète :', routingKey);
+                return;
+            }
+        
+            // Vérification si l'entité et le service correspondent
             const normalizedEventEntity = eventEntity.toLowerCase();
             const normalizedEntityName = entityName.toLowerCase();
-  
-            if (
-              normalizedEventEntity === normalizedEntityName &&
-              eventOperation === operation &&
-              eventService === serviceName
-            ) {
-              const callbacks = this.callbackManager.configureEntityCallbacks(entityConfig, serviceName, entityName);
-  
-              if (callbacks[operation]) {
-                this.callbackManager.executeCallbacks(operation, callbacks[operation], eventData);
-              }
+            if (normalizedEventEntity === normalizedEntityName && eventService === serviceName) {
+                console.log('Événement correspondant à l’entité et au service.');
+        
+                // Récupération de la configuration pour l'entité
+                const entityConfig = muConsumers[serviceName]?.[entityName];
+                if (!entityConfig) {
+                    console.error(`Aucune configuration trouvée pour le service ${serviceName} et l'entité ${entityName}`);
+                    return;
+                }
+        
+                // Gestion des événements spéciaux
+                const specialEvent = entityConfig.specialEvents?.[eventOperation];
+                if (specialEvent) {
+                    console.log(`Événement spécial détecté : ${specialEvent.event}`);
+                    try {
+                        specialEvent.callback(eventData);
+                        console.log(`Callback spécial exécuté pour : ${eventOperation}`);
+                    } catch (err) {
+                        console.error(`Erreur lors de l’exécution du callback spécial pour : ${eventOperation}`, err);
+                    }
+                    return;
+                }
+        
+                // Gestion des opérations standards
+                if (entityConfig.operations.includes(eventOperation)) {
+                    try {
+                        const callbacks = this.callbackManager.configureEntityCallbacks(entityConfig, serviceName, entityName);
+                        if (callbacks[eventOperation]) {
+                            console.log(`Exécution du callback standard pour l’opération : ${eventOperation}`);
+                            this.callbackManager.executeCallbacks(eventOperation, callbacks[eventOperation], eventData);
+                        } else {
+                            console.warn(`Aucun callback trouvé pour l'opération : ${eventOperation}`);
+                        }
+                    } catch (err) {
+                        console.error(`Erreur lors de l’exécution du callback standard pour : ${eventOperation}`, err);
+                    }
+                } else {
+                    console.warn(`Opération non supportée ou non définie : ${eventOperation}`);
+                }
+            } else {
+                console.warn('Événement ignoré, ne correspond pas à l’entité ou au service attendus.', {
+                    routingKey,
+                    eventService,
+                    eventEntity,
+                    eventOperation,
+                    expectedService: serviceName,
+                    expectedEntity: entityName,
+                });
             }
-          });
+        });
+        
+        
+        
         }
       }
     }
