@@ -32,8 +32,8 @@ function generatePayloadForUser(user, subject, templateId, params) {
   // Generate payload
   return {
     sender: {
-      email: "leonceyopa@gmail.com",
-      name: "SERVICES",
+      email: "hello@services.ceo",
+      name: "Services CEO",
     },
     to: [
       {
