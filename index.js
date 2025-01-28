@@ -11,7 +11,6 @@ export { cache } from './src/configs/cache.js';
 export { RabbitMQService } from './src/configs/event.js' 
 export { SMPEvents } from './src/rabbitMq/eventProducers.js'
 export { MailingService } from './src/configs/mailer.js'
-export { MailingServiceFactory } from './src/SMPMailing/MailingFactory.js'
 export {
     updateContext,
     getUserTokenFromHeaders,
