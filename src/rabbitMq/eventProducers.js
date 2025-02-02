@@ -57,6 +57,9 @@ const SMPEvents = {
     Industry: generateCrudOperations('Organization.Industry'),
     TagOrganization: generateCrudOperations('Organization.TagOrganization'),
     TopicOrganization: generateCrudOperations('Organization.TopicOrganization'),
+    JointOrganizationInvitation: { sent: 'Organization.JointOrganizationInvitation.sent' },
+    MemberOrganization: { invited: 'Organization.MemberOrganization.invited', removed: 'Organization.MemberOrganization.removed', updated: 'Organization.MemberOrganization.updated' },
+
   },
 
   Catalog: {
