@@ -4,6 +4,8 @@ import { SMPError, UserInputDataValidationError } from '../utils/SMPError.js'
 
 /**
  * @deprecated
+ * use createAndPublishEntity instead
+ * 
  * Helper to create an entity with a given entity managing description and an app context.
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
  * @param {Any} inputs - The actual inputs to consider for the described entity
@@ -95,6 +97,8 @@ async function entityCreator(entityContext, inputs, appContext) {
 
 /**
  * @deprecated
+ * user updateAndPublishEntity instead
+ * 
  * Helper to update entity with a given entity managing description and a app context
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
  * @param {Any} inputs - The actual inputs to consider for the describted entity
@@ -112,7 +116,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
  * @param {GraphQLContextType} appContext - The GraphQL context of the current query
  * @return {AnyEntity|Error} - The created entity that conforms to the model or an error
  */
-async function saveAndPublishEntity(entityContext, inputs, appContext) {
+export async function saveAndPublishEntity(entityContext, inputs, appContext) {
   // Vérifications préliminaires
   if (!entityContext || typeof entityContext !== 'object') {
     throw new SMPError(`Invalid entity context provided`, 'ERROR_INVALID_ENTITY_CONTEXT');
@@ -261,6 +265,7 @@ async function saveAndPublishEntity(entityContext, inputs, appContext) {
   }
 }
 
+export const createAndPublishEntity = saveAndPublishEntity;
 
 /**
  * Helper to save and publish a new entity with a given entity managing description and an app context.
@@ -417,5 +422,3 @@ export async function updateAndPublishEntity(entityContext, inputs, appContext) 
     }
   }
 }
-
-export {entityCreator, entityUpdater, saveAndPublishEntity } ;
