@@ -105,6 +105,7 @@ const SMPEvents = {
     AuthZ: { allowed: 'AuthZ.allowed', denied: 'AuthZ.denied', removed: 'AuthZ.removed', added: 'AuthZ.added' },
     ResetPasswordToken: generateCrudOperations('Authentication.ResetPasswordToken'),
     Password: generateCrudOperations('Authentication.Password'),
+    UserInvited: {created: 'Authentication.UserInvited.created'},
   },
 
   Authorization: {
