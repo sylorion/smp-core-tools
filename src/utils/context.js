@@ -49,7 +49,7 @@ function authsContext(req) {
 
 function updateContext(defaultContext) {
   const newContext = requestUUIDPlugin(defaultContext);
-  const log = logger.child({ requestId: newContext.requestUUIID });
+  const log = logger.child({ requestId: newContext?.requestUUIID ?? "NO_REQUEST_ID" });
   const auths = defaultContext ? authsContext(defaultContext.request) : {};
   return {...defaultContext, ...{logger: log, cache: cache, config: appConfig }, ...auths }
 }
