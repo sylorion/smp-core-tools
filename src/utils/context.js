@@ -9,7 +9,7 @@ import { db } from '../configs/db.js';
 const requestUUIDPlugin = (defaultContext) => { 
     // SMP::Q:: to identifier quickly request queries from job queries and others
   const requestUniversalUniqID = uuidv4();
-  if (defaultContext.request) {
+  if (defaultContext && defaultContext.request) {
     if (defaultContext.request.options) {
       if (!defaultContext.request.options.headers[appConfig.defaultXAppRequestIDKeyName]) {
         defaultContext.request.options.headers[appConfig.defaultXAppRequestIDKeyName] = `SMP::Q::${requestUniversalUniqID}`;
@@ -39,6 +39,9 @@ function getAppAPIKeyFromHeaders(req) {
 }
 
 function authsContext(req) {
+  if (!req) {
+    return { userBearerToken: '', appAPIKey: '' }
+  }
   const userBearerToken = getUserTokenFromHeaders(req);
   const appAPIKey = getAppAPIKeyFromHeaders(req);
   return { userBearerToken: userBearerToken, appAPIKey: appAPIKey }
@@ -47,7 +50,8 @@ function authsContext(req) {
 function updateContext(defaultContext) {
   const newContext = requestUUIDPlugin(defaultContext);
   const log = logger.child({ requestId: newContext.requestUUIID });
-  return {...defaultContext, ...{logger: log, cache: cache, config: appConfig }, ...authsContext(defaultContext.request) }
+  const auths = defaultContext ? authsContext(defaultContext.request) : {};
+  return {...defaultContext, ...{logger: log, cache: cache, config: appConfig }, ...auths }
 }
 
 export {
