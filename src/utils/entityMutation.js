@@ -31,8 +31,7 @@ async function entityUpdater(entityContext, inputs, appContext) {
 }
 
 /**
- * @deprecated
- * use createAndPublishEntity instead
+ * 
  * Helper to save and publish a new entity with a given entity managing description and an app context.
  * @param {EntityManagingDescription} entityContext - The given parameter from the query client
  * @param {Any} inputs - The actual inputs to consider for the described entity
