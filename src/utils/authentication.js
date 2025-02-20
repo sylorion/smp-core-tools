@@ -146,8 +146,8 @@ class Authentication {
   }
 
   generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
-    const userPayload = user.dataValues ?? { uniqRef: user.uniqRef, userID: user.UserID };
-    const expTime = new Number(Math.floor((new Date().getTime())/1000) + (new Number(expirationDuration)));
+    const userPayload = user.dataValues ?? { uniqRef: user.uniqRef, userID: user.userID };
+    const expTime = Math.floor((new Date().getTime()) / 1000) + expirationDuration;
     return generateJWTToken({...userPayload, maxAge: '350d', exp: expTime}, expirationDuration, secret);
   }
   generateUserRefreshToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration) {
