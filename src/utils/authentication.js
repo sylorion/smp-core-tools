@@ -41,7 +41,7 @@ function verifyJWTToken(token, secret) {
   return verifResult;
 }
 function generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
-  const userPayload = user.dataValues ?? { uniqRef: user.uniqRef, userID: user.UserID };
+  const userPayload = user.dataValues ?? user;
   context?.logger?.info(`Payload: ${JSON.stringify(userPayload)}, expiration duration: ${expirationDuration}, Salt Secret: ${secret}`);
   return generateJWTToken(userPayload, expirationDuration, secret);
 }
@@ -146,7 +146,7 @@ class Authentication {
   }
 
   generateUserToken(context, user, expirationDuration = appConfig.userRefreshTokenDuration, secret = appConfig.userJWTSecretSalt) {
-    const userPayload = user.dataValues ?? { uniqRef: user.uniqRef, userID: user.userID };
+    const userPayload = user.dataValues ?? user;
     const expTime = Math.floor((new Date().getTime()) / 1000) + expirationDuration;
     return generateJWTToken({...userPayload, maxAge: '350d', exp: expTime}, expirationDuration, secret);
   }
