@@ -151,10 +151,12 @@ export async function saveAndPublishEntity(entityContext, inputs, appContext) {
     appContext.logger.info(`Created ${entityContext.entityName} with data: ${JSON.stringify(newEntity)}`);
 
     // Mise à jour du cache
-    if (entityContext.entityCacheSetFn) {
-      let cacheEntryKey = entityContext.entityCacheKey || (entityContext.entityCacheKeyFn && entityContext.entityCacheKeyFn(newEntity));
-      if (cacheEntryKey) {
-        await entityContext.entityCacheSetFn(cacheEntryKey, entityContext.entityCacheValue);
+    if (entityContext.entityCacheSetFn && entityContext.entityCacheValue) {
+      if (entityContext.entityCacheKey || entityContext.entityCacheKeyFn) {
+        let cacheEntryKey = entityContext.entityCacheKey || entityContext.entityCacheKeyFn(newEntity);
+        if (cacheEntryKey) {
+          await entityContext.entityCacheSetFn(cacheEntryKey, entityContext.entityCacheValue);
+        }
       }
     }
 
