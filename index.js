@@ -37,7 +37,7 @@ export {   generateUserToken, Authentication,
   hashTokenWithBCrypt, applicationFromToken, userFromToken } from './src/utils/authentication.js';
 // export { instrumentationsRegistration } from './src/middleware/tracer-provider.js'
 export { isDevelopmentEnv, isProductionEnv } from './src/configs/env.js';
-export { saveAndPublishEntity, updateAndPublishEntity } from './src/utils/entityMutation.js'
+export { saveAndPublishEntity, createAndPublishEntity, updateAndPublishEntity } from './src/utils/entityMutation.js'
 export {
     SMPError, DBaseAccesError, AuthenticationError,
     ExternalAPIAccesError, InternalAPIAccesError,
