@@ -1,3 +1,5 @@
+import { NewsletterContact } from "../../../smp-backend/mu-notification/src";
+
 /**
  * Valid action types for CRUD operations.
  * @constant {Object}
@@ -89,6 +91,9 @@ const SMPEvents = {
     NotificationTemplate: generateCrudOperations('Notification.NotificationTemplate'),
     NotiUser: { created: 'Notification.NotiUser.created' },
     NotiCommit: { created: 'Notification.NotiCommit.created' },
+    NewsletterContact: generateCrudOperations('Notification.NewsletterContact'),
+    ContactGroup: generateCrudOperations('Notification.ContactGroup'),
+    ContactGroupMembership: generateCrudOperations('Notification.ContactGroupMembership'),
   },
 
   ReviewComment: {
