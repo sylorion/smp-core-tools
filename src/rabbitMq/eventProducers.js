@@ -92,8 +92,8 @@ const SMPEvents = {
     NewsletterContact: generateCrudOperations('Notification.NewsletterContact'),
     ContactGroup: generateCrudOperations('Notification.ContactGroup'),
     ContactGroupMembership: generateCrudOperations('Notification.ContactGroupMembership'),
-    Campaign: generateCrudOperations('Notification.Campaign'),
-    Newsletter: generateCrudOperations('Notification.Newsletter'),
+    Campaign: generateCrudOperations('Notification.Campaign', { readyToCommit: 'Notification.Campaign.readyToCommit' }),
+    Newsletter: generateCrudOperations('Notification.Newsletter', { readyToCommit: 'Notification.Newsletter.readyToCommit' }),
   },
 
   ReviewComment: {
