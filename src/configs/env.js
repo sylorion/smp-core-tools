@@ -266,7 +266,8 @@ const cacheConfig = {
 //
 const tagFormationSep = ":"
 const serviceFullName = process.env.SMP_MU_SERVICE_NAME ?? "Unkown";
-const providedServiceVersion = 'V1';
+
+const providedServiceVersion = 'v1';
 const providedServiceType = 'API';
 const componentName = process.env.SMP_MU_SERVICE_NAME ?? "Unkown"
 const componentGroupTrigram = "smp"

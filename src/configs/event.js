@@ -256,6 +256,8 @@ async listenForEvents(queueName, onMessage) {
                     } catch (err) {
                         console.error(`Erreur lors de l’exécution du callback spécial pour : ${eventOperation}`, err);
                     }
+
+                    return;
                 }
         
                 // Gestion des opérations standards
