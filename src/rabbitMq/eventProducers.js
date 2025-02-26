@@ -1,5 +1,3 @@
-import Campain from "../../../smp-core-schema/src/models/Campain";
-
 /**
  * Valid action types for CRUD operations.
  * @constant {Object}
