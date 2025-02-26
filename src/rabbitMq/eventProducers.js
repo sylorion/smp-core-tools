@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { NewsletterContact } from "../../../smp-backend/mu-notification/src";
-
-=======
->>>>>>> 459f9d762501442c80bb5cc69ae6045b7b6d0c74
 /**
  * Valid action types for CRUD operations.
  * @constant {Object}
