@@ -92,7 +92,7 @@ const SMPEvents = {
     NewsletterContact: generateCrudOperations('Notification.NewsletterContact'),
     ContactGroup: generateCrudOperations('Notification.ContactGroup'),
     ContactGroupMembership: generateCrudOperations('Notification.ContactGroupMembership'),
-    Campain: generateCrudOperations('Notification.Campain'),
+    Campaign: generateCrudOperations('Notification.Campaign'),
     Newsletter: generateCrudOperations('Notification.Newsletter'),
   },
 
