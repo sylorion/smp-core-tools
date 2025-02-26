@@ -1,3 +1,5 @@
+import Campain from "../../../smp-core-schema/src/models/Campain";
+
 /**
  * Valid action types for CRUD operations.
  * @constant {Object}
@@ -92,6 +94,8 @@ const SMPEvents = {
     NewsletterContact: generateCrudOperations('Notification.NewsletterContact'),
     ContactGroup: generateCrudOperations('Notification.ContactGroup'),
     ContactGroupMembership: generateCrudOperations('Notification.ContactGroupMembership'),
+    Campain: generateCrudOperations('Notification.Campain'),
+    Newsletter: generateCrudOperations('Notification.Newsletter'),
   },
 
   ReviewComment: {
