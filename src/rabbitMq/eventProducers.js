@@ -63,7 +63,7 @@ const SMPEvents = {
   },
 
   Catalog: {
-    Service: generateCrudOperations('Catalog.Service'),
+    Service: generateCrudOperations('Catalog.Service' , {addedToFavorite: 'Catalog.Service.addedToFavorite'}, {removedFromFavorite: 'Catalog.Service.removedFromFavorite'}),
     Criteria: generateCrudOperations('Catalog.Criteria'),
     Asset: generateCrudOperations('Catalog.Asset'),
     ServiceAsset: generateCrudOperations('Catalog.ServiceAsset'),
@@ -74,6 +74,7 @@ const SMPEvents = {
     ServiceAttribute: generateCrudOperations('Catalog.ServiceAttribute'),
     Topic: generateCrudOperations('Catalog.Topic'),
     Tag: generateCrudOperations('Catalog.Tag'),
+
   },
 
   Accounting: {
