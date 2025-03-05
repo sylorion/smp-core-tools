@@ -39,27 +39,28 @@ function generateCrudOperations(entityName, customEvents = {}) {
  */
 const SMPEvents = {
   UserSpace: {
-    User: generateCrudOperations('UserSpace.User', { deactivated: 'User.deactivated' }),
-    UserRole: generateCrudOperations('UserSpace.UserRole', { dismissed: 'UserRole.dismissed' }),
-    Profile: generateCrudOperations('UserSpace.Profile'),
-    PaymentMethod: generateCrudOperations('UserSpace.PaymentMethod'),
-    PaymentConfig: generateCrudOperations('UserSpace.PaymentConfig'),
-    Role: generateCrudOperations('UserSpace.Role'),
-    UserPreference: generateCrudOperations('UserSpace.UserPreference'),
+    star: 'UserSpace.*',
+    User: generateCrudOperations('UserSpace.User', { deactivated: 'User.deactivated', star: 'User.*'}),
+    UserRole: generateCrudOperations('UserSpace.UserRole', { dismissed: 'UserRole.dismissed', star: 'UserRole.*'}),
+    Profile: generateCrudOperations('UserSpace.Profile', { star: 'Profile.*'}),
+    PaymentMethod: generateCrudOperations('UserSpace.PaymentMethod', { star: 'PaymentMethod.*'}),
+    PaymentConfig: generateCrudOperations('UserSpace.PaymentConfig', { star: 'PaymentConfig.*'}),
+    Role: generateCrudOperations('UserSpace.Role', { star: 'Role.*'}),
+    UserPreference: generateCrudOperations('UserSpace.UserPreference', { star: 'UserPreference.*'}),
   },
 
   Organization: {
-    Organization: generateCrudOperations('Organization.Organization'),
-    UserOrganization: generateCrudOperations('Organization.UserOrganization'),
-    TermsAndConditions: generateCrudOperations('Organization.TermsAndConditions'),
-    FaqOrganization: generateCrudOperations('Organization.FaqOrganization'),
-    OrganizationMedia: generateCrudOperations('Organization.OrganizationMedia'),
-    Industry: generateCrudOperations('Organization.Industry'),
-    TagOrganization: generateCrudOperations('Organization.TagOrganization'),
-    TopicOrganization: generateCrudOperations('Organization.TopicOrganization'),
-    JointOrganizationInvitation: { sent: 'Organization.JointOrganizationInvitation.sent' },
-    MemberOrganization: { invited: 'Organization.MemberOrganization.invited', removed: 'Organization.MemberOrganization.removed', updated: 'Organization.MemberOrganization.updated' },
-
+    star: 'Organization.*',
+    Organization: generateCrudOperations('Organization.Organization', { star: 'Organization.*'}),
+    UserOrganization: generateCrudOperations('Organization.UserOrganization', { star: 'UserOrganization.*'}),
+    TermsAndConditions: generateCrudOperations('Organization.TermsAndConditions', { star: 'TermsAndConditions.*'}),
+    FaqOrganization: generateCrudOperations('Organization.FaqOrganization', { star: 'FaqOrganization.*'}),
+    OrganizationMedia: generateCrudOperations('Organization.OrganizationMedia', { star: 'OrganizationMedia.*'}),
+    Industry: generateCrudOperations('Organization.Industry', { star: 'Industry.*'}),
+    TagOrganization: generateCrudOperations('Organization.TagOrganization', { star: 'TagOrganization.*'}),
+    TopicOrganization: generateCrudOperations('Organization.TopicOrganization', { star: 'TopicOrganization.*'}),
+    JointOrganizationInvitation: { sent: 'Organization.JointOrganizationInvitation.sent', star: 'JointOrganizationInvitation.*' },
+    MemberOrganization: { invited: 'Organization.MemberOrganization.invited', removed: 'Organization.MemberOrganization.removed', updated: 'Organization.MemberOrganization.updated', star: 'MemberOrganization.*' },
   },
 
   Catalog: {
