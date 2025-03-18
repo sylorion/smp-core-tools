@@ -121,6 +121,17 @@ const SMPEvents = {
 
   Document: {
     Media: generateCrudOperations('Document.Media'),
+    MediaFolder: generateCrudOperations('Document.MediaFolder'),
+    EstimateMedia: generateCrudOperations('Document.EstimateMedia'),
+    InvoiceMedia: generateCrudOperations('Document.InvoiceMedia'),
+    TransactionMedia: generateCrudOperations('Document.TransactionMedia'),
+    UserMedia: generateCrudOperations('Document.UserMedia'),
+    OrganizationMedia: generateCrudOperations('Document.OrganizationMedia'),
+    ServiceMedia: generateCrudOperations('Document.ServiceMedia'),
+    ServiceAsset: generateCrudOperations('Document.ServiceAsset'),
+    FaqAnswerMedia: generateCrudOperations('Document.FaqAnswerMedia'),
+    FaqQuestionMedia: generateCrudOperations('Document.FaqQuestionMedia'),
+    
   },
 
   Location: {

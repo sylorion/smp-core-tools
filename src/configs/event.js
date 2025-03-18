@@ -288,8 +288,6 @@ async listenForEvents(queueName, onMessage) {
             }
         });
         
-        
-        
         }
       }
     }
