@@ -5,9 +5,6 @@ import {
   deleteEntityFromDatabase,
 } from './handlerCRUDOperation.js';
 
-/**
- * CallbackManager qui gère le CRUD et les événements spéciaux via muConsumers.
- */
 export class CallbackManager {
   constructor(models, muConsumers, logger = console) {
     this.models = models;
@@ -15,33 +12,60 @@ export class CallbackManager {
     this.logger = logger;
   }
 
-  async handleEvent(serviceName, routingKey, eventData) {
-    const serviceConfig = this.muConsumers[serviceName]; 
+  /**
+   * Parcourt la configuration muConsumers pour trouver le domaine (clé) correspondant à la routing key.
+   * @param {string} routingKey - La routing key reçue.
+   * @returns {Object|null} - La configuration du domaine ou null si non trouvé.
+   */
+  findDomainConfig(routingKey) {
+    console.log("@@@@@@@@@@@@@@@@---------------->", routingKey);
+    for (const [domain, config] of Object.entries(this.muConsumers)) {
+      if (config.routingKeys && Array.isArray(config.routingKeys)) {
+        // On vérifie si l'une des routing keys correspond ou si un wildcard correspond.
+        const found = config.routingKeys.some((rk) => {
+          if (rk.endsWith('.*')) {
+            // Si la clé se termine par wildcard, vérifier le préfixe
+            const prefix = rk.slice(0, -1);
+            return routingKey.startsWith(prefix);
+          }
+          return rk === routingKey;
+        });
+        if (found) return config;
+      }
+    }
+    return null;
+  }
 
-    if (!serviceConfig) {
-      this.logger.warn(`[CallbackManager] No configuration found for service '${serviceName}'`);
+  /**
+   * Gère un événement reçu en identifiant le domaine approprié via la routing key.
+   * @param {string} routingKey - La routing key reçue.
+   * @param {Object} eventData - Les données associées à l'événement.
+   */
+  async handleEvent(routingKey, eventData) {
+    console.log("@@@@@@@@@@@@@@@@---------------->", routingKey);
+
+    const domainConfig = this.findDomainConfig(routingKey);
+    if (!domainConfig) {
+      this.logger.warn(`[CallbackManager] No configuration found for routingKey '${routingKey}'`);
       return;
     }
 
-    const entityName = this.getEntityFromRoutingKey(routingKey);
-    const operation = this.getOperationFromRoutingKey(routingKey);
-
-    if (!entityName || !operation) {
+    // Extraction de l'entité et de l'opération depuis la routing key
+    // Exemple: "rk.catalog.service.created" -> entity: "service", operation: "created"
+    const parts = routingKey.split('.');
+    if (parts.length < 4) {
       this.logger.warn(`[CallbackManager] Invalid routingKey format: '${routingKey}'`);
       return;
     }
+    const entityName = parts[2];   // "service"
+    const operation = parts[3];    // "created"
 
-    if (!serviceConfig.routingKeys.includes(routingKey) && !serviceConfig.specialEvents?.[routingKey]) {
-      this.logger.warn(`[CallbackManager] Event '${routingKey}' is not managed by '${serviceName}'`);
-      return;
-    }
-
-    // Exécuter d'abord le CRUD
+    // Exécuter d'abord le CRUD standard
     await this.executeCrud(entityName, operation, eventData);
 
-    // Exécuter ensuite les callbacks spéciaux
-    if (serviceConfig.specialEvents?.[routingKey]) {
-      await this.executeSpecialCallbacks(serviceConfig.specialEvents[routingKey], eventData);
+    // Ensuite, exécuter les callbacks spéciaux si la configuration le prévoit
+    if (domainConfig.specialEvents && domainConfig.specialEvents[routingKey]) {
+      await this.executeSpecialCallbacks(domainConfig.specialEvents[routingKey], eventData);
     }
   }
 
@@ -51,7 +75,6 @@ export class CallbackManager {
       this.logger.warn(`[CallbackManager] Model '${entityName}' not found. Skipping CRUD.`);
       return;
     }
-
     switch (operation) {
       case 'created':
         return createEntityInDatabase(model, eventData);
@@ -75,16 +98,12 @@ export class CallbackManager {
     }
   }
 
-  getEntityFromRoutingKey(routingKey) {
-    const parts = routingKey.split('.');
-    return parts.length >= 3 ? parts[2] : null;
-  }
-
-  getOperationFromRoutingKey(routingKey) {
-    const parts = routingKey.split('.');
-    return parts.length >= 4 ? parts[3] : null;
-  }
-
+  /**
+   * Récupère le modèle associé à une entité.
+   * Suppose que les modèles sont nommés en PascalCase.
+   * @param {string} entityName - Nom de l'entité (ex: "service")
+   * @returns {Object|null} - Le modèle ou null s'il n'existe pas.
+   */
   getModel(entityName) {
     const normalized = entityName.charAt(0).toUpperCase() + entityName.slice(1).toLowerCase();
     return this.models[normalized] || null;

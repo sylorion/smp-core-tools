@@ -15,15 +15,14 @@ export class RabbitMQService {
       exchangeName: process.env.RABBITMQ_EXCHANGE, 
       durable: true,
       prefetch: 1,
-    });
+    }); 
 
     this.models = models;
     this.muConsumers = muConsumers;
     this.logger = logger;
 
     //  nom du microservice à partir de l'exchange
-    const exchange = process.env.RABBITMQ_EXCHANGE || '';
-    this.serviceName = exchange.split('.')[0] || 'default'; 
+    this.serviceName = process.env.SMP_MU_SERVICE_NAME || 'SMP';
     this.initializer = new RabbitMQInitializer({
       eventBus: this.eventBus,
       models: this.models,
