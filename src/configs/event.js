@@ -41,4 +41,15 @@ export class RabbitMQService {
       this.logger.error('[RabbitMQService] Error starting RabbitMQ:', error);
     }
   }
+
+  /**
+   * Publie un événement en déléguant à RabbitMQEventBus.
+   * @param {string} routingKey - La routing key de l'événement.
+   * @param {Object} message - Le message à publier.
+   */
+  async publish(routingKey, message) {
+    return this.eventBus.publish(routingKey, message);
+  }
+
 }
+
