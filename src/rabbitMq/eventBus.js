@@ -29,6 +29,8 @@ export class RabbitMQEventBus {
       this.connection = await amqp.connect(this.connectionURL);
       this.channel = await this.connection.createChannel();
       await this.channel.assertExchange(this.exchangeName, 'topic', { durable: this.durable });
+      console.log('@@@@@@@@@@@@@--------------------<', this.exchangeName);
+
       this.channel.prefetch(this.prefetch);
       this.isConnected = true;
       this.logger.info('[RabbitMQEventBus] Connected to RabbitMQ');
