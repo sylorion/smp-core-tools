@@ -13,7 +13,7 @@ export class CallbackManager {
   }
 
   /**
-   * Parcourt la configuration muConsumers pour trouver le domaine (clé) correspondant à la routing key.
+   * Parcourt la configuration muConsumers pour trouver le domaine correspondant à la routing key.
    * @param {string} routingKey - La routing key reçue.
    * @returns {Object|null} - La configuration du domaine ou null si non trouvé.
    */
@@ -21,10 +21,8 @@ export class CallbackManager {
     console.log("@@@@@@@@@@@@@@@@---------------->", routingKey);
     for (const [domain, config] of Object.entries(this.muConsumers)) {
       if (config.routingKeys && Array.isArray(config.routingKeys)) {
-        // On vérifie si l'une des routing keys correspond ou si un wildcard correspond.
         const found = config.routingKeys.some((rk) => {
           if (rk.endsWith('.*')) {
-            // Si la clé se termine par wildcard, vérifier le préfixe
             const prefix = rk.slice(0, -1);
             return routingKey.startsWith(prefix);
           }
@@ -37,39 +35,45 @@ export class CallbackManager {
   }
 
   /**
-   * Gère un événement reçu en identifiant le domaine approprié via la routing key.
+   * Gère un événement reçu en identifiant la configuration via la routing key.
    * @param {string} routingKey - La routing key reçue.
-   * @param {Object} eventData - Les données associées à l'événement.
+   * @param {Object} eventData - L'objet reçu (potentiellement enveloppé dans { data: {...} }).
    */
   async handleEvent(routingKey, eventData) {
     console.log("@@@@@@@@@@@@@@@@---------------->", routingKey);
-
+    
+    // Extraction du payload réel : si eventData.data existe, on l'utilise, sinon on utilise eventData.
+    const payload = eventData.data || eventData;
+    
     const domainConfig = this.findDomainConfig(routingKey);
     if (!domainConfig) {
-      this.logger.warn(`[CallbackManager] No configuration found for routingKey '${routingKey}'`);
+      this.logger.warn(`[CallbackManager] No configuration found for '${routingKey}'`);
       return;
     }
 
-    // Extraction de l'entité et de l'opération depuis la routing key
-    // Exemple: "rk.catalog.service.created" -> entity: "service", operation: "created"
     const parts = routingKey.split('.');
     if (parts.length < 4) {
       this.logger.warn(`[CallbackManager] Invalid routingKey format: '${routingKey}'`);
       return;
     }
-    const entityName = parts[2];   // "service"
-    const operation = parts[3];    // "created"
+    const rawEntityName = parts[2];
+    // Convertir en PascalCase pour retrouver le modèle (ex: "service" -> "Service")
+    const entityName = rawEntityName.charAt(0).toUpperCase() + rawEntityName.slice(1).toLowerCase();
+    const operation = parts[3];
 
-    // Exécuter d'abord le CRUD standard
-    await this.executeCrud(entityName, operation, eventData);
+    console.log("####################---------------->", entityName, operation, payload);
 
-    // Ensuite, exécuter les callbacks spéciaux si la configuration le prévoit
+    // Appeler le CRUD standard avec le payload extrait
+    await this.executeCrud(entityName, operation, payload);
+
+    // Appeler les callbacks spéciaux s'ils sont configurés pour cette routing key
     if (domainConfig.specialEvents && domainConfig.specialEvents[routingKey]) {
-      await this.executeSpecialCallbacks(domainConfig.specialEvents[routingKey], eventData);
+      await this.executeSpecialCallbacks(domainConfig.specialEvents[routingKey], payload);
     }
   }
 
   async executeCrud(entityName, operation, eventData) {
+    console.log("####################---------------->", entityName, operation, eventData);
     const model = this.getModel(entityName);
     if (!model) {
       this.logger.warn(`[CallbackManager] Model '${entityName}' not found. Skipping CRUD.`);
@@ -79,9 +83,9 @@ export class CallbackManager {
       case 'created':
         return createEntityInDatabase(model, eventData);
       case 'updated':
-        return updateEntityInDatabase(model, eventData);
+        return updateEntityInDatabase(model, eventData, entityName);
       case 'deleted':
-        return deleteEntityFromDatabase(model, eventData.id);
+        return deleteEntityFromDatabase(model, eventData, entityName);
       default:
         this.logger.warn(`[CallbackManager] Unknown operation '${operation}'. No CRUD performed.`);
     }
@@ -101,7 +105,7 @@ export class CallbackManager {
   /**
    * Récupère le modèle associé à une entité.
    * Suppose que les modèles sont nommés en PascalCase.
-   * @param {string} entityName - Nom de l'entité (ex: "service")
+   * @param {string} entityName - Nom de l'entité (ex: "Service")
    * @returns {Object|null} - Le modèle ou null s'il n'existe pas.
    */
   getModel(entityName) {

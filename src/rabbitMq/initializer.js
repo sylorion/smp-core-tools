@@ -50,7 +50,7 @@ export class RabbitMQInitializer {
           this.logger.info(
             `[RabbitMQInitializer] Received event '${routingKey}' in queue '${queueName}'. Processing...`
           );
-          await this.callbackManager.handleEvent( routingKey, eventData);
+          await this.callbackManager.handleEvent(routingKey, eventData);
         } catch (callbackError) {
           this.logger.error(`[RabbitMQInitializer] Error processing event '${routingKey}':`, callbackError);
         }
