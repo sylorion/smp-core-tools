@@ -120,15 +120,15 @@ if (databaseUsed) {
   let db_schema_file = secretPath + "db_schema";
   let db_sync_file = secretPath + "db_sync";
   
-  const stats = fs.statSync(secretPath, (err, stats) => {
-    if (err) {
-      console.error(err);
-    }
-    // we have access to the file stats in `stats`
-  });
+  let stats;
+  try {
+    stats = fs.statSync(secretPath);
+  } catch (err) {
+    console.warn(err);
+  }
 
   // Check if the path is a directory.
-  if (stats.isDirectory()) {
+  if (stats && stats.isDirectory()) {
     console.log('Path to secret exists');
     if (db_user_file && fs.existsSync(db_user_file)) { 
       usernameDB = fs.readFileSync(db_user_file, 'utf8', (err, data) => {
@@ -225,14 +225,13 @@ if (databaseUsed) {
         if (!err && data) {
           console.log('syncDB: ', data.trim());
         } else {
-          console.error("Path to file ", db_sync_file, " doesn't exists");
+          console.warn("Path to file ", db_sync_file, " doesn't exists");
         }
       });
     }
   } else {
-    console.error("Unable to read secret files from the env module : ", secretPath, " doesn't exist.")
-    console.error(error)
-    console.error("HOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
+    console.warn("Unable to read secret files from the env module : ", secretPath, " doesn't exist.")
+    console.warn("HOPE WE ARE IN DEVELOPMENT ENVIRONMENET")
   }
 }
 
