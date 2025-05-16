@@ -88,6 +88,7 @@ const SMPEvents = {
     ServiceAttribute: generateCrudOperations('Catalog.ServiceAttribute'),
     Topic: generateCrudOperations('Catalog.Topic'),
     Tag: generateCrudOperations('Catalog.Tag'),
+    AssetMedia: generateCrudOperations('Catalog.AssetMedia'),
   },
 
   Accounting: {
