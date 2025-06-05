@@ -165,10 +165,12 @@ const SMPEvents = {
       expired: 'rk.authentication.userinvited.expired'
     },
     WaitingList: {
+      stars: "rk.authentication.waitinglist.*",
       created: 'rk.authentication.waitinglist.created',
+      updated: 'rk.authentication.waitinglist.updated',
+      deleted: 'rk.authentication.waitinglist.deleted',
       confirmed: 'rk.authentication.waitinglist.confirmed',
       emailResent: 'rk.authentication.waitinglist.emailresent',
-      stars: "rk.authentication.waitinglist.*"
     },
   },
 
