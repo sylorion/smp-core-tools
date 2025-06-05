@@ -164,11 +164,12 @@ const SMPEvents = {
       canceled: 'rk.authentication.userinvited.canceled', 
       expired: 'rk.authentication.userinvited.expired'
     },
-    WaitingList:generateCrudOperations('Authentication.WaitingList', {
+    WaitingList: {
+      created: 'rk.authentication.waitinglist.created',
       confirmed: 'rk.authentication.waitinglist.confirmed',
       emailResent: 'rk.authentication.waitinglist.emailresent',
       stars: "rk.authentication.waitinglist.*"
-    }),
+    },
   },
 
   Authorization: {
