@@ -1,12 +1,9 @@
 // /lib/rabbitmq/RabbitMQEventBus.js
 import amqp from 'amqplib';
+import fs from 'fs';
 
 /**
- * Gestionnaire d'événements RabbitMQ
- * - Connexion et gestion de l'échange RabbitMQ
- * - Déclaration des queues et liaison avec les routing keys
- * - Consommation des messages avec un callback
- * - Publication des événements
+ * Gestionnaire d'événements RabbitMQ avec support conditionnel TLS
  */
 export class RabbitMQEventBus {
   constructor({ connectionURL, exchangeName, logger = console, durable = true, prefetch = 1 }) {
@@ -25,8 +22,44 @@ export class RabbitMQEventBus {
    */
   async connect() {
     if (this.isConnected) return;
+
+    const env = process.env.NODE_ENV || 'development';
+
+    let opts = {};
+
+    const isSecureEnv = env === 'staging' || env === 'production';
+    if (isSecureEnv) {
+      const certPath = process.env.CERT_PATH || 'tls.crt';
+      const keyPath = process.env.KEY_PATH || 'tls.key';
+      const caPath = process.env.CA_PATH || 'ca.crt';
+
+      if (!certPath || !keyPath || !caPath) {
+        throw new Error(
+          `[RabbitMQEventBus] Missing TLS configuration in environment variables:
+- RABBITMQ_TLS_CERT=${certPath}
+- RABBITMQ_TLS_KEY=${keyPath}
+- RABBITMQ_TLS_CA=${caPath}`
+        );
+      }
+
+      try {
+        opts = {
+          cert: fs.readFileSync(certPath),
+          key: fs.readFileSync(keyPath),
+          ca: [fs.readFileSync(caPath)],
+          rejectUnauthorized: true,
+          credentials: amqp.credentials.plain(
+            process.env.RABBITMQ_USER || 'guest',
+            process.env.RABBITMQ_PSWD || 'guest'
+          ),
+        };
+      } catch (err) {
+        throw new Error(`[RabbitMQEventBus] Failed to load TLS files: ${err.message}`);
+      }
+    }
+
     try {
-      this.connection = await amqp.connect(this.connectionURL);
+      this.connection = await amqp.connect(this.connectionURL, opts);
       this.channel = await this.connection.createChannel();
       await this.channel.assertExchange(this.exchangeName, 'topic', { durable: this.durable });
       console.log('@@@@@@@@@@@@@--------------------<', this.exchangeName);

@@ -1,38 +1,47 @@
 // src/configs/cache.js
 import redis from 'redis';
+import fs from 'fs';
 import { promisify } from 'util';
+import { appConfig, cacheConfig } from './env.js';
+import { logger } from './logger.js';
 
-import { appConfig, cacheConfig } from './env.js'
-import { logger } from './logger.js'
+const { NODE_ENV } = process.env;
+const useTls = ['staging', 'production'].includes(NODE_ENV);
 
-let client
-let getAsync
-let setAsync
-let promiseClient
-if (!cacheConfig.host){
+let client, getAsync, setAsync, promiseClient;
 
+if (!cacheConfig.host) {
   getAsync = null;
   setAsync = null;
 } else {
-  client = redis.createClient({
-    host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
-    port: cacheConfig.port, // le port du serveur Redis ex. 6379
-    password: cacheConfig.password,
-    username: cacheConfig.username,
-    socket: {
-      host: cacheConfig.host, // l'adresse du serveur Redis ex localhost
-      port: cacheConfig.port, // le port du serveur Redis ex. 6379  
-      reconnectStrategy: function(retries) {
-        if (retries > 20) {
-          console.log("Too many attempts to reconnect. Redis connection was terminated");
-          return new Error("Too many retries.");
-        } else {
-          return retries * 500;
-        }
+  let socketOptions = {
+    host: cacheConfig.host,
+    port: cacheConfig.port,
+  };
+
+  if (useTls) {
+    const sslOptions = {
+      ca: process.env.CA_PATH ? fs.readFileSync(process.env.CA_PATH) : undefined,
+      key: process.env.KEY_PATH ? fs.readFileSync(process.env.KEY_PATH) : undefined,
+      cert: process.env.CERT_PATH ? fs.readFileSync(process.env.CERT_PATH) : undefined,
+    };
+
+    if (!sslOptions.ca || !sslOptions.key || !sslOptions.cert) {
+      throw new Error('SSL options (CA_PATH, KEY_PATH, CERT_PATH) are required in staging or production environments.');
     }
+
+    socketOptions = {
+      ...socketOptions,
+      tls: true,
+      rejectUnauthorized: true,
+      ...sslOptions,
+    };
   }
-  }
-  );
+
+  client = redis.createClient({
+    socket: socketOptions,
+    password: cacheConfig.password,
+  });
 
   function connectionEstablished() {
     logger.info('Connected to Redis at ' + cacheConfig.host + ':' + cacheConfig.port);
