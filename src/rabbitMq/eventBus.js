@@ -7,12 +7,13 @@ import { RABBITMQ_CONFIG, calculateReconnectDelay, isRecoverableError, createCon
  * Gestionnaire d'événements RabbitMQ avec support conditionnel TLS et reconnexion automatique
  */
 export class RabbitMQEventBus {
-  constructor({ connectionURL, exchangeName, logger = console, durable = true, prefetch = 1 }) {
+  constructor({ connectionURL, exchangeName, logger = console, durable = true, prefetch = 1, forceQueueRecreation = false }) {
     this.connectionURL = connectionURL;
     this.exchangeName = exchangeName;
     this.logger = logger;
     this.durable = durable;
     this.prefetch = prefetch;
+    this.forceQueueRecreation = forceQueueRecreation;
     this.connection = null;
     this.channel = null;
     this.isConnected = false;
@@ -241,13 +242,44 @@ export class RabbitMQEventBus {
     if (!this.isConnected) await this.connect();
     
     try {
-      await this.channel.assertQueue(queueName, { 
-        durable: this.durable,
-        arguments: {
-          'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
-          'x-expires': 604800000, // Expire après 7 jours d'inactivité
+      // Vérifier d'abord si la queue existe
+      let queueExists = false;
+      try {
+        await this.channel.checkQueue(queueName);
+        queueExists = true;
+      } catch (error) {
+        // Queue n'existe pas, on peut la créer avec nos paramètres
+        queueExists = false;
+      }
+
+      if (queueExists) {
+        if (this.forceQueueRecreation) {
+          // Forcer la suppression et recréation
+          this.logger.info(`[RabbitMQEventBus] Force recreating queue '${queueName}'`);
+          await this.channel.deleteQueue(queueName);
+          await this.channel.assertQueue(queueName, { 
+            durable: this.durable,
+            arguments: {
+              'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
+              'x-expires': 604800000, // Expire après 7 jours d'inactivité
+            }
+          });
+          this.logger.info(`[RabbitMQEventBus] Recreated queue '${queueName}' with optimized settings`);
+        } else {
+          // Queue existe déjà, on l'utilise telle quelle
+          this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' already exists, using existing configuration`);
         }
-      });
+      } else {
+        // Créer la queue avec nos paramètres optimisés
+        await this.channel.assertQueue(queueName, { 
+          durable: this.durable,
+          arguments: {
+            'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
+            'x-expires': 604800000, // Expire après 7 jours d'inactivité
+          }
+        });
+        this.logger.info(`[RabbitMQEventBus] Created queue '${queueName}' with optimized settings`);
+      }
 
       for (const rk of routingKeys) {
         await this.channel.bindQueue(queueName, this.exchangeName, rk);
