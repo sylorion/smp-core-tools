@@ -242,51 +242,50 @@ export class RabbitMQEventBus {
     if (!this.isConnected) await this.connect();
     
     try {
-      // Vérifier d'abord si la queue existe
-      let queueExists = false;
-      try {
-        await this.channel.checkQueue(queueName);
-        queueExists = true;
-      } catch (error) {
-        // Queue n'existe pas, on peut la créer avec nos paramètres
-        queueExists = false;
+      // S'assurer que le canal est ouvert
+      if (!this.channel || this.channel.connection === null) {
+        await this.connect();
       }
 
-      if (queueExists) {
-        if (this.forceQueueRecreation) {
-          // Forcer la suppression et recréation
-          this.logger.info(`[RabbitMQEventBus] Force recreating queue '${queueName}'`);
+      if (this.forceQueueRecreation) {
+        // Forcer la suppression et recréation
+        try {
           await this.channel.deleteQueue(queueName);
-          await this.channel.assertQueue(queueName, { 
-            durable: this.durable,
-            arguments: {
-              'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
-              'x-expires': 604800000, // Expire après 7 jours d'inactivité
-            }
-          });
-          this.logger.info(`[RabbitMQEventBus] Recreated queue '${queueName}' with optimized settings`);
-        } else {
-          // Queue existe déjà, on l'utilise telle quelle
-          this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' already exists, using existing configuration`);
+          this.logger.info(`[RabbitMQEventBus] Deleted existing queue '${queueName}'`);
+        } catch (error) {
+          // Queue n'existe pas, c'est OK
+          this.logger.debug(`[RabbitMQEventBus] Queue '${queueName}' does not exist, will create it`);
         }
-      } else {
-        // Créer la queue avec nos paramètres optimisés
-        await this.channel.assertQueue(queueName, { 
-          durable: this.durable,
-          arguments: {
-            'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
-            'x-expires': 604800000, // Expire après 7 jours d'inactivité
-          }
-        });
-        this.logger.info(`[RabbitMQEventBus] Created queue '${queueName}' with optimized settings`);
       }
 
+      // assertQueue est idempotent : crée la queue si elle n'existe pas, ou utilise celle existante
+      // C'est plus sûr que checkQueue qui peut fermer le canal si la queue n'existe pas
+      await this.channel.assertQueue(queueName, { 
+        durable: this.durable,
+        arguments: {
+          'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
+          'x-expires': 604800000, // Expire après 7 jours d'inactivité
+        }
+      });
+      this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted with optimized settings`);
+
+      // Lier la queue aux routing keys
       for (const rk of routingKeys) {
         await this.channel.bindQueue(queueName, this.exchangeName, rk);
         this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' bound to routingKey '${rk}'`);
       }
     } catch (error) {
       this.logger.error(`[RabbitMQEventBus] Error binding queue '${queueName}':`, error);
+      // En cas d'erreur, fermer le canal pour forcer une reconnexion propre
+      if (this.channel) {
+        try {
+          await this.channel.close();
+        } catch (closeError) {
+          // Ignorer les erreurs de fermeture
+        }
+        this.channel = null;
+        this.isConnected = false;
+      }
       throw error;
     }
   }
