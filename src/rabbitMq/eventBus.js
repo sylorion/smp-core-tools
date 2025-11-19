@@ -247,27 +247,46 @@ export class RabbitMQEventBus {
         await this.connect();
       }
 
-      if (this.forceQueueRecreation) {
-        // Forcer la suppression et recréation
-        try {
-          await this.channel.deleteQueue(queueName);
-          this.logger.info(`[RabbitMQEventBus] Deleted existing queue '${queueName}'`);
-        } catch (error) {
-          // Queue n'existe pas, c'est OK
-          this.logger.debug(`[RabbitMQEventBus] Queue '${queueName}' does not exist, will create it`);
+      // Gérer le cas où la queue existe déjà avec des arguments différents
+      // RabbitMQ ne permet pas de modifier les arguments d'une queue existante
+      try {
+        // assertQueue est idempotent : crée la queue si elle n'existe pas, ou utilise celle existante
+        // C'est plus sûr que checkQueue qui peut fermer le canal si la queue n'existe pas
+        await this.channel.assertQueue(queueName, { 
+          durable: this.durable,
+          arguments: {
+            'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
+            'x-expires': 604800000, // Expire après 7 jours d'inactivité
+          }
+        });
+        this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted with optimized settings`);
+      } catch (error) {
+        // Si erreur PRECONDITION_FAILED, la queue existe avec des arguments différents
+        // Supprimer et recréer la queue
+        if (error.code === 406 || (error.message && error.message.includes('PRECONDITION_FAILED'))) {
+          this.logger.warn(`[RabbitMQEventBus] Queue '${queueName}' exists with different arguments. Deleting and recreating...`);
+          try {
+            await this.channel.deleteQueue(queueName);
+            this.logger.info(`[RabbitMQEventBus] Deleted existing queue '${queueName}'`);
+            
+            // Recréer la queue avec les bons arguments
+            await this.channel.assertQueue(queueName, { 
+              durable: this.durable,
+              arguments: {
+                'x-message-ttl': 86400000,
+                'x-expires': 604800000,
+              }
+            });
+            this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' recreated with optimized settings`);
+          } catch (deleteError) {
+            this.logger.error(`[RabbitMQEventBus] Failed to delete and recreate queue '${queueName}':`, deleteError);
+            throw deleteError;
+          }
+        } else {
+          // Autre erreur, propager
+          throw error;
         }
       }
-
-      // assertQueue est idempotent : crée la queue si elle n'existe pas, ou utilise celle existante
-      // C'est plus sûr que checkQueue qui peut fermer le canal si la queue n'existe pas
-      await this.channel.assertQueue(queueName, { 
-        durable: this.durable,
-        arguments: {
-          'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
-          'x-expires': 604800000, // Expire après 7 jours d'inactivité
-        }
-      });
-      this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted with optimized settings`);
 
       // Lier la queue aux routing keys
       for (const rk of routingKeys) {

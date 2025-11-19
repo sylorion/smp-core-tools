@@ -30,10 +30,19 @@ if (!cacheConfig.host) {
       throw new Error('SSL options (CA_PATH, KEY_PATH, CERT_PATH) are required in staging or production environments.');
     }
 
+    // For Redis Cluster, certificates may not include all node IPs in SANs
+    // Use checkServerIdentity to bypass IP validation while keeping certificate validation
     socketOptions = {
       ...socketOptions,
       tls: true,
       rejectUnauthorized: true,
+      checkServerIdentity: () => {
+        // Bypass hostname/IP validation for Redis cluster nodes
+        // The certificate is still validated (CA, signature, expiration)
+        // This allows connections to cluster nodes even if IPs don't match SANs
+        // This is safe for internal cluster connections where certificates are trusted
+        return undefined; // Return undefined means "no error" = connection allowed
+      },
       ...sslOptions,
     };
   }
@@ -56,8 +65,9 @@ if (!cacheConfig.host) {
       defaults: {
         password: cacheConfig.password,
         socket: {
+          ...socketOptions,
           tls: useTls,
-          rejectUnauthorized: true,
+          // checkServerIdentity is already set in socketOptions above
         },
       },
       useReplicas: true, // Read from replicas when available
