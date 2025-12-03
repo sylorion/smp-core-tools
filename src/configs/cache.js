@@ -7,12 +7,27 @@ import { logger } from './logger.js';
 
 const { NODE_ENV } = process.env;
 const useTls = ['staging', 'production'].includes(NODE_ENV);
+const isCacheDisabled = process.env.SMP_CACHE_DISABLED === 'true';
 
 let client, getAsync, setAsync, promiseClient;
 
-if (!cacheConfig.host) {
+if (isCacheDisabled) {
+  logger.warn('Redis cache disabled via SMP_CACHE_DISABLED flag');
+  client = null;
   getAsync = null;
   setAsync = null;
+  promiseClient = async () => {
+    logger.info('Skipping Redis initialization because cache is disabled');
+    return null;
+  };
+} else if (!cacheConfig.host) {
+  client = null;
+  getAsync = null;
+  setAsync = null;
+  promiseClient = async () => {
+    logger.info('Redis host not configured, skipping cache initialization');
+    return null;
+  };
 } else {
   let socketOptions = {
     host: cacheConfig.host,
@@ -92,8 +107,8 @@ if (!cacheConfig.host) {
   }
 
   client.on('error', errorThrowing);
-  client.on('connect', connectionEstablished) ;
-  promiseClient = async () => client.connect() ;
+  client.on('connect', connectionEstablished);
+  promiseClient = async () => client.connect();
   
   // For cluster clients, methods are already promises, no need for promisify
   // For standalone clients, we use promisify
