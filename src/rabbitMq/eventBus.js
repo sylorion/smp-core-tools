@@ -250,37 +250,37 @@ export class RabbitMQEventBus {
       // Gérer le cas où la queue existe déjà avec des arguments différents
       // RabbitMQ ne permet pas de modifier les arguments d'une queue existante
       try {
-        // assertQueue est idempotent : crée la queue si elle n'existe pas, ou utilise celle existante
-        // C'est plus sûr que checkQueue qui peut fermer le canal si la queue n'existe pas
+        // Essayer d'abord sans arguments pour utiliser la queue existante si elle existe
         await this.channel.assertQueue(queueName, { 
-          durable: this.durable,
-          arguments: {
-            'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
-            'x-expires': 604800000, // Expire après 7 jours d'inactivité
-          }
+          durable: this.durable
         });
-        this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted with optimized settings`);
+        this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted (using existing or created without TTL)`);
       } catch (error) {
-        // Si erreur PRECONDITION_FAILED, la queue existe avec des arguments différents
-        // Supprimer et recréer la queue
+        // Si erreur, essayer avec les arguments optimisés pour une nouvelle queue
         if (error.code === 406 || (error.message && error.message.includes('PRECONDITION_FAILED'))) {
-          this.logger.warn(`[RabbitMQEventBus] Queue '${queueName}' exists with different arguments. Deleting and recreating...`);
+          this.logger.warn(`[RabbitMQEventBus] Queue '${queueName}' exists with different arguments. Trying with optimized settings...`);
           try {
-            await this.channel.deleteQueue(queueName);
-            this.logger.info(`[RabbitMQEventBus] Deleted existing queue '${queueName}'`);
-            
-            // Recréer la queue avec les bons arguments
+            // Essayer avec les arguments optimisés
             await this.channel.assertQueue(queueName, { 
               durable: this.durable,
               arguments: {
-                'x-message-ttl': 86400000,
-                'x-expires': 604800000,
+                'x-message-ttl': 86400000, // TTL de 24h pour éviter l'accumulation
+                'x-expires': 604800000, // Expire après 7 jours d'inactivité
               }
             });
-            this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' recreated with optimized settings`);
-          } catch (deleteError) {
-            this.logger.error(`[RabbitMQEventBus] Failed to delete and recreate queue '${queueName}':`, deleteError);
-            throw deleteError;
+            this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted with optimized settings`);
+          } catch (optimizedError) {
+            // Si ça échoue encore, utiliser la queue existante sans arguments
+            this.logger.warn(`[RabbitMQEventBus] Cannot create queue with optimized settings. Using existing queue '${queueName}' as-is.`);
+            try {
+              await this.channel.assertQueue(queueName, { 
+                durable: this.durable
+              });
+              this.logger.info(`[RabbitMQEventBus] Queue '${queueName}' asserted without TTL (using existing configuration)`);
+            } catch (finalError) {
+              this.logger.error(`[RabbitMQEventBus] Failed to assert queue '${queueName}':`, finalError);
+              throw finalError;
+            }
           }
         } else {
           // Autre erreur, propager
