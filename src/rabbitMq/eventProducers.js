@@ -172,6 +172,9 @@ const SMPEvents = {
       confirmed: 'rk.authentication.waitinglist.confirmed',
       emailResent: 'rk.authentication.waitinglist.emailresent',
     },
+    Affiliate: generateCrudOperations('Authentication.Affiliate', { 
+      validated: 'rk.authentication.affiliate.validated' 
+    }),
   },
 
   Authorization: {
